@@ -11,7 +11,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    with open('static/css/img/module_template.svg', 'r') as f:
+    with open('static/css/img/module_templatev2.svg', 'r') as f:
         raw_svg = f.read()
     raw_svg = "".join(raw_svg.splitlines())
 

@@ -105,8 +105,16 @@
     var edges = null;
     var network = null;
     var raw_svg = '{{ raw_svg|safe }}';
-    var replaced_svg = raw_svg.replace(/{\[moduleName\]}/g, 'The module name');
-    var url = "data:image/svg+xml;charset=utf-8,"+ encodeURIComponent(replaced_svg);
+
+
+    function construct_node(moduleName, bytes, flowItem, time) {
+        var replaced_svg = raw_svg.replace('\{\{moduleName\}\}', moduleName);
+        var replaced_svg = replaced_svg.replace('\{\{bytes\}\}', bytes);
+        var replaced_svg = replaced_svg.replace('\{\{flowItem\}\}', flowItem);
+        var replaced_svg = replaced_svg.replace('\{\{time\}\}', time);
+        var url = "data:image/svg+xml;charset=utf-8,"+ encodeURIComponent(replaced_svg);
+        return url
+    }
 
     function draw() {
         nodes = [];
@@ -118,8 +126,12 @@
         for (var i = 0; i < nodeCount; i++) {
             nodes.push({
                 id: i,
-                // label: String(i),
-                image: url,
+                image: construct_node(
+                    'Module_'+String(i),
+                    String(i*2)+' bytes / ' + String(i*3)+' bytes',
+                    String(i*5)+' / ' + String(i*4),
+                    String(i*i*i) + ' sec',
+                ),
                 shape: 'image'
             });
 

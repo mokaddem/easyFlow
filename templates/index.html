@@ -97,18 +97,15 @@
 
     <script type="text/javascript">
 
-    var svg1 = '<svg xmlns="http://www.w3.org/2000/svg" width="390" height="65">' +
-        '<rect x="0" y="0" width="100%" height="100%" fill="#7890A7" stroke-width="20" stroke="#ffffff" ></rect>' +
-        '</svg>';
-
     var nodes = null;
     var edges = null;
     var network = null;
-    var raw_svg = '{{ raw_svg|safe }}';
+    var raw_module_svg = '{{ raw_module_svg|safe }}';
+    var raw_buffer_svg = '{{ raw_buffer_svg|safe }}';
 
 
     function construct_node(moduleName, bytes, flowItem, time) {
-        var replaced_svg = raw_svg.replace('\{\{moduleName\}\}', moduleName);
+        var replaced_svg = raw_module_svg.replace('\{\{moduleName\}\}', moduleName);
         var replaced_svg = replaced_svg.replace('\{\{bytes\}\}', bytes);
         var replaced_svg = replaced_svg.replace('\{\{flowItem\}\}', flowItem);
         var replaced_svg = replaced_svg.replace('\{\{time\}\}', time);
@@ -116,15 +113,55 @@
         return url
     }
 
+    function construct_buffer(bufferName, bytes, flowItem) {
+        var replaced_svg = raw_buffer_svg.replace('\{\{bufferName\}\}', bufferName);
+        var replaced_svg = replaced_svg.replace('\{\{bytes\}\}', bytes);
+        var replaced_svg = replaced_svg.replace('\{\{flowItem\}\}', flowItem);
+        var url = "data:image/svg+xml;charset=utf-8,"+ encodeURIComponent(replaced_svg);
+        return url
+    }
+
+    function addBuffer(edgeData) {
+        var i = 99;
+        var buff_id = String(i);
+        nodes.add({ // add the buffer between the 2 nodes
+            id: buff_id,
+            image: construct_buffer(
+                'Buffer',
+                String(i*2)+' bytes / ' + String(i*3)+' bytes',
+                String(i*5)+' / ' + String(i*4),
+            ),
+            shape: 'image',
+            physics: true,
+            mass: 1,
+            size: 15
+        });
+        edges.add({ // link nodes to buffer
+            from: edgeData.from,
+            to: buff_id,
+            arrows: {
+                to: {enabled: true, type:'arrow'}
+            },
+        });
+        edges.add({
+            from: buff_id,
+            to: edgeData.to,
+            arrows: {
+                to: {enabled: true, type:'arrow'}
+            },
+        });
+    }
+
     function draw() {
-        nodes = [];
         edges = [];
         var connectionCount = [];
 
         // randomly create some nodes and edges
+        nodes = new vis.DataSet();
+        edges = new vis.DataSet();
         var nodeCount = 25;
         for (var i = 0; i < nodeCount; i++) {
-            nodes.push({
+            nodes.add({
                 id: i,
                 image: construct_node(
                     'Module_'+String(i),
@@ -132,18 +169,22 @@
                     String(i*5)+' / ' + String(i*4),
                     String(i*i*i) + ' sec',
                 ),
-                shape: 'image'
+                shape: 'image',
+                physics: true,
+                mass: 3
             });
 
             connectionCount[i] = 0;
 
-            // create edges in a scale-free-network way
             if (i == 1) {
                 var from = i;
                 var to = 0;
-                edges.push({
+                edges.add({
                     from: from,
-                    to: to
+                    to: to,
+                    arrows: {
+                        to: {enabled: true, type:'arrow'}
+                    },
                 });
                 connectionCount[from]++;
                 connectionCount[to]++;
@@ -160,9 +201,12 @@
 
                 var from = i;
                 var to = j;
-                edges.push({
+                edges.add({
                     from: from,
-                    to: to
+                    to: to,
+                    arrows: {
+                        to: {enabled: true, type:'arrow'},
+                    },
                 });
                 connectionCount[from]++;
                 connectionCount[to]++;
@@ -189,8 +233,8 @@
                 enabled: true,
                 initiallyActive: true,
                 addNode: function(nodeData, callback) {
-                    nodeData.group = 'diamonds'
                     console.log(nodeData);
+                    nodeData.group = 'diamonds'
                     var span = document.getElementById('operation');
                     var idInput = document.getElementById('node-id');
                     var labelInput = document.getElementById('node-label');
@@ -218,7 +262,8 @@
                     cancelButton.onclick = clearPopUp.bind();
                     div.style.display = 'block';
                 },
-                addEdge: function(edgeData,callback) {
+                addEdge: function(edgeData, callback) {
+                    console.log(edgeData);
                     if (edgeData.from === edgeData.to) {
                         var r = confirm("Do you want to connect the node to itself?");
                         if (r === true) {
@@ -226,7 +271,7 @@
                         }
                     }
                     else {
-                        callback(edgeData);
+                        addBuffer(edgeData);
                     }
                 },
                 editEdge: function(edgeData,callback) {

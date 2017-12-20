@@ -1,0 +1,342 @@
+<!doctype html>
+<html>
+<head>
+    <title>Network | Localization</title>
+
+
+    <!-- Bootstrap Core CSS -->
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/sb-admin-2.css') }}" rel="stylesheet">
+    <!-- LeafLet -->
+
+    <!-- jQuery -->
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <!-- jQuery flot -->
+    <script src="{{ url_for('static', filename='js/jquery.flot.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.flot.pie.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.flot.resize.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.flot.time.js') }}"></script>
+    <!-- Bootstrap Core JavaScript -->
+    <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+    <link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="text/css">
+
+    <link href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" rel="stylesheet" type="text/css" />
+    <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
+
+    <link href="{{ url_for('static', filename='css/vis.min.css') }}" rel="stylesheet" type="text/css" />
+    <script src="{{ url_for('static', filename='js/vis.min.js') }}"></script>
+
+    <style type="text/css">
+    body, select {
+        height: 100%;
+    }
+    #mynetwork {
+        position: absolute;
+        top: 65px;
+        bottom: 0;
+        left: 350px;
+        right: 0;
+        background-color: white;
+        border: 2px solid #d3d3d3;
+    }
+    .sidebar {
+        width: 350px
+    }
+    .panel-heading {
+        font-weight: bold;
+        font-size: medium;
+    }
+    .table > tbody > tr > td, .table > tbody > tr > th, .table > tfoot > tr > td, .table > tfoot > tr > th, .table > thead > tr > td, .table > thead > tr > th {
+        border-bottom: 1px solid #ddd;
+        border-top: 0px solid #ddd;
+    }
+    table.legend_table, td.no_border {
+        border-width: 0px;
+    }
+
+    table.legend_table {
+        font-size: 15px;
+        border-width:1px;
+        border-color:#d3d3d3;
+        border-style:solid;
+    }
+    table.legend_table,td {
+        border-width:1px;
+        border-color:#d3d3d3;
+        border-style:solid;
+        padding: 2px;
+    }
+    div.table_content {
+        width:80px;
+        text-align:center;
+    }
+    div.table_description {
+        width:100px;
+    }
+
+    #operation {
+        font-size:28px;
+    }
+    #network-popUp {
+        display:none;
+        position:absolute;
+        top:350px;
+        left:170px;
+        z-index:299;
+        width:250px;
+        height:120px;
+        background-color: #f9f9f9;
+        border-style:solid;
+        border-width:3px;
+        border-color: #5394ed;
+        padding:10px;
+        text-align: center;
+    }
+    </style>
+
+    <script type="text/javascript">
+
+    var svg1 = '<svg xmlns="http://www.w3.org/2000/svg" width="390" height="65">' +
+        '<rect x="0" y="0" width="100%" height="100%" fill="#7890A7" stroke-width="20" stroke="#ffffff" ></rect>' +
+        '</svg>';
+
+    var nodes = null;
+    var edges = null;
+    var network = null;
+    var raw_svg = '{{ raw_svg|safe }}';
+    var replaced_svg = raw_svg.replace(/{\[moduleName\]}/g, 'The module name');
+    var url = "data:image/svg+xml;charset=utf-8,"+ encodeURIComponent(replaced_svg);
+
+    function draw() {
+        nodes = [];
+        edges = [];
+        var connectionCount = [];
+
+        // randomly create some nodes and edges
+        var nodeCount = 25;
+        for (var i = 0; i < nodeCount; i++) {
+            nodes.push({
+                id: i,
+                // label: String(i),
+                image: url,
+                shape: 'image'
+            });
+
+            connectionCount[i] = 0;
+
+            // create edges in a scale-free-network way
+            if (i == 1) {
+                var from = i;
+                var to = 0;
+                edges.push({
+                    from: from,
+                    to: to
+                });
+                connectionCount[from]++;
+                connectionCount[to]++;
+            }
+            else if (i > 1) {
+                var conn = edges.length * 2;
+                var rand = Math.floor(Math.random() * conn);
+                var cum = 0;
+                var j = 0;
+                while (j < connectionCount.length && cum < rand) {
+                    cum += connectionCount[j];
+                    j++;
+                }
+
+                var from = i;
+                var to = j;
+                edges.push({
+                    from: from,
+                    to: to
+                });
+                connectionCount[from]++;
+                connectionCount[to]++;
+            }
+        }
+
+        // create a network
+        var container = document.getElementById('mynetwork');
+        var data = {
+            nodes: nodes,
+            edges: edges
+        };
+        var options = {
+            physics:{
+                stabilization: false
+            },
+            groups: {
+                diamonds: {
+                    color: {background:'red',border:'white'},
+                    shape: 'diamond'
+                }
+            },
+            manipulation: {
+                enabled: true,
+                initiallyActive: true,
+                addNode: function(nodeData, callback) {
+                    nodeData.group = 'diamonds'
+                    console.log(nodeData);
+                    var span = document.getElementById('operation');
+                    var idInput = document.getElementById('node-id');
+                    var labelInput = document.getElementById('node-label');
+                    var saveButton = document.getElementById('saveButton');
+                    var cancelButton = document.getElementById('cancelButton');
+                    var div = document.getElementById('network-popUp');
+                    span.innerHTML = "Add Node";
+                    idInput.value = nodeData.id;
+                    labelInput.value = nodeData.label;
+                    saveButton.onclick = saveData.bind(this,nodeData,callback);
+                    cancelButton.onclick = clearPopUp.bind();
+                    div.style.display = 'block';
+                },
+                editNode: function(nodeData, callback) {
+                    var span = document.getElementById('operation');
+                    var idInput = document.getElementById('node-id');
+                    var labelInput = document.getElementById('node-label');
+                    var saveButton = document.getElementById('saveButton');
+                    var cancelButton = document.getElementById('cancelButton');
+                    var div = document.getElementById('network-popUp');
+                    span.innerHTML = "Edit Node";
+                    idInput.value = data.id;
+                    labelInput.value = data.label;
+                    saveButton.onclick = saveData.bind(this,data,callback);
+                    cancelButton.onclick = clearPopUp.bind();
+                    div.style.display = 'block';
+                },
+                addEdge: function(edgeData,callback) {
+                    if (edgeData.from === edgeData.to) {
+                        var r = confirm("Do you want to connect the node to itself?");
+                        if (r === true) {
+                            callback(edgeData);
+                        }
+                    }
+                    else {
+                        callback(edgeData);
+                    }
+                },
+                editEdge: function(edgeData,callback) {
+                    if (edgeData.from === edgeData.to) {
+                        var r = confirm("Do you want to connect the node to itself?");
+                        if (r === true) {
+                            callback(edgeData);
+                        }
+                    }
+                    else {
+                        callback(edgeData);
+                    }
+                }
+            }
+        };
+        network = new vis.Network(container, data, options);
+
+        // add event listeners
+        network.on('select', function(params) {
+            document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
+        });
+
+        network.on("resize", function(params) {console.log(params.width,params.height)});
+
+        function clearPopUp() {
+            var saveButton = document.getElementById('saveButton');
+            var cancelButton = document.getElementById('cancelButton');
+            saveButton.onclick = null;
+            cancelButton.onclick = null;
+            var div = document.getElementById('network-popUp');
+            div.style.display = 'none';
+        }
+
+        function saveData(data,callback) {
+            var idInput = document.getElementById('node-id');
+            var labelInput = document.getElementById('node-label');
+            var div = document.getElementById('network-popUp');
+            data.id = idInput.value;
+            data.label = labelInput.value;
+            clearPopUp();
+            callback(data);
+
+        }
+    }
+    </script>
+</head>
+
+<body onload="draw();">
+    <div id="network-popUp">
+        <span id="operation">node</span> <br>
+        <table style="margin:auto;"><tr>
+            <td>id</td><td><input id="node-id" value="new value"></td>
+        </tr>
+        <tr>
+            <td>label</td><td><input id="node-label" value="new value"> </td>
+        </tr></table>
+        <button type="button" value="save" id="saveButton">save</button>
+        <button type="button" value="cancel" id="cancelButton">cancel</button>
+    </div>
+    <br />
+
+    <div id="wrapper">
+
+        <!-- Navigation -->
+        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+            <div class="navbar-header">
+            </div>
+            <!-- /.navbar-header -->
+
+            <div class="navbar-default sidebar" role="navigation">
+                <div class="sidebar-nav navbar-collapse">
+
+                    <div class="panel panel-primary">
+                        <div class="panel-heading">
+                            Control Panel:
+                            <span>Select a module</span>
+                        </div>
+                        <div class="panel-body">
+                            <button type="button" class="btn btn-success"><span class="glyphicon glyphicon-play"></span></button>
+                            <button type="button" class="btn btn-danger"><span class="glyphicon glyphicon-stop"></span></button>
+                            <button type="button" class="btn btn-default"><span class="glyphicon glyphicon-cog "></span></button>
+                        </div>
+                    </div>
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            moduleName
+                        </div>
+                        <div class="panel-body" style="padding: 0px;">
+
+                            <table class="table table-striped" style="margin-bottom: 0px;">
+                                <tbody>
+                                    <tr>
+                                        <td class="no_border">Bytes IN/OUT</td>
+                                        <td class="no_border">12321 bytes / 213 bytes</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="no_border">FlowItem IN/OUT</td>
+                                        <td class="no_border">143/4</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="no_border">Processing time</td>
+                                        <td class="no_border">12s</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                        </div>
+                    </div>
+
+                </div>
+                <!-- /.sidebar-collapse -->
+            </div>
+            <!-- /.navbar-sidebar -->
+
+        </nav>
+
+        <!-- Page Content -->
+        <div id="mynetwork"></div>
+
+    </div>
+
+    <p id="selection"></p>
+</body>
+</html>

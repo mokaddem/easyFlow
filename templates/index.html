@@ -132,7 +132,7 @@
                 String(i*5)+' / ' + String(i*4),
             ),
             shape: 'image',
-            physics: true,
+            physics: false,
             mass: 1,
             size: 15
         });
@@ -170,7 +170,7 @@
                     String(i*i*i) + ' sec',
                 ),
                 shape: 'image',
-                physics: true,
+                physics: false,
                 mass: 3
             });
 
@@ -221,13 +221,24 @@
         };
         var options = {
             physics:{
-                stabilization: false
+                barnesHut: {
+                  springConstant: 0.4,
+                  avoidOverlap: 0.9,
+                  damping: 1
+                },
             },
             groups: {
                 diamonds: {
                     color: {background:'red',border:'white'},
                     shape: 'diamond'
                 }
+            },
+            nodes: {
+                shadow: true,
+            },
+            edges: {
+                color: {color: 'black'},
+                shadow: true,
             },
             manipulation: {
                 enabled: true,

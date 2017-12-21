@@ -67,11 +67,10 @@ function addNode(nodeData) {
 
 function addBuffer(edgeData) {
     if (edgeData.id === undefined) {
-        edgeData.id = guid();
+        alert('no id');
     }
     if (edgeData.x === undefined || edgeData.y === undefined) {
         var centerCoord = getCenterCoord(edgeData.from, edgeData.to);
-        console.log(centerCoord);
         edgeData.x = centerCoord.x;
         edgeData.y = centerCoord.y;
     }
@@ -113,39 +112,6 @@ function draw() {
     // randomly create some nodes and edges
     nodes = new vis.DataSet();
     edges = new vis.DataSet();
-    // var nodeCount = 25;
-    // for (var i = 0; i < nodeCount; i++) {
-    //     var nodeID = i;
-    //     addNode(nodeID);
-    //
-    //     connectionCount[i] = 0;
-    //
-    //     if (i == 1) {
-    //         var from = i;
-    //         var to = 0;
-    //         var edgeData = {from: from, to: to};
-    //         addBuffer(edgeData);
-    //         connectionCount[from]++;
-    //         connectionCount[to]++;
-    //     }
-    //     else if (i > 1) {
-    //         var conn = edges.length * 2;
-    //         var rand = Math.floor(Math.random() * conn);
-    //         var cum = 0;
-    //         var j = 0;
-    //         while (j < connectionCount.length && cum < rand) {
-    //             cum += connectionCount[j];
-    //             j++;
-    //         }
-    //
-    //         var from = i;
-    //         var to = j;
-    //         var edgeData = {from: from, to: to};
-    //         addBuffer(edgeData);
-    //         connectionCount[from]++;
-    //         connectionCount[to]++;
-    //     }
-    // }
 
     // create a network
     var container = document.getElementById('mynetwork');
@@ -215,6 +181,7 @@ function draw() {
                     }
                 }
                 else {
+                    edgeData.id = guid();
                     addBuffer(edgeData);
                 }
             },
@@ -259,9 +226,8 @@ function save_network() {
         type: 'POST',
         data: JSON.stringify(nodes),
         contentType: 'application/json; charset=utf-8',
-        // dataType: 'json',
         success: function(msg) {
-            alert("Flow saved");
+            console.log("Flow saved");
         },
         failure: function(msg, textStatus) {
             alert("An error occured, flow not saved");
@@ -277,7 +243,10 @@ function load_network() {
         for (var node of data.processes) {
             addNode(node);
             for (var connection of node.connections) {
-                var edgeData = {from: node.id, to: connection.toID, x: connection.x, y: connection.y, id: connection.id};
+                var edgeData = {
+                    from: node.id, to: connection.toID, id: connection.BufferID,
+                    x: connection.x, y: connection.y
+                };
                 addBuffer(edgeData);
             }
         }

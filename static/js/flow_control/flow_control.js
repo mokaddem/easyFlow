@@ -277,7 +277,7 @@ function list_projects() {
         });
         projectListDatatable.on('dblclick', 'tr', function () {
             var row = projectListDatatable.row( this ).data();
-            $('#myModal').modal("hide");
+            $('#modalListProject').modal("hide");
             load_network(row);
         });
     } else {

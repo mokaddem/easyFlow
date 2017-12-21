@@ -3,7 +3,7 @@ body, select {
 }
 #mynetwork {
     position: absolute;
-    top: 65px;
+    top: 50px;
     bottom: 0;
     left: 350px;
     right: 0;

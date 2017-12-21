@@ -25,7 +25,7 @@ def read_module_svg_template(filename):
 
 @app.route("/")
 def index():
-    raw_module_svg = read_module_svg_template('module_templatev4')
+    raw_module_svg = read_module_svg_template('module_templatev5')
     raw_buffer_svg = read_module_svg_template('buffer_template')
 
     return render_template('index.html',

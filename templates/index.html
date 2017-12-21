@@ -59,14 +59,17 @@
         <button type="button" value="save" id="saveButton">save</button>
         <button type="button" value="cancel" id="cancelButton">cancel</button>
     </div>
-    <br />
 
     <div id="wrapper">
 
         <!-- Navigation -->
         <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0;">
-            <div class="navbar-header" style="padding-left: 10px;">
-                <button type="button" class="btn btn-default" id="load_network" data-toggle="modal" data-target="#myModal" onclick="list_projects()"><span class="glyphicon glyphicon-open"></span> Load network</button>
+            <div class="navbar-header" style="padding-left: 10px; line-height: 50px;">
+                <div style="height: 50px; border-right:2px solid #c6c6c6; display: inline-block;">
+                    <img src="{{ url_for('static', filename='pics/MISP.png') }}" alt="EasyFlow" style="height: 40px; padding-right: 10px;">
+                </div>
+                <button type="button" class="btn btn-default" id="load_network" data-toggle="modal" data-target="#myModal" onclick="list_projects()" style="margin-left: 10px;"><span class="glyphicon glyphicon-open"></span> Load network</button>
+                <span id="projectName" style="font-size: x-large; line-height: normal; margin-left: 10px; font-weight: bold;"></span>
             </div>
             <!-- /.navbar-header -->
 

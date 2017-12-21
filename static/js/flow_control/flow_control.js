@@ -237,10 +237,11 @@ function save_network() {
     });
 }
 
-function load_network(projectName) {
+function load_network(project) {
     nodes.clear();
     edges.clear();
-    $.getJSON( url_load_network, {projectName: projectName}, function( data ) {
+    $('#projectName').text(project.projectName)
+    $.getJSON( url_load_network, {projectName: project.projectFilename}, function( data ) {
         for (var node of data.processes) {
             addNode(node);
             for (var connection of node.connections) {
@@ -277,7 +278,7 @@ function list_projects() {
         projectListDatatable.on('dblclick', 'tr', function () {
             var row = projectListDatatable.row( this ).data();
             $('#myModal').modal("hide");
-            load_network(row.projectFilename);
+            load_network(row);
         });
     } else {
         projectListDatatable.ajax.reload();

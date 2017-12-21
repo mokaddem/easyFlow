@@ -1,6 +1,7 @@
 var nodes = null;
 var edges = null;
 var network = null;
+var projectListDatatable = null;
 
 function construct_node(moduleName, bytes, flowItem, time) {
     var replaced_svg = raw_module_svg.replace('\{\{moduleName\}\}', moduleName);
@@ -236,10 +237,10 @@ function save_network() {
     });
 }
 
-function load_network() {
+function load_network(projectName) {
     nodes.clear();
     edges.clear();
-    $.getJSON( url_load_network, function( data ) {
+    $.getJSON( url_load_network, {projectName: projectName}, function( data ) {
         for (var node of data.processes) {
             addNode(node);
             for (var connection of node.connections) {
@@ -252,6 +253,37 @@ function load_network() {
         }
     });
 }
+
+function list_projects() {
+    if (projectListDatatable == null) {
+        projectListDatatable = $('#projectList').DataTable( {
+            "ajax": {
+                "url": url_get_projects,
+                "dataSrc": ""
+            },
+            "columns": [
+                { data: "projectName" },
+                {
+                    data: "creationDate",
+                    render: function(data, type, row) {
+                        var d = new Date(parseInt(data)*1000);
+                        return type === "display" || type === "filter" ?
+                            d.toLocaleString() : d;
+                    }
+                },
+                { data: "processNum" }
+            ]
+        });
+        projectListDatatable.on('dblclick', 'tr', function () {
+            var row = projectListDatatable.row( this ).data();
+            $('#myModal').modal("hide");
+            load_network(row.projectFilename);
+        });
+    } else {
+        projectListDatatable.ajax.reload();
+    }
+}
+
 
 
 /* FORM CREATION */

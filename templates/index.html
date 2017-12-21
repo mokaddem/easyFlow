@@ -23,11 +23,16 @@
     <link href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" rel="stylesheet" type="text/css" />
     <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
 
+    <!-- dataTable -->
+    <link href="{{ url_for('static', filename='css/dataTables.bootstrap.css') }}" rel="stylesheet" type="text/css" />
+    <script src="{{ url_for('static', filename='js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dataTables.bootstrap.js') }}"></script>
+
+    <!-- vis.js -->
     <link href="{{ url_for('static', filename='css/vis.min.css') }}" rel="stylesheet" type="text/css" />
     <script src="{{ url_for('static', filename='js/vis.min.js') }}"></script>
 
     <link type="text/css" href="{{ url_for('static', filename='css/flow_control/flow_control.css') }}" rel="stylesheet"/>
-
     <script type="text/javascript">
         /* VARS */
         var raw_module_svg = '{{ raw_module_svg|safe }}';
@@ -36,6 +41,7 @@
         /* URLS */
         var url_save_network = '{{ url_for("save_network") }}';
         var url_load_network = '{{ url_for("load_network") }}';
+        var url_get_projects = '{{ url_for("get_projects") }}';
     </script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/flow_control.js') }}"></script>
 
@@ -60,8 +66,7 @@
         <!-- Navigation -->
         <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0;">
             <div class="navbar-header" style="padding-left: 10px;">
-                <button type="button" class="btn btn-default" id="save_network" onclick="save_network()"><span class="glyphicon glyphicon-save"></span> Save network</button>
-                <button type="button" class="btn btn-default" id="load_network" onclick="load_network()"><span class="glyphicon glyphicon-open"></span> Load network</button>
+                <button type="button" class="btn btn-default" id="load_network" data-toggle="modal" data-target="#myModal" onclick="list_projects()"><span class="glyphicon glyphicon-open"></span> Load network</button>
             </div>
             <!-- /.navbar-header -->
 
@@ -103,8 +108,31 @@
                 <!-- /.sidebar-collapse -->
             </div>
             <!-- /.navbar-sidebar -->
-
         </nav>
+
+        <div id="myModal" class="modal fade" role="dialog">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                         <h4 class="modal-title">Load projects</h4>
+                    </div><!-- /modal-header -->
+                    <div class="modal-body">
+
+                        <table id="projectList" style="width: 100%;" class="table table-striped table-hover responsive">
+                            <thead>
+                                <tr>
+                                    <th>Project name</th>
+                                    <th>Creation date</th>
+                                    <th>Number of processes</th>
+                                </tr>
+                            </thead>
+                        </table>
+
+                    </div><!-- /modal-body -->
+                </div><!-- /modal-content -->
+            </div><!-- /modal-dialog -->
+        </div>
 
         <!-- Page Content -->
         <div id="mynetwork"></div>

@@ -1,0 +1,38 @@
+{
+    "projectName": "Just a test project",
+    "creationDate": 1513854352,
+    "processNum": 0,
+    "processes": [
+            {
+                "id": "b9a7c9c0-db04-4f1e-aa32-29efdacc13aa", 
+                "x": 0, 
+                "y": 0, 
+                "connections": [
+                        {
+                            "BufferID": "0c12b620-7192-44d5-a7ab-5989339d09a8",
+                            "x": 100,
+                            "y": 100,
+                            "toID": "b7645724-9599-45fa-a422-3e0fd3476340"
+                        },
+                        {
+                            "BufferID": "85c4cbce-9eba-40f6-8627-aaf2dea3ddd6",
+                            "x": -100,
+                            "y": -100,
+                            "toID": "7f7945ef-ebb5-4ea9-bda3-0020d75206e6"
+                        }
+                    ]
+                },
+                {
+                    "id": "b7645724-9599-45fa-a422-3e0fd3476340",
+                    "x": 200,
+                    "y": 200,
+                    "connections": []
+                },
+                {
+                    "id": "7f7945ef-ebb5-4ea9-bda3-0020d75206e6",
+                    "x": -200,
+                    "y": -200,
+                    "connections": []
+                }
+    ]
+}

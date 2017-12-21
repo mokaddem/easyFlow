@@ -1,4 +1,5 @@
 #!/usr/bin/env python3.5
+
 from flask import Flask, render_template, request, Response, jsonify
 import json
 import random, math
@@ -7,11 +8,13 @@ from time import sleep, strftime
 import datetime
 import os
 import uuid
+import flow_project_manager
 
 def genUUID():
     return str(uuid.uuid4())
 
 app = Flask(__name__)
+flow_project_manager = flow_project_manager.Flow_project_manager()
 
 def read_module_svg_template(filename):
     with open('static/css/img/{}.svg'.format(filename), 'r') as f:
@@ -38,20 +41,14 @@ def save_network():
 
 @app.route("/load_network")
 def load_network():
-    uuid1 = genUUID(); uuid2 = genUUID(); uuid3 = genUUID()
-    dummy = {
-        'processes':
-            [
-                {'id': uuid1, 'x': 0, 'y': 0, 'connections': [
-                        {'BufferID': genUUID(), 'x': 100, 'y': 100, 'toID': uuid2 },
-                        {'BufferID': genUUID(), 'x': -100, 'y': -100, 'toID': uuid3 }
-                    ]
-                },
-                {'id': uuid2, 'x': 200, 'y': 200, 'connections': []},
-                {'id': uuid3, 'x': -200, 'y': -200, 'connections': []}
-            ]
-    }
-    return jsonify(dummy)
+    projectName = request.args.get('projectName', None)
+    project = flow_project_manager.get_project(projectName)
+    return jsonify(project)
+
+@app.route("/get_projects")
+def get_projects():
+    projects = flow_project_manager.get_project_list()
+    return jsonify(projects)
 
 if __name__ == '__main__':
     app.run(host='localhost', port=9090,  threaded=True)

@@ -2,8 +2,18 @@ class InnerRepresentation {
     constructor() {
         this.nodes = new vis.DataSet();
         this.edges = new vis.DataSet();
-        this.bufferObj = {};
         this.processObj = {};
+        this.bufferObj = {};
+    }
+
+    nodeType(nodeID) {
+        if (innerRepresentation.processObj[nodeID] != undefined) {
+            return 'process';
+        } else if (innerRepresentation.bufferObj[nodeID] != undefined) {
+            return 'buffer';
+        } else {
+            return 'unknown';
+        }
     }
 
     clear() {

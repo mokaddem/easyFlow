@@ -58,7 +58,7 @@ function list_projects() {
             "columns": [
                 { data: "projectName" },
                 {
-                    data: "creationDate",
+                    data: "creationTimestamp",
                     render: function(data, type, row) {
                         var d = new Date(parseInt(data)*1000);
                         return type === "display" || type === "filter" ?
@@ -102,14 +102,14 @@ function editProject(rowID) {
         // send rename operation
         var data = rowData;
         data.newProjectName = newProjectName;
-        execute_operation('rename', data)
+        execute_operation('rename', data);
     }
 }
 
 function deleteProject(rowID) {
     var rowData = projectListDatatable.row(rowID).data();
     if(confirm('Delete project \"'+rowData.projectName+'\"')) {
-        // send delete operation
+        execute_operation('delete', rowData);
     }
 }
 
@@ -119,5 +119,6 @@ function createProject() {
     inputField.val('');
     $('#modalCreateProject').modal("hide");
     list_projects();
-    // send create operation
+    var data = { projectName: projectName}
+    execute_operation('create', data);
 }

@@ -22,6 +22,7 @@ function toggle_loading(display) {
 }
 
 function execute_operation(operation, data) {
+    data.operation = operation;
     $.ajax({
         type: "POST",
         url: url_project_operation,
@@ -30,5 +31,5 @@ function execute_operation(operation, data) {
         beforeSend: function() { toggle_loading(true); },
         complete: function() { toggle_loading(false); }
     });
-    return false;
+    list_projects();
 }

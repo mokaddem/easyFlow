@@ -36,7 +36,6 @@ def index():
 @app.route("/save_network", methods=['POST'])
 def save_network():
     data = request.get_json()
-    print(data)
     return 'OK'
 
 @app.route("/load_network")
@@ -53,12 +52,9 @@ def get_projects():
 @app.route("/project_operation", methods=['POST'])
 def project_operation():
     data = request.get_json()
-    projectName = data.get('projectName', None)
     operation = data.get('operation', None)
-    import time
-    time.sleep(2)
-    #status = flow_project_manager.applyOperation(projectName, operation)
-    return 'OK'
+    status = flow_project_manager.applyOperation(data, operation)
+    return jsonify(status)
 
 if __name__ == '__main__':
     app.run(host='localhost', port=9090,  threaded=True)

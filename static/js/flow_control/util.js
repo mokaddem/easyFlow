@@ -14,3 +14,21 @@ function objectToArray(obj) {
         return obj[key];
     });
 }
+
+function toggle_loading(display) {
+    $('#loaderBack').toggleClass('loader-background', display);
+    $('#loaderBack').toggle(display);
+    $('#loader').toggle(display);
+}
+
+function execute_operation(operation, data) {
+    $.ajax({
+        type: "POST",
+        url: url_project_operation,
+        data: JSON.stringify(data),
+        contentType: 'application/json; charset=utf-8',
+        beforeSend: function() { toggle_loading(true); },
+        complete: function() { toggle_loading(false); }
+    });
+    return false;
+}

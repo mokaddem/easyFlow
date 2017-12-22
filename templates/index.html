@@ -43,6 +43,7 @@
         var url_save_network = '{{ url_for("save_network") }}';
         var url_load_network = '{{ url_for("load_network") }}';
         var url_get_projects = '{{ url_for("get_projects") }}';
+        var url_project_operation = '{{ url_for("project_operation") }}';
 
         /* GLOBAL VARS */
         var nodes = null;
@@ -57,6 +58,7 @@
 </head>
 
 <body onload="draw();">
+    <div id="loaderBack" class="loader-background" style="display: none;"><div id="loader" class="loader" style="display: none;"></div></div>
     <div id="network-popUp">
         <span id="operation">node</span> <br>
         <table style="margin:auto;"><tr>
@@ -167,7 +169,7 @@
                     </div><!-- /modal-body -->
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary">Create</button>
+                        <button type="button" class="btn btn-primary" onclick="createProject()">Create</button>
                     </div>
                 </div><!-- /modal-content -->
             </div><!-- /modal-dialog -->

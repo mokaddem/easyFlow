@@ -50,9 +50,7 @@ function list_projects() {
                     text: 'Create new project',
                     action: function ( e, dt, node, config ) {
                         // call create project modal
-                        $('#modalCreateProject').modal({
-                            show: true
-                        })
+                        $('#modalCreateProject').modal("show");
                     },
                     className: "btn btn-info",
                 }
@@ -102,6 +100,9 @@ function editProject(rowID) {
         // User cancelled the prompt
     } else {
         // send rename operation
+        var data = rowData;
+        data.newProjectName = newProjectName;
+        execute_operation('rename', data)
     }
 }
 
@@ -110,4 +111,13 @@ function deleteProject(rowID) {
     if(confirm('Delete project \"'+rowData.projectName+'\"')) {
         // send delete operation
     }
+}
+
+function createProject() {
+    var inputField = $('#newProjectName');
+    var projectName = inputField.val();
+    inputField.val('');
+    $('#modalCreateProject').modal("hide");
+    list_projects();
+    // send create operation
 }

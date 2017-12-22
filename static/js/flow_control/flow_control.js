@@ -1,8 +1,3 @@
-var nodes = null;
-var edges = null;
-var network = null;
-var projectListDatatable = null;
-
 function construct_node(moduleName, bytes, flowItem, time) {
     var replaced_svg = raw_module_svg.replace('\{\{moduleName\}\}', moduleName);
     var replaced_svg = replaced_svg.replace('\{\{bytes\}\}', bytes);
@@ -25,16 +20,6 @@ function getCenterCoord(fromID, toID) {
     var centerX = pos[fromID].x + (pos[toID].x - pos[fromID].x)/2;
     var centerY = pos[fromID].y + (pos[toID].y - pos[fromID].y)/2;
     return {x: centerX, y: centerY};
-}
-
-function guid() {
-    function s4() {
-        return Math.floor((1 + Math.random()) * 0x10000)
-          .toString(16)
-          .substring(1);
-    }
-    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-    s4() + '-' + s4() + s4() + s4();
 }
 
 // edgeData = {from: nodeID, to: nodeID}
@@ -208,84 +193,6 @@ function draw() {
         $('#selectedNode').text(selectedNodes)
     });
 }
-
-function objectToArray(obj) {
-    return Object.keys(obj).map(function (key) {
-        obj[key].id = key;
-        return obj[key];
-    });
-}
-
-function save_network() {
-    var nodes = network.getPositions();
-    nodes = objectToArray(nodes);
-    nodes.forEach(function(node) {
-        node.connections = network.getConnectedNodes(node.id, 'to');
-    });
-    $.ajax({
-        url: url_save_network,
-        type: 'POST',
-        data: JSON.stringify(nodes),
-        contentType: 'application/json; charset=utf-8',
-        success: function(msg) {
-            console.log("Flow saved");
-        },
-        failure: function(msg, textStatus) {
-            alert("An error occured, flow not saved");
-            console.log(msg, textStatus);
-        }
-    });
-}
-
-function load_network(project) {
-    nodes.clear();
-    edges.clear();
-    $('#projectName').text(project.projectName)
-    $.getJSON( url_load_network, {projectName: project.projectFilename}, function( data ) {
-        for (var node of data.processes) {
-            addNode(node);
-            for (var connection of node.connections) {
-                var edgeData = {
-                    from: node.id, to: connection.toID, id: connection.BufferID,
-                    x: connection.x, y: connection.y
-                };
-                addBuffer(edgeData);
-            }
-        }
-    });
-}
-
-function list_projects() {
-    if (projectListDatatable == null) {
-        projectListDatatable = $('#projectList').DataTable( {
-            "ajax": {
-                "url": url_get_projects,
-                "dataSrc": ""
-            },
-            "columns": [
-                { data: "projectName" },
-                {
-                    data: "creationDate",
-                    render: function(data, type, row) {
-                        var d = new Date(parseInt(data)*1000);
-                        return type === "display" || type === "filter" ?
-                            d.toLocaleString() : d;
-                    }
-                },
-                { data: "processNum" }
-            ]
-        });
-        projectListDatatable.on('dblclick', 'tr', function () {
-            var row = projectListDatatable.row( this ).data();
-            $('#modalListProject').modal("hide");
-            load_network(row);
-        });
-    } else {
-        projectListDatatable.ajax.reload();
-    }
-}
-
-
 
 /* FORM CREATION */
 function clearPopUp() {

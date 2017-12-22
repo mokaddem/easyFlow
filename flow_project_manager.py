@@ -63,7 +63,6 @@ class Project:
         filename = projectName.replace(' ', '_') + '.json'
         return filename
 
-
 class Flow_project_manager:
     def __init__(self):
         self.project_directory = 'projects/'

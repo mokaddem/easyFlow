@@ -46,11 +46,13 @@
         var url_project_operation = '{{ url_for("project_operation") }}';
 
         /* GLOBAL VARS */
+        var innerRepresentation = null;
         var nodes = null;
         var edges = null;
         var network = null;
         var projectListDatatable = null;
     </script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/inner_representation.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/flow_control.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/util.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/projects_control.js') }}"></script>
@@ -89,14 +91,19 @@
 
                     <div class="panel panel-primary">
                         <div class="panel-heading">
-                            Control Panel:
-                            <span id='selectedNode'>Select a module</span>
+                            <span id='selectedNodeName'></span>
+                            <span id='selectedNodeID'></span>
                         </div>
                         <div class="panel-body" style="padding: 0px;">
                             <div>
+                                <div style="display: inline-block;">
                                 <button type="button" class="btn btn-success" style="display: inline-block; margin: 5px;"><span class="glyphicon glyphicon-play"></span></button>
                                 <button type="button" class="btn btn-danger" style="display: inline-block; margin: 5px; margin-left: 0px;"><span class="glyphicon glyphicon-stop"></span></button>
-                                <button type="button" class="btn btn-default" style="display: inline-block; margin: 5px; float: right;"><span class="glyphicon glyphicon-cog "></span></button>
+                                </div>
+                                <div style="display: inline-block; float:right;">
+                                <button type="button" class="btn btn-default" style="display: inline-block; margin: 5px;"><span class="glyphicon glyphicon-cog "></span></button>
+                                <button type="button" class="btn btn-info" style="display: inline-block; margin: 5px;  margin-left: 0px;"><span class="glyphicon glyphicon-list-alt "></span></button>
+                                </div>
                             </div>
                             <table class="table table-striped" style="margin-bottom: 0px;">
                                 <tbody>

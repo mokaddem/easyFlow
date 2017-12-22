@@ -19,21 +19,10 @@ function save_network() {
     });
 }
 
-function load_network(project) {
-    nodes.clear();
-    edges.clear();
+function load_project(project) {
     $('#projectName').text(project.projectName)
     $.getJSON( url_load_network, {projectName: project.projectFilename}, function( data ) {
-        for (var node of data.processes) {
-            addNode(node);
-            for (var connection of node.connections) {
-                var edgeData = {
-                    from: node.id, to: connection.toID, id: connection.BufferID,
-                    x: connection.x, y: connection.y
-                };
-                addBuffer(edgeData);
-            }
-        }
+        innerRepresentation.load_network(data.processes);
     });
 }
 
@@ -86,7 +75,7 @@ function list_projects() {
             }
             var row = projectListDatatable.row( this ).data();
             $('#modalListProject').modal("hide");
-            load_network(row);
+            load_project(row);
         });
     } else {
         projectListDatatable.ajax.reload();

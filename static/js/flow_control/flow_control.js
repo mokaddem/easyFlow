@@ -121,7 +121,7 @@ function draw() {
         handleNodeSelection(params);
     });
 }
-
+setTimeout(function(){innerRepresentation.update();}, 6000);
 function handleNodeSelection(params) {
     selectedNodes = params.nodes;
     if(selectedNodes.length > 1) {

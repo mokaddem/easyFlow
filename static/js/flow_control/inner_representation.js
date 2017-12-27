@@ -4,6 +4,17 @@ class InnerRepresentation {
         this.edges = new vis.DataSet();
         this.processObj = {};
         this.bufferObj = {};
+        this.updateSocket = io.connect('http://' + document.domain + ':' + location.port + '/update');
+
+        this.updateSocket.on('update', function(msg) {
+            console.log('Received: ' + msg.data);
+            var state = msg.state;
+        });
+    }
+
+    update() {
+        this.updateSocket.emit('updateRequest', {data: "Here's some text that the server is urgently awaiting!"});
+        return false;
     }
 
     nodeType(nodeID) {

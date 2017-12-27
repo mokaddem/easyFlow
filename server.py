@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.5
 
 from flask import Flask, render_template, request, Response, jsonify
+from flask_socketio import SocketIO, emit
 import json
 import random, math
 import configparser
@@ -8,13 +9,18 @@ from time import sleep, strftime
 import datetime
 import os
 import uuid
+
 import flow_project_manager
+import flow_realtime_db
 
 def genUUID():
     return str(uuid.uuid4())
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'secret!'
+socketio = SocketIO(app)
 flow_project_manager = flow_project_manager.Flow_project_manager()
+flow_realtime_db = flow_realtime_db.Realtime_db()
 
 def read_module_svg_template(filename):
     with open('static/css/img/{}.svg'.format(filename), 'r') as f:
@@ -56,5 +62,12 @@ def project_operation():
     status = flow_project_manager.applyOperation(data, operation)
     return jsonify(status)
 
+''' SOCKET.IO '''
+@socketio.on('updateRequest', namespace='/update')
+def test_message(message):
+    print(message)
+    state = flow_realtime_db.get_state()
+    emit('update', {'data': state})
+
 if __name__ == '__main__':
-    app.run(host='localhost', port=9090,  threaded=True)
+    socketio.run(app, host='127.0.0.1', port=9090,  debug = True)

@@ -21,30 +21,12 @@ function toggle_loading(display) {
     $('#loader').toggle(display);
 }
 
-function execute_operation(operation, data) {
-    data.operation = operation;
-    $.ajax({
-        type: "POST",
-        url: url_project_operation,
-        data: JSON.stringify(data),
-        contentType: 'application/json; charset=utf-8',
-        beforeSend: function() { toggle_loading(true); },
-        complete: function() { toggle_loading(false); }
-    });
-    list_projects();
-}
-
-function send_file(formID, url) {
-    var form = $('#'+formID)[0];
-    var formData = new FormData(form);
-    $.ajax({
-      url: url,
-      type: 'POST',
-      processData: false, // important
-      contentType: false, // important
-      data: formData,
-      beforeSend: function() { toggle_loading(true); },
-      complete: function() { toggle_loading(false); }
-    });
-    list_projects();
+// merge fields of obj2 into obj1
+function mergeInto(obj1, obj2) {
+    for (var key in obj2) {
+        if (obj2.hasOwnProperty(key)) {
+            obj1[key] = obj2[key];
+        }
+    }
+    return obj1;
 }

@@ -1,5 +1,6 @@
 function draw() {
     innerRepresentation = new InnerRepresentation();
+    flowControl = new FlowControl();
 
     // create a network
     var container = document.getElementById('mynetwork');
@@ -102,7 +103,8 @@ function draw() {
                     x: ResDOMtoCanvas.x,
                     y: ResDOMtoCanvas.y
                 };
-                innerRepresentation.addNode(nodeData);
+                // innerRepresentation.addNode(nodeData);
+                flowControl.handleDrop(nodeData);
             }
     });
 }

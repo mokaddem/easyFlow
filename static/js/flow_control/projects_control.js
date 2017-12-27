@@ -19,6 +19,34 @@ function save_network() {
     });
 }
 
+function execute_operation(operation, data) {
+    data.operation = operation;
+    $.ajax({
+        type: "POST",
+        url: url_project_operation,
+        data: JSON.stringify(data),
+        contentType: 'application/json; charset=utf-8',
+        beforeSend: function() { toggle_loading(true); },
+        complete: function() { toggle_loading(false); }
+    });
+    list_projects();
+}
+
+function send_file(formID, url) {
+    var form = $('#'+formID)[0];
+    var formData = new FormData(form);
+    $.ajax({
+      url: url,
+      type: 'POST',
+      processData: false, // important
+      contentType: false, // important
+      data: formData,
+      beforeSend: function() { toggle_loading(true); },
+      complete: function() { toggle_loading(false); }
+    });
+    list_projects();
+}
+
 function load_project(project) {
     $('#projectName').text(project.projectName)
     $.getJSON( url_load_network, {projectName: project.projectFilename}, function( data ) {

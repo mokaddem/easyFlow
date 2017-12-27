@@ -92,6 +92,14 @@ def project_operation():
     status = flow_project_manager.applyOperation(data, operation)
     return jsonify(status)
 
+@app.route("/flow_operation", methods=['POST'])
+def flow_operation():
+    data = request.get_json()
+    operation = data.get('operation', None)
+    sleep(1)
+    status = flow_realtime_db.applyOperation(operation, data)
+    return jsonify(status)
+
 ''' SOCKET.IO '''
 @socketio.on('updateRequest', namespace='/update')
 def test_message(message):

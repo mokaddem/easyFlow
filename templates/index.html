@@ -48,18 +48,21 @@
         var url_get_projects = '{{ url_for("get_projects") }}';
         var url_upload_project = '{{ url_for("upload_file") }}';
         var url_project_operation = '{{ url_for("project_operation") }}';
+        var url_flow_operation = '{{ url_for("flow_operation") }}';
 
         /* GLOBAL VARS */
         var innerRepresentation = null;
         var nodes = null;
         var edges = null;
         var network = null;
+        var flowControl = null;
         var projectListDatatable = null;
     </script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/inner_representation.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/flow_control.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/init.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/util.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/projects_control.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/flow_control.js') }}"></script>
 
 </head>
 

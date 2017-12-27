@@ -1,14 +1,39 @@
 body, select {
     height: 100%;
 }
+
 #mynetwork {
     position: absolute;
-    top: 50px;
+    top: 117px;
     bottom: 0;
     left: 350px;
     right: 0;
     background-color: white;
     border: 2px solid #d3d3d3;
+}
+
+#networkToolbar {
+    height: 65px;
+    width: calc(100% - 350px);
+    left: 350px;
+    padding: 3px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.toolbarBtn {
+    width: 62px;
+    height: 62px;
+    margin: 3px;
+    padding: 0px;
+}
+.toolbarBtn > span {
+    background-size: contain !important;
+    cursor: pointer;
+    display: inline-block;
+    background-size: contain;
+    width: 60px;
+    height: 60px;
 }
 
 .loader-background {

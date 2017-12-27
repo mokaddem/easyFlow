@@ -41,9 +41,17 @@ function draw() {
         },
         interaction: { multiselect: true},
         groups: {
-            diamonds: {
-                color: {background:'red',border:'white'},
-                shape: 'diamond'
+            process: {
+            },
+            buffer: {
+            },
+            mult_input: {
+            },
+            mult_output: {
+            },
+            remote_input: {
+            },
+            remote_output: {
             }
         },
         nodes: {
@@ -54,8 +62,8 @@ function draw() {
             shadow: true,
         },
         manipulation: {
-            enabled: true,
-            initiallyActive: true,
+            enabled: false,
+            initiallyActive: false,
             addNode: function(nodeData, callback) {
                 nodeData.group = 'diamonds'
                 var span = document.getElementById('operation');
@@ -121,7 +129,9 @@ function draw() {
         handleNodeSelection(params);
     });
 }
-setTimeout(function(){innerRepresentation.update();}, 6000);
+// setTimeout(function(){innerRepresentation.update();}, 6000);
+setTimeout(function(){network.addNodeMode();}, 6000);
+
 function handleNodeSelection(params) {
     selectedNodes = params.nodes;
     if(selectedNodes.length > 1) {

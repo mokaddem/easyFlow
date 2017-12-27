@@ -1,27 +1,3 @@
-function construct_node(moduleName, bytes, flowItem, time) {
-    var replaced_svg = raw_module_svg.replace('\{\{moduleName\}\}', moduleName);
-    var replaced_svg = replaced_svg.replace('\{\{bytes\}\}', bytes);
-    var replaced_svg = replaced_svg.replace('\{\{flowItem\}\}', flowItem);
-    var replaced_svg = replaced_svg.replace('\{\{time\}\}', time);
-    var url = "data:image/svg+xml;charset=utf-8,"+ encodeURIComponent(replaced_svg);
-    return url
-}
-
-function construct_buffer(bufferName, bytes, flowItem) {
-    var replaced_svg = raw_buffer_svg.replace('\{\{bufferName\}\}', bufferName);
-    var replaced_svg = replaced_svg.replace('\{\{bytes\}\}', bytes);
-    var replaced_svg = replaced_svg.replace('\{\{flowItem\}\}', flowItem);
-    var url = "data:image/svg+xml;charset=utf-8,"+ encodeURIComponent(replaced_svg);
-    return url
-}
-
-function getCenterCoord(fromID, toID) {
-    var pos = network.getPositions([fromID, toID]);
-    var centerX = pos[fromID].x + (pos[toID].x - pos[fromID].x)/2;
-    var centerY = pos[fromID].y + (pos[toID].y - pos[fromID].y)/2;
-    return {x: centerX, y: centerY};
-}
-
 function draw() {
     innerRepresentation = new InnerRepresentation();
 
@@ -127,6 +103,41 @@ function draw() {
     });
     network.on("deselectNode", function (params) {
         handleNodeSelection(params);
+    });
+
+    // draggable
+    $('.toolbarBtn').draggable({
+        cancel:false,
+        stack: "#mynetwork",
+        revert: true,
+        revertDuration: 100,
+        scroll: false,
+        cursor: "move",
+        cursorAt: {
+            top: 31,
+            left: 31
+        }
+    });
+    $( "#mynetwork" ).droppable({
+            classes: {
+                "ui-droppable-hover": "ui-state-hover"
+            },
+            drop: function( event, ui ) {
+                var btn_type = ui.draggable.attr('name');
+                var drop_position = ui.position;
+                var ResDOMtoCanvas = network.DOMtoCanvas({
+                    x: drop_position.left+100, //
+                    y: drop_position.top-50
+                });
+                var nodeData = {
+                    id: "b9a7c9c0-db04-4f1e-aa32-29efdacc1dwq",
+                    name: "No name yet",
+                    type: btn_type,
+                    x: ResDOMtoCanvas.x,
+                    y: ResDOMtoCanvas.y
+                };
+                innerRepresentation.addNode(nodeData);
+            }
     });
 }
 // setTimeout(function(){innerRepresentation.update();}, 6000);

@@ -96,7 +96,7 @@ def project_operation():
 def flow_operation():
     data = request.get_json()
     operation = data.get('operation', None)
-    sleep(1)
+    sleep(0.3)
     status = flow_realtime_db.applyOperation(operation, data)
     return jsonify(status)
 

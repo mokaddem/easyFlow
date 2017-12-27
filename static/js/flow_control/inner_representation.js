@@ -90,6 +90,7 @@ class InnerRepresentation {
     }
 
     addBuffer(edgeData) {
+        var btnPipe = $('button[name="pipe"]');
         if (edgeData.id === undefined) {
             alert('no id');
         }
@@ -128,5 +129,7 @@ class InnerRepresentation {
                 to: {enabled: true, type:'arrow'}
             },
         });
+        btnPipe.toggleClass('btn-primary', false);
+        btnPipe.toggleClass('btn-default', true);
     }
 }

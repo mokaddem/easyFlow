@@ -21,6 +21,12 @@ function toggle_loading(display) {
     $('#loader').toggle(display);
 }
 
+function toggle_btn_pipe(display) {
+    var btnPipe = $('button[name="pipe"]');
+    btnPipe.toggleClass('btn-default', !display);
+    btnPipe.toggleClass('btn-primary', display);
+}
+
 // merge fields of obj2 into obj1
 function mergeInto(obj1, obj2) {
     for (var key in obj2) {

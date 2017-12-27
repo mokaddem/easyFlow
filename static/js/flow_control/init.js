@@ -53,8 +53,7 @@ function draw() {
                     }
                 }
                 else {
-                    edgeData.id = guid();
-                    innerRepresentation.addBuffer(edgeData);
+                    flowControl.add_link(edgeData);
                 }
             },
             editEdge: function(edgeData,callback) {
@@ -72,8 +71,23 @@ function draw() {
         handleNodeSelection(params);
     });
 
+    $('button[name="pipe"]').on("click", function (eventObject) {
+        var btnPipe = $(eventObject.currentTarget);
+        console.log(btnPipe.attr('activated'));
+        if (btnPipe.attr('activated') == 'true' ){
+            btnPipe.attr('activated', 'false');
+            toggle_btn_pipe(false);
+            network.disableEditMode();
+        } else {
+            btnPipe.attr('activated', 'true');
+            toggle_btn_pipe(true);
+            network.addEdgeMode();
+        }
+
+    });
+
     // draggable
-    $('.toolbarBtn').draggable({
+    $('.btnDraggable').draggable({
         cancel:false,
         stack: "#mynetwork",
         revert: true,
@@ -97,19 +111,17 @@ function draw() {
                     y: drop_position.top-50
                 });
                 var nodeData = {
-                    id: "b9a7c9c0-db04-4f1e-aa32-29efdacc1dwq",
                     name: "No name yet",
                     type: btn_type,
                     x: ResDOMtoCanvas.x,
                     y: ResDOMtoCanvas.y
                 };
-                // innerRepresentation.addNode(nodeData);
                 flowControl.handleDrop(nodeData);
             }
     });
 }
 // setTimeout(function(){innerRepresentation.update();}, 6000);
-setTimeout(function(){network.addNodeMode();}, 6000);
+// setTimeout(function(){network.addNodeMode();}, 6000);
 
 function handleNodeSelection(params) {
     selectedNodes = params.nodes;

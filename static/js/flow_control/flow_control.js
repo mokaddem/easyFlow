@@ -13,9 +13,22 @@ class FlowControl {
         return false;
     }
 
+    add_link(data) {
+        this.execute_operation('add_link', data)
+        .done(function(responseData, textStatus, jqXHR) {
+            // set correct fields depending on the server's response
+            var edgeData = mergeInto(data, responseData);
+            console.log(edgeData);
+            innerRepresentation.addBuffer(edgeData);
+        })
+        .fail(function() {
+            console.log( "An error occured" );
+        });
+    }
+
     handleDrop(data) {
         if (data.type == 'process') {
-            this.execute_operation('createProcess', data)
+            this.execute_operation('create_process', data)
             .done(function(responseData, textStatus, jqXHR) {
                 // set correct fields depending on the server's response
                 var nodeData = mergeInto(data, responseData);
@@ -24,6 +37,7 @@ class FlowControl {
             .fail(function() {
                 console.log( "An error occured" );
             });
+
         } else {
             console.log(data);
         }

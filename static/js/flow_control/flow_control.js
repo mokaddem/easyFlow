@@ -41,33 +41,8 @@ function draw() {
             enabled: false,
             initiallyActive: false,
             addNode: function(nodeData, callback) {
-                nodeData.group = 'diamonds'
-                var span = document.getElementById('operation');
-                var idInput = document.getElementById('node-id');
-                var labelInput = document.getElementById('node-label');
-                var saveButton = document.getElementById('saveButton');
-                var cancelButton = document.getElementById('cancelButton');
-                var div = document.getElementById('network-popUp');
-                span.innerHTML = "Add Node";
-                idInput.value = nodeData.id;
-                labelInput.value = nodeData.label;
-                saveButton.onclick = saveData.bind(this,nodeData,callback);
-                cancelButton.onclick = clearPopUp.bind();
-                div.style.display = 'block';
             },
             editNode: function(nodeData, callback) {
-                var span = document.getElementById('operation');
-                var idInput = document.getElementById('node-id');
-                var labelInput = document.getElementById('node-label');
-                var saveButton = document.getElementById('saveButton');
-                var cancelButton = document.getElementById('cancelButton');
-                var div = document.getElementById('network-popUp');
-                span.innerHTML = "Edit Node";
-                idInput.value = data.id;
-                labelInput.value = data.label;
-                saveButton.onclick = saveData.bind(this,data,callback);
-                cancelButton.onclick = clearPopUp.bind();
-                div.style.display = 'block';
             },
             addEdge: function(edgeData, callback) {
                 if (edgeData.from === edgeData.to) {
@@ -82,15 +57,6 @@ function draw() {
                 }
             },
             editEdge: function(edgeData,callback) {
-                if (edgeData.from === edgeData.to) {
-                    var r = confirm("Do you want to connect the node to itself?");
-                    if (r === true) {
-                        callback(edgeData);
-                    }
-                }
-                else {
-                    callback(edgeData);
-                }
             }
         }
     };

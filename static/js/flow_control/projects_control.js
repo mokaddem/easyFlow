@@ -36,10 +36,18 @@ function list_projects() {
             dom: "<'row'<'col-sm-6'B><'col-sm-6'f>><'row'<'col-sm-12'tr>><'row'<'col-sm-5'i><'col-sm-7'p>>",
             buttons: [
                 {
-                    text: 'Create new project',
+                    text: '<span class="glyphicon glyphicon-file"></span> Create new project',
                     action: function ( e, dt, node, config ) {
                         // call create project modal
                         $('#modalCreateProject').modal("show");
+                    },
+                    className: "btn btn-info",
+                },
+                {
+                    text: '<span class="glyphicon glyphicon-open"></span> Import project',
+                    action: function ( e, dt, node, config ) {
+                        // call create project modal
+                        $('#modalImportProject').modal("show");
                     },
                     className: "btn btn-info",
                 }
@@ -110,4 +118,8 @@ function createProject() {
     list_projects();
     var data = { projectName: projectName}
     execute_operation('create', data);
+}
+
+function importProject() {
+    send_file('importForm', url_upload_project);
 }

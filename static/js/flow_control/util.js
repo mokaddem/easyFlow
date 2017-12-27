@@ -33,3 +33,18 @@ function execute_operation(operation, data) {
     });
     list_projects();
 }
+
+function send_file(formID, url) {
+    var form = $('#'+formID)[0];
+    var formData = new FormData(form);
+    $.ajax({
+      url: url,
+      type: 'POST',
+      processData: false, // important
+      contentType: false, // important
+      data: formData,
+      beforeSend: function() { toggle_loading(true); },
+      complete: function() { toggle_loading(false); }
+    });
+    list_projects();
+}

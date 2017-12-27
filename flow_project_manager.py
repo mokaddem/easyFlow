@@ -26,6 +26,7 @@ class Project:
                 self.creationTimestamp = jProject['creationTimestamp']
                 self.processNum = jProject['processNum']
                 self.processes = jProject['processes']
+            # put current project configuration into flow_realtime_db
 
     def get_project_summary(self):
         p = {}

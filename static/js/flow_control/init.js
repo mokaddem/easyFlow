@@ -73,7 +73,6 @@ function draw() {
 
     $('button[name="pipe"]').on("click", function (eventObject) {
         var btnPipe = $(eventObject.currentTarget);
-        console.log(btnPipe.attr('activated'));
         if (btnPipe.attr('activated') == 'true' ){
             btnPipe.attr('activated', 'false');
             toggle_btn_pipe(false);
@@ -111,7 +110,6 @@ function draw() {
                     y: drop_position.top-50
                 });
                 var nodeData = {
-                    name: "No name yet",
                     type: btn_type,
                     x: ResDOMtoCanvas.x,
                     y: ResDOMtoCanvas.y

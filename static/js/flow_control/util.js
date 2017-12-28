@@ -21,6 +21,55 @@ function toggle_loading(display) {
     $('#loader').toggle(display);
 }
 
+function notify(title, message, type) {
+    $.notify({
+    // options
+    icon: 'glyphicon glyphicon-warning-sign',
+    title: title,
+    message: message,
+    // url: 'https://github.com/mouse0270/bootstrap-notify',
+    target: '_blank'
+},{
+    // settings
+    // element: 'body',
+    // position: null,
+    type: type,
+    // allow_dismiss: true,
+    // newest_on_top: false,
+    // showProgressbar: false,
+    placement: {
+        from: "top",
+        align: "right"
+    },
+    // offset: 20,
+    // spacing: 10,
+    z_index: 3000,
+    // delay: 5000,
+    // timer: 1000,
+    // url_target: '_blank',
+    // mouse_over: null,
+    animate: {
+        enter: 'animated bounceInDown',
+        exit: 'animated flipOutX'
+    },
+    // onShow: null,
+    // onShown: null,
+    // onClose: null,
+    // onClosed: null,
+    // icon_type: 'class',
+    // template: '<div data-notify="container" class="col-xs-11 col-sm-3 alert alert-{0}" role="alert">' +
+    //     '<button type="button" aria-hidden="true" class="close" data-notify="dismiss">×</button>' +
+    //     '<span data-notify="icon"></span> ' +
+    //     '<span data-notify="title">{1}</span> ' +
+    //     '<span data-notify="message">{2}</span>' +
+    //     '<div class="progress" data-notify="progressbar">' +
+    //     	'<div class="progress-bar progress-bar-{0}" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>' +
+    //     '</div>' +
+    //     '<a href="{3}" target="{4}" data-notify="url"></a>' +
+    // '</div>'
+});
+}
+
 function toggle_btn_pipe(display) {
     var btnPipe = $('button[name="pipe"]');
     btnPipe.toggleClass('btn-default', !display);
@@ -29,10 +78,25 @@ function toggle_btn_pipe(display) {
 
 // merge fields of obj2 into obj1
 function mergeInto(obj1, obj2) {
-    for (var key in obj2) {
-        if (obj2.hasOwnProperty(key)) {
-            obj1[key] = obj2[key];
-        }
+    var to_ret = $.extend( {}, obj1, obj2 );;
+    return to_ret;
+}
+
+// function validateForm(btn) {
+function validateForm(formID, modalID) {
+    var form = document.getElementById(formID);
+    var res = form.checkValidity();
+    if (res) { // form is valid
+        return res;
+    } else {
+        notify('Invalid form:', "One or more fields are not valid", "danger");
+        return res;
     }
-    return obj1;
+}
+
+function getFormData(formID) {
+    return $('#'+formID).serializeArray().reduce(function(obj, item) {
+        obj[item.name] = item.value;
+        return obj;
+    }, {});
 }

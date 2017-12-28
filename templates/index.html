@@ -18,7 +18,11 @@
     <script src="{{ url_for('static', filename='js/jquery.flot.time.js') }}"></script>
     <!-- Bootstrap Core JavaScript -->
     <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
-    <link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="text/css">
+    <link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="stylesheet" type="text/css" />
+
+    <!-- Bootstrap Notify -->
+    <script src="{{ url_for('static', filename='js/bootstrap-notify.js') }}"></script>
+    <link href="{{ url_for('static', filename='css/animate.css') }}" rel="stylesheet" type="text/css" />
 
     <link href="{{ url_for('static', filename='css/jquery-ui.min.css') }}" rel="stylesheet" type="text/css" />
     <script src="{{ url_for('static', filename='js/jquery-ui.min.js') }}"></script>
@@ -137,81 +141,17 @@
             </div>
             <!-- /.navbar-sidebar -->
         </nav>
+        {% include 'modals/listProjects.html' %}
+        {% include 'modals/createProject.html' %}
+        {% include 'modals/importProject.html' %}
+        {% include 'modals/addProcess.html' %}
 
-        <div id="modalListProject" class="modal fade" role="dialog">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                         <h4 class="modal-title">Manage projects</h4>
-                    </div><!-- /modal-header -->
-                    <div class="modal-body">
+        {% include 'modals/addLink.html' %}
+        {% include 'modals/addRemoteInput.html' %}
+        {% include 'modals/addRemoteOutput.html' %}
+        {% include 'modals/addMultInput.html' %}
+        {% include 'modals/addMultOutput.html' %}
 
-                        <table id="projectList" style="width: 100%;" class="table table-striped table-hover responsive">
-                            <thead>
-                                <tr>
-                                    <th>Project name</th>
-                                    <th>Creation date</th>
-                                    <th>Number of processes</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                        </table>
-
-                    </div><!-- /modal-body -->
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                </div><!-- /modal-content -->
-            </div><!-- /modal-dialog -->
-        </div>
-
-        <div id="modalCreateProject" class="modal fade" role="dialog">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                         <h4 class="modal-title">Create a new project</h4>
-                    </div><!-- /modal-header -->
-                    <div class="modal-body">
-
-                        <div class="form-group">
-                            <label>Project name</label>
-                            <input id="newProjectName" class="form-control" placeholder="Enter text">
-                        </div>
-
-                    </div><!-- /modal-body -->
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" onclick="createProject()">Create</button>
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                </div><!-- /modal-content -->
-            </div><!-- /modal-dialog -->
-        </div>
-        <div id="modalImportProject" class="modal fade" role="dialog">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                         <h4 class="modal-title">Import project</h4>
-                    </div><!-- /modal-header -->
-                    <div class="modal-body">
-
-                        <div class="form-group">
-                            <form id="importForm" action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
-                                <label>Project JSON file</label>
-                                <input id="uploadFileName" type="file" name="file" accept=".json">
-                            </form>
-                        </div>
-
-                    </div><!-- /modal-body -->
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" onclick="importProject()" data-dismiss="modal">Import</button>
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    </div>
-                </div><!-- /modal-content -->
-            </div><!-- /modal-dialog -->
-        </div>
 
         <!-- Page Content -->
         <div id="networkToolbar">

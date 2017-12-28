@@ -44,10 +44,12 @@ def read_module_svg_template(filename):
 def index():
     raw_module_svg = read_module_svg_template('module_templatev5')
     raw_buffer_svg = read_module_svg_template('buffer_template')
+    all_process_type = ['Test_process1', 'Test_process2']
 
     return render_template('index.html',
                 raw_module_svg=raw_module_svg,
-                raw_buffer_svg=raw_buffer_svg
+                raw_buffer_svg=raw_buffer_svg,
+                all_process_type=all_process_type
             )
 
 @app.route("/save_network", methods=['POST'])

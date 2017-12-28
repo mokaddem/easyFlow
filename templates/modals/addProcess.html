@@ -1,0 +1,61 @@
+<div id="modalAddProcess" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                 <h4 class="modal-title">Create process</h4>
+            </div><!-- /modal-header -->
+            <div class="modal-body">
+                <form id="formAddProcess">
+
+                        <!-- Nav tabs -->
+                        <ul class="nav nav-tabs">
+                            <li class="active"><a href="#addProcessSettings" data-toggle="tab">Settings</a></li>
+                            <li><a href="#processCustomSetting" data-toggle="tab">Process custom settings</a></li>
+                        </ul>
+
+                        <!-- Tab panes -->
+                        <div class="tab-content" style="padding-top: 10px;">
+                            <div class="tab-pane fade in active" id="addProcessSettings">
+                                <div class="form-group">
+                                    <label>Process name</label>
+                                    <input class="form-control" name="name" placeholder="Enter process name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Process type</label>
+                                    <select class="form-control" name="type" required>
+                                        {% for process_type in all_process_type %}
+                                            <option>{{ process_type }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <textarea class="form-control" rows="3" name="description"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Bulletin level</label>
+                                    <select class="form-control" name="bulletin_level" required>
+                                        <option>DEBUG</option>
+                                        <option>INFO</option>
+                                        <option selected>WARNING</option>
+                                        <option>ERROR</option>
+                                        <option>NONE</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane fade" id="processCustomSetting">
+                            </div>
+                        </div>
+
+                </form>
+
+            </div><!-- /modal-body -->
+            <div class="modal-footer">
+                <button type="button" confirm="1" class="btn btn-primary" data-formID="formAddProcess" data-modalID="modalAddProcess">Create</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div><!-- /modal-content -->
+    </div><!-- /modal-dialog -->
+</div>

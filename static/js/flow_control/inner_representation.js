@@ -129,7 +129,7 @@ class InnerRepresentation {
                 to: {enabled: true, type:'arrow'}
             },
         });
-        btnPipe.toggleClass('btn-primary', false);
-        btnPipe.toggleClass('btn-default', true);
+        btnPipe.attr('activated', 'false');
+        toggle_btn_pipe(false);
     }
 }

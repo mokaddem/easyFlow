@@ -93,7 +93,7 @@ function mergeInto(obj1, obj2) {
 }
 
 // function validateForm(btn) {
-function validateForm(formID, modalID) {
+function validateForm(formID) {
     var form = document.getElementById(formID);
     var res = form.checkValidity();
     if (res) { // form is valid

@@ -6,11 +6,14 @@
                  <h4 class="modal-title">Create a new project</h4>
             </div><!-- /modal-header -->
             <div class="modal-body">
-
-                <div class="form-group">
-                    <label>Project name</label>
-                    <input id="newProjectName" class="form-control" placeholder="Enter text">
-                </div>
+                <form id="formCreateProject">
+                    <div class="form-group">
+                        <label>Project name</label>
+                        <input id="newProjectName" name="projectName" class="form-control" placeholder="Enter name" required>
+                        <label style='margin-top: 5px;'>Project description</label>
+                        <textarea id="newProjectInfo" name="projectInfo" class="form-control" maxlength=150 placeholder="Enter a short description"></textarea>
+                    </div>
+                </form>
 
             </div><!-- /modal-body -->
             <div class="modal-footer">

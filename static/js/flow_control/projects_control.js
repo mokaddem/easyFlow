@@ -54,8 +54,11 @@ function load_project(project) {
     }
     toggle_loading(true);
     innerRepresentation.projectName = project.projectName;
-    $('#projectName').text(project.projectName)
     $.getJSON( url_load_network, {projectFilename: project.projectFilename}, function( data ) {
+        console.log(data);
+        console.log(data.projectInfo);
+        $('#projectName').text(project.projectName);
+        $('#projectName').append('<small>'+data.projectInfo+'</small>');
         innerRepresentation.load_network(data.processes);
         toggle_loading(false);
     });
@@ -99,6 +102,7 @@ function list_projects() {
             ],
             "columns": [
                 { data: "projectName" },
+                { data: "projectInfo" },
                 {
                     data: "creationTimestamp",
                     render: function(data, type, row) {
@@ -156,13 +160,14 @@ function deleteProject(rowID) {
 }
 
 function createProject() {
-    var inputField = $('#newProjectName');
-    var projectName = inputField.val();
-    inputField.val('');
-    $('#modalCreateProject').modal("hide");
-    list_projects();
-    var data = { projectName: projectName}
-    execute_operation('create', data);
+    if (validateForm('formCreateProject')) {
+        var formID = 'formCreateProject';
+        var formData = getFormData(formID);
+        $('#'+formID)[0].reset();
+        $('#modalCreateProject').modal("hide");
+        list_projects();
+        execute_operation('create', formData);
+    }
 }
 
 function closeProject() {

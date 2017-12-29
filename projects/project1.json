@@ -1,12 +1,13 @@
 {
     "projectName": "Just a test project",
+    "projectInfo": "With few test processes",
     "creationTimestamp": 1513854352,
     "processNum": 0,
     "processes": [
             {
-                "id": "b9a7c9c0-db04-4f1e-aa32-29efdacc13aa", 
-                "x": 0, 
-                "y": 0, 
+                "id": "b9a7c9c0-db04-4f1e-aa32-29efdacc13aa",
+                "x": 0,
+                "y": 0,
                 "name": "Process1",
                 "connections": [
                         {

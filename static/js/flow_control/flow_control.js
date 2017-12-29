@@ -55,7 +55,7 @@ class FlowControl {
         var modalID = 'modal'+modalType;
         $('#'+modalID).modal('show');
         $('#'+modalID).find('button[confirm="1"]').one('click', function(event) {
-            if (validateForm(formID, modalID)) {
+            if (validateForm(formID)) {
                 var formData = getFormData(formID);
                 $('#'+formID)[0].reset();
                 var modalData = mergeInto(dropData, formData);

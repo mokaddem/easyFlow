@@ -10,14 +10,16 @@ from util import genUUID, objToDictionnary
 from process_print_to_console import Print_to_console
 
 DEFAULT_TEMP_PROJECT_NAME = 'Temporary project'
+DEFAULT_TEMP_PROJECT_INFO = 'To do some tests'
 
 class Project:
-    def __init__(self, projectFilename, projectName=DEFAULT_TEMP_PROJECT_NAME):
+    def __init__(self, projectFilename, projectName=DEFAULT_TEMP_PROJECT_NAME, projectInfo=DEFAULT_TEMP_PROJECT_INFO):
         self._project_directory = 'projects/'
 
-        if projectFilename is None or projectFilename == DEFAULT_TEMP_PROJECT_NAME: # create a new project
+        if projectFilename is None: # create a new project
             self.projectName = projectName
             self.projectFilename = Project.generateFilenameBaseOnProjectname(projectName)
+            self.projectInfo = projectInfo
             self.isTempProject = True
             self.isTempProjectStr = 'true'
             self._projectPath = join(self._project_directory, self.projectFilename)
@@ -32,16 +34,18 @@ class Project:
             self._projectPath = join(self._project_directory, self.projectFilename)
             with open(self._projectPath, 'r') as f:
                 jProject = json.load(f)
-                self.projectName = jProject['projectName']
+                self.projectName = jProject.get('projectName', 'No project name')
+                self.projectInfo = jProject.get('projectInfo', '')
                 self.projectFilename = self.projectFilename
-                self.creationTimestamp = jProject['creationTimestamp']
-                self.processNum = jProject['processNum']
-                self.processes = jProject['processes'] #FIXME Load and start all processes
+                self.creationTimestamp = jProject.get('creationTimestamp', 0)
+                self.processNum = jProject.get('processNum', 0)
+                self.processes = jProject.get('processes', []) #FIXME Load and start all processes
             # put current project configuration into flow_realtime_db
 
     def get_project_summary(self):
         p = {}
         p['projectName'] = self.projectName
+        p['projectInfo'] = self.projectInfo
         p['projectFilename'] = self.projectFilename
         p['creationTimestamp'] = self.creationTimestamp
         p['processNum'] = self.processNum
@@ -117,9 +121,12 @@ class Flow_project_manager:
         for projectFilename in projects:
             try:
                 p = Project(projectFilename)
+                if p.projectName == DEFAULT_TEMP_PROJECT_NAME: # Don't list temp project
+                    continue
                 ret.append(p.get_project_summary())
             except json.decoder.JSONDecodeError as e:
                 pass # invalid file
+        print(ret)
         return ret
 
     def select_project(self, projectFilename):
@@ -159,7 +166,7 @@ class Flow_project_manager:
             return [False, "No data or operation not supplied"]
 
         if operation == 'create':
-            p = Project(None, projectName=data['projectName'])
+            p = Project(None, projectName=data['projectName'], projectInfo=data['projectInfo'])
             return [True, "OK"]
         elif operation == 'rename':
             p = Project(data['projectFilename'])

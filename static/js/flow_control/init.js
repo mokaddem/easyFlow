@@ -119,10 +119,8 @@ function draw() {
     });
 
     //try to load project based on cookies
-    load_project({
-        projectFilename: getCookie('projectFilename'),
-        projectName: getCookie('projectName')
-    });
+    init_load();
+
 }
 // setTimeout(function(){innerRepresentation.update();}, 6000);
 // setTimeout(function(){network.addNodeMode();}, 6000);
@@ -149,6 +147,17 @@ function handleNodeSelection(params) {
         $('#selectedNodeName').text(selectedNodesText);
     }
     $('#selectedNodeName').text(innerRepresentation.processObj[selectedNodes]);
+}
+
+function init_load() {
+    if (getCookie('projectUUID') === undefined) {
+        force_project_select();
+    } else {
+        load_project({
+            projectUUID: getCookie('projectUUID'),
+            projectName: getCookie('projectName')
+        });
+    }
 }
 
 /* FORM CREATION */

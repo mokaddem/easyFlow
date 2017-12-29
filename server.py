@@ -1,10 +1,11 @@
 #!/usr/bin/env python3.5
 
-from flask import Flask, render_template, request, Response, jsonify, flash, redirect, make_response
+from flask import Flask, render_template, request, Response, jsonify, flash, redirect, make_response, send_file
 from flask_socketio import SocketIO, emit
 from werkzeug.utils import secure_filename
 
 import json
+from io import StringIO
 import random, math
 import configparser
 from time import sleep, strftime
@@ -12,7 +13,7 @@ import datetime
 import os
 
 from util import genUUID, objToDictionnary
-import flow_project_manager
+from flow_project_manager import ProjectNotFound, Flow_project_manager
 import flow_realtime_db
 
 app = Flask(__name__)
@@ -22,7 +23,7 @@ UPLOAD_FOLDER = 'projects/'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 socketio = SocketIO(app)
-flow_project_manager = flow_project_manager.Flow_project_manager()
+flow_project_manager = Flow_project_manager()
 flow_realtime_db = flow_realtime_db.Realtime_db()
 
 ALLOWED_EXTENSIONS = set(['json'])
@@ -51,8 +52,9 @@ def index():
 
     if not flow_project_manager.is_project_open():
         print('reseting cookies')
-        flow_project_manager.select_project(None)
-    flow_project_manager.set_cookies(resp, request)
+        flow_project_manager.reset_cookies(resp, request)
+    else: # a project is open
+        flow_project_manager.set_cookies(resp, request)
     return resp
 
 @app.route("/save_network", methods=['POST'])
@@ -75,20 +77,40 @@ def upload_file():
             print('No selected file')
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return jsonify(['OK'])
+            fileContent = file.read().decode('utf8')
+            result = flow_project_manager.import_project(fileContent)
+            return jsonify(result)
     return 'KO'
+
+@app.route('/download_file')
+def download_file():
+    projectUUID = request.args.get('projectUUID', None)
+    if projectUUID is None:
+        print('error')
+        return 'KO'
+
+    strIO = StringIO()
+    JSONProject = flow_project_manager.projectToJSON(projectUUID)
+    strIO.write(JSONProject)
+    strIO.seek(0)
+    print('sending')
+    return send_file(strIO,
+             attachment_filename="testing.txt",
+             as_attachment=True)
 
 @app.route("/load_network")
 def load_network():
-    projectFilename = request.args.get('projectFilename', None) #comes from GET
+    projectUUID = request.args.get('projectUUID', None) #comes from GET
     projectName = request.cookies.get('projectName', None)
-    if projectFilename is None:
-        projectFilename = request.cookies.get('projectFilename', None) # check in cookies if not in args
-    project = flow_project_manager.select_project(projectFilename)
+    if projectUUID is None:
+        projectUUID = request.cookies.get('projectUUID', None) # check in cookies if not in args
+
+    if projectUUID is None: #FIXME: Throws exception if None or not matching existing project
+        raise ProjectNotFound("No project UUID provided")
+
+    project = flow_project_manager.select_project(projectUUID)
     resp = make_response(jsonify(project))
     flow_project_manager.set_cookies(resp, request)
-    return resp
     return resp
 
 @app.route("/close_project")

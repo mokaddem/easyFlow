@@ -32,19 +32,21 @@ function execute_operation(operation, data) {
     list_projects();
 }
 
-function send_file(formID, url) {
+function send_file(formID, url, callback) {
     var form = $('#'+formID)[0];
     var formData = new FormData(form);
     $.ajax({
-      url: url,
-      type: 'POST',
-      processData: false, // important
-      contentType: false, // important
-      data: formData,
-      beforeSend: function() { toggle_loading(true); },
-      complete: function() { toggle_loading(false); }
+        url: url,
+        type: 'POST',
+        processData: false, // important
+        contentType: false, // important
+        data: formData,
+        beforeSend: function() { toggle_loading(true); },
+        complete: function(response) {
+            toggle_loading(false);
+            callback(response.responseJSON);
+        }
     });
-    list_projects();
 }
 
 function load_project(project) {
@@ -54,7 +56,7 @@ function load_project(project) {
     }
     toggle_loading(true);
     innerRepresentation.projectName = project.projectName;
-    $.getJSON( url_load_network, {projectFilename: project.projectFilename}, function( data ) {
+    $.getJSON( url_load_network, {projectUUID: project.projectUUID}, function( data ) {
         $('#projectName').text(project.projectName);
         $('#projectName').append('<small>'+data.projectInfo+'</small>');
         innerRepresentation.load_network(data.processes);
@@ -77,10 +79,10 @@ function list_projects() {
                         // call create project modal
                         $('#modalCreateProject').modal("show");
                     },
-                    className: "btn btn-info",
+                    className: "btn btn-success",
                 },
                 {
-                    text: '<span class="glyphicon glyphicon-open"></span> Import project',
+                    text: '<span class="glyphicon glyphicon-import"></span> Import project',
                     action: function ( e, dt, node, config ) {
                         // call create project modal
                         $('#modalImportProject').modal("show");
@@ -113,10 +115,13 @@ function list_projects() {
                 {
                     data: "Action",
                     render: function(data, type, row, meta) {
-                        return '<button type="button" class="btn btn-success btn-datatable" onclick="editProject('+meta.row+')">'+
+                        return '<button type="button" class="btn btn-success btn-datatable" onclick="editProject('+meta.row+')" title="Edit project">'+
                                     '<span class="glyphicon glyphicon-edit"></span>'+
                                 '</button>'+
-                                '<button type="button" class="btn btn-danger btn-datatable" style="margin-left: 5px;" onclick="deleteProject('+meta.row+')">'+
+                                '<button type="button" class="btn btn-info btn-datatable" style="margin-left: 5px;" title="Export project" onclick="exportProject('+meta.row+')">'+
+                                    '<span class="glyphicon glyphicon-export"></span>'+
+                                '</button>'+
+                                '<button type="button" class="btn btn-danger btn-datatable" style="margin-left: 5px;" title="Delete project" onclick="deleteProject('+meta.row+')">'+
                                     '<span class="glyphicon glyphicon-trash"></span>'+
                                 '</button>';
                     }
@@ -129,8 +134,11 @@ function list_projects() {
                 return
             }
             var row = projectListDatatable.row( this ).data();
-            $('#modalListProject').modal("hide");
-            load_project(row);
+            if (row != undefined) {
+                $('#modalListProject').modal("hide");
+                console.log(row);
+                load_project(row);
+            }
         });
     } else {
         projectListDatatable.ajax.reload();
@@ -177,5 +185,39 @@ function closeProject() {
 }
 
 function importProject() {
-    send_file('importForm', url_upload_project);
+    send_file('importForm', url_upload_project, function(response) {
+        if (response.status) {
+            notify('Project upload Sucess', '', 'success');
+            list_projects();
+        } else {
+            notify('Project upload Error:', response.message, 'danger');
+        }
+    });
+}
+
+function exportProject(rowID) {
+    var rowData = projectListDatatable.row(rowID).data();
+    $.ajax({
+        url: url_download_file,
+        processData: false, // important
+        contentType: false, // important
+        data: { projectUUID: rowData.projectUUID },
+        success: function() {
+            document.location.href = url_download_file+'?projectUUID='+rowData.projectUUID;
+        },
+        error: function(response) {
+            console.log(response);
+            notify('Project download failure:', 'something wrong happens', 'danger');
+        }
+    });
+}
+
+function show_projects() {
+    list_projects();
+    $('#'+'modalListProject').modal({show: true});
+}
+
+function force_project_select() {
+    list_projects();
+    $('#'+'modalListProject').modal({show: true, backdrop: 'static'});
 }

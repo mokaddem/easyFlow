@@ -4,49 +4,49 @@ from os.path import isfile, join
 import json
 import time
 import re
+import redis
 
 from util import genUUID, objToDictionnary
 # from process import Process
 from process_print_to_console import Print_to_console
 
+DEFAULT_TEMP_PROJECT_UUID = '36bcefc6-4a7d-4605-96f6-94a133d0e82d'
 DEFAULT_TEMP_PROJECT_NAME = 'Temporary project'
 DEFAULT_TEMP_PROJECT_INFO = 'To do some tests'
 
-class Project:
-    def __init__(self, projectFilename, projectName=DEFAULT_TEMP_PROJECT_NAME, projectInfo=DEFAULT_TEMP_PROJECT_INFO):
-        self._project_directory = 'projects/'
+host='localhost'
+port=6780
+db=0
+KEYALLPROJECT = 'AllProject'
 
-        if projectFilename is None: # create a new project
-            self.projectName = projectName
-            self.projectFilename = Project.generateFilenameBaseOnProjectname(projectName)
-            self.projectInfo = projectInfo
-            self.isTempProject = True
-            self.isTempProjectStr = 'true'
-            self._projectPath = join(self._project_directory, self.projectFilename)
-            self.creationTimestamp = int(time.time())
-            self.processNum = 0
-            self.processes = []
-            self.save_project()
-        else:
-            self.projectFilename = projectFilename
-            self.isTempProject = False
-            self.isTempProjectStr = 'false'
-            self._projectPath = join(self._project_directory, self.projectFilename)
-            with open(self._projectPath, 'r') as f:
-                jProject = json.load(f)
-                self.projectName = jProject.get('projectName', 'No project name')
-                self.projectInfo = jProject.get('projectInfo', '')
-                self.projectFilename = self.projectFilename
-                self.creationTimestamp = jProject.get('creationTimestamp', 0)
-                self.processNum = jProject.get('processNum', 0)
-                self.processes = jProject.get('processes', []) #FIXME Load and start all processes
-            # put current project configuration into flow_realtime_db
+class ProjectNotFound(Exception):
+    pass
+
+class Project:
+    required_fields = ['projectName', 'projectInfo', 'creationTimestamp', 'processNum', 'processes']
+    def __init__(self, projectUUID, projectName=DEFAULT_TEMP_PROJECT_NAME, projectInfo=DEFAULT_TEMP_PROJECT_INFO):
+            # get project from redis
+            self._serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
+            rawJSONProject = self._serv.get(projectUUID)
+            jProject = json.loads(rawJSONProject)
+            if jProject is None:
+                # throws project not found exception
+                raise ProjectNotFound("The provided projectUUID does not match any known project")
+
+            self.projectUUID = projectUUID
+            self.projectName = jProject.get('projectName', 'No project name')
+            self.projectInfo = jProject.get('projectInfo', '')
+            self.creationTimestamp = jProject.get('creationTimestamp', 0)
+            self.processNum = jProject.get('processNum', 0)
+            self.processes = jProject.get('processes', []) #FIXME Load and start all processes
+        # put current project configuration into flow_realtime_db
+
 
     def get_project_summary(self):
         p = {}
+        p['projectUUID'] = self.projectUUID
         p['projectName'] = self.projectName
         p['projectInfo'] = self.projectInfo
-        p['projectFilename'] = self.projectFilename
         p['creationTimestamp'] = self.creationTimestamp
         p['processNum'] = self.processNum
         return p
@@ -64,37 +64,30 @@ class Project:
             if attr.startswith('_'):
                 continue
             p[attr] = value
-        with open(self._projectPath, 'w') as f:
-            json.dump(p, f)
+
+        jProject = json.dump(p, f)
+        self._serv.set(self.projectUUID, jProject)
 
     def delete_project(self):
-        remove(self._projectPath)
+        self._serv.delete(self.projectUUID)
+        self._serv.srem(KEYALLPROJECT, self.projectUUID)
 
-    def generateFilenameBaseOnProjectname(projectName):
-        """
-        Normalizes string, converts to lowercase, removes non-alpha characters,
-        , converts spaces to underscore and add .json.
-        """
-        filename = str(projectName).strip().replace(' ', '_')
-        filename = re.sub(r'(?u)[^-\w.]', '', filename)
-        filename += '.json'
-        return filename
-
+    def create_new_project(projectName, projectInfo=''):
+        newUUID = genUUID()
+        p = {}
+        p['projectName'] = projectName
+        p['projectInfo'] = projectInfo
+        p['creationTimestamp'] = int(time.time())
+        p['processNum'] = 0
+        p['processes'] = []
+        jProject = json.dump(p, f)
+        self._serv.set(newUUID, jProject)
+        self._serv.sadd(KEYALLPROJECT, newUUID)
 
     def flowOperation(self, operation, data):
         if operation == 'create_process':
             p = Print_to_console(data)
             self.processes.append(p)
-            # response = {'status': 'success'}
-            # response['id'] = genUUID()
-            # if data.get('x', None) is None or data.get('y', None) is None:
-            #     response['x'] = 0; response['y'] = 0
-            # else:
-            #     response['x'] = data.get('x'); response['y'] = data.get('y')
-            # response['name'] = data.get('name', None)
-            # response['type'] = data.get('type', None)
-            # response['description'] = data.get('description', '')
-            # response['bulletin_level'] = data.get('bulletin_level', None)
             response = p.get_representation()
             return response
 
@@ -110,49 +103,56 @@ class Project:
 
 class Flow_project_manager:
     def __init__(self):
-        self.project_directory = 'projects/'
         self.selected_project = None
+        self.serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
 
     def get_project_list(self):
-        files = [f for f in listdir(self.project_directory) if isfile(join(self.project_directory, f))]
-        # get only json files
-        projects = [f for f in files if f.endswith('.json')]
         ret = []
-        for projectFilename in projects:
-            try:
-                p = Project(projectFilename)
-                if p.projectName == DEFAULT_TEMP_PROJECT_NAME: # Don't list temp project
-                    continue
-                ret.append(p.get_project_summary())
-            except json.decoder.JSONDecodeError as e:
-                pass # invalid file
+        projectUUIDs = self.serv.smembers(KEYALLPROJECT)
+        projectUUIDs = projectUUIDs if projectUUIDs is not None else []
+        for projectUUID in projectUUIDs:
+            p = Project(projectUUID)
+            ret.append(p.get_project_summary())
         return ret
 
-    def select_project(self, projectFilename):
-        self.selected_project = Project(projectFilename)
+
+    def select_project(self, projectUUID):
+        self.selected_project = Project(projectUUID)
         return self.selected_project.get_whole_project()
+
+    def import_project(self, rawJSONProject):
+        try:
+            jProject = json.loads(rawJSONProject)
+            # validate project: all requiered fields are present
+            if all([rF in jProject for rF in Project.required_fields]):
+                newUUID = genUUID()
+                self.serv.set(newUUID, json.dumps(jProject))
+                self.serv.sadd(KEYALLPROJECT, newUUID)
+                return {'status': True }
+            else:
+                return {'status': False, 'message': 'Project does not contain all required fields'}
+
+        except json.decoder.JSONDecodeError as e:
+            return {'status': False, 'message': 'Project not valid'}
+
+    def projectToJSON(self, projectUUID):
+        return json.dumps(Project(projectUUID).get_whole_project())
 
     def set_cookies(self, resp, req):
         # project is open and the same in both server-side and client-side
-        if self.is_project_open() and self.selected_project.projectFilename == req.cookies.get('projectFilename'):
+        if self.is_project_open() and self.selected_project.projectUUID == req.cookies.get('projectUUID'):
             return
-
         if self.is_project_open():
-            resp.set_cookie('isTempProject', self.selected_project.isTempProjectStr)
-            resp.set_cookie('projectFilename', self.selected_project.projectFilename)
+            resp.set_cookie('projectUUID', self.selected_project.projectUUID)
             resp.set_cookie('projectName', self.selected_project.projectName)
-        else:
-            print('Inconsistency between client-side and server-side')
-            resp.set_cookie('isTempProject', 'true')
-            resp.set_cookie('projectFilename', DEFAULT_TEMP_PROJECT_NAME)
-            resp.set_cookie('projectName', DEFAULT_TEMP_PROJECT_NAME)
+
+    def reset_cookies(self, resp, req):
+        resp.set_cookie('projectUUID', '', expires=0)
+        resp.set_cookie('projectName', '', expires=0)
 
     def close_project(self, resp):
         self.selected_project = None
-        # set cookies to 'null'
-        resp.set_cookie('isTempProject', 'true', expires=0)
-        resp.set_cookie('projectFilename', '', expires=0)
-        resp.set_cookie('projectName', '', expires=0)
+        self.reset_cookies # set cookies to 'null'
 
     def is_project_open(self):
         if self.selected_project is None:
@@ -165,14 +165,14 @@ class Flow_project_manager:
             return [False, "No data or operation not supplied"]
 
         if operation == 'create':
-            p = Project(None, projectName=data['projectName'], projectInfo=data['projectInfo'])
+            Project.create_new_project(data['projectName'], projectInfo=data['projectInfo'])
             return [True, "OK"]
         elif operation == 'rename':
-            p = Project(data['projectFilename'])
+            p = Project(data['projectUUID'])
             p.rename_project(data['newProjectName'])
             return [True, "OK"]
         elif operation == 'delete':
-            p = Project(data['projectFilename'])
+            p = Project(data['projectUUID'])
             p.delete_project()
             return [True, "OK"]
         else:

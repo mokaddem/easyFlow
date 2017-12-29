@@ -52,6 +52,7 @@
         var url_get_projects = '{{ url_for("get_projects") }}';
         var url_close_project = '{{ url_for("close_project") }}';
         var url_upload_project = '{{ url_for("upload_file") }}';
+        var url_download_file = '{{ url_for("download_file") }}';
         var url_project_operation = '{{ url_for("project_operation") }}';
         var url_flow_operation = '{{ url_for("flow_operation") }}';
 
@@ -93,7 +94,7 @@
                 <div style="height: 50px; border-right:2px solid #c6c6c6; display: inline-block;">
                     <img src="{{ url_for('static', filename='pics/MISP.png') }}" alt="EasyFlow" style="height: 40px; padding-right: 10px;">
                 </div>
-                <button type="button" class="btn btn-default" id="load_network" data-toggle="modal" data-target="#modalListProject" onclick="list_projects()" style="margin-left: 10px;"><span class="glyphicon glyphicon-folder-open" style="margin-right: 3px;"></span> Manage projects</button>
+                <button type="button" class="btn btn-default" id="load_network" onclick="show_projects()" style="margin-left: 10px;"><span class="glyphicon glyphicon-folder-open" style="margin-right: 3px;"></span> Manage projects</button>
                 <h2 id="projectName" style=""><small id="projectInfo"></small></h2>
             </div>
             <!-- /.navbar-header -->

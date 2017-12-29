@@ -55,8 +55,6 @@ function load_project(project) {
     toggle_loading(true);
     innerRepresentation.projectName = project.projectName;
     $.getJSON( url_load_network, {projectFilename: project.projectFilename}, function( data ) {
-        console.log(data);
-        console.log(data.projectInfo);
         $('#projectName').text(project.projectName);
         $('#projectName').append('<small>'+data.projectInfo+'</small>');
         innerRepresentation.load_network(data.processes);

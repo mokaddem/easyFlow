@@ -126,7 +126,6 @@ class Flow_project_manager:
                 ret.append(p.get_project_summary())
             except json.decoder.JSONDecodeError as e:
                 pass # invalid file
-        print(ret)
         return ret
 
     def select_project(self, projectFilename):

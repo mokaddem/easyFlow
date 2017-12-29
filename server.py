@@ -1,6 +1,6 @@
 #!/usr/bin/env python3.5
 
-from flask import Flask, render_template, request, Response, jsonify, flash, redirect
+from flask import Flask, render_template, request, Response, jsonify, flash, redirect, make_response
 from flask_socketio import SocketIO, emit
 from werkzeug.utils import secure_filename
 
@@ -10,13 +10,10 @@ import configparser
 from time import sleep, strftime
 import datetime
 import os
-import uuid
 
+from util import genUUID, objToDictionnary
 import flow_project_manager
 import flow_realtime_db
-
-def genUUID():
-    return str(uuid.uuid4())
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -46,11 +43,17 @@ def index():
     raw_buffer_svg = read_module_svg_template('buffer_template')
     all_process_type = ['Test_process1', 'Test_process2']
 
-    return render_template('index.html',
-                raw_module_svg=raw_module_svg,
-                raw_buffer_svg=raw_buffer_svg,
-                all_process_type=all_process_type
-            )
+    resp = make_response(render_template('index.html',
+            raw_module_svg=raw_module_svg,
+            raw_buffer_svg=raw_buffer_svg,
+            all_process_type=all_process_type
+    ))
+
+    if not flow_project_manager.is_project_open():
+        print('reseting cookies')
+        flow_project_manager.select_project(None)
+    flow_project_manager.set_cookies(resp, request)
+    return resp
 
 @app.route("/save_network", methods=['POST'])
 def save_network():
@@ -78,9 +81,21 @@ def upload_file():
 
 @app.route("/load_network")
 def load_network():
-    projectName = request.args.get('projectName', None)
-    project = flow_project_manager.get_project(projectName)
-    return jsonify(project)
+    projectFilename = request.args.get('projectFilename', None) #comes from GET
+    projectName = request.cookies.get('projectName', None)
+    if projectFilename is None:
+        projectFilename = request.cookies.get('projectFilename', None) # check in cookies if not in args
+    project = flow_project_manager.select_project(projectFilename)
+    resp = make_response(jsonify(project))
+    flow_project_manager.set_cookies(resp, request)
+    return resp
+    return resp
+
+@app.route("/close_project")
+def close_project():
+    resp = make_response(jsonify({'state': 'closed'}))
+    flow_project_manager.close_project(resp)
+    return resp
 
 @app.route("/get_projects")
 def get_projects():
@@ -99,7 +114,7 @@ def flow_operation():
     data = request.get_json()
     operation = data.get('operation', None)
     sleep(0.3)
-    status = flow_realtime_db.applyOperation(operation, data)
+    status = flow_project_manager.selected_project.flowOperation(operation, data)
     return jsonify(status)
 
 ''' SOCKET.IO '''

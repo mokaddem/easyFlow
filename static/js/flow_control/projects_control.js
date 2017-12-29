@@ -48,9 +48,16 @@ function send_file(formID, url) {
 }
 
 function load_project(project) {
+    if (project.projectName == undefined) {
+        console.log('projectName not valid');
+        return;
+    }
+    toggle_loading(true);
+    innerRepresentation.projectName = project.projectName;
     $('#projectName').text(project.projectName)
-    $.getJSON( url_load_network, {projectName: project.projectFilename}, function( data ) {
+    $.getJSON( url_load_network, {projectFilename: project.projectFilename}, function( data ) {
         innerRepresentation.load_network(data.processes);
+        toggle_loading(false);
     });
 }
 
@@ -61,7 +68,7 @@ function list_projects() {
                 "url": url_get_projects,
                 "dataSrc": ""
             },
-            dom: "<'row'<'col-sm-6'B><'col-sm-6'f>><'row'<'col-sm-12'tr>><'row'<'col-sm-5'i><'col-sm-7'p>>",
+            dom: "<'row'<'col-sm-8'B><'col-sm-4'f>><'row'<'col-sm-12'tr>><'row'<'col-sm-5'i><'col-sm-7'p>>",
             buttons: [
                 {
                     text: '<span class="glyphicon glyphicon-file"></span> Create new project',
@@ -78,6 +85,14 @@ function list_projects() {
                         $('#modalImportProject').modal("show");
                     },
                     className: "btn btn-info",
+                },
+                {
+                    text: '<span class="glyphicon glyphicon-folder-close "></span> Close project',
+                    action: function ( e, dt, node, config ) {
+                        // call create project modal
+                        closeProject();
+                    },
+                    className: "btn btn-warning",
                 }
             ],
             "columns": [
@@ -146,6 +161,14 @@ function createProject() {
     list_projects();
     var data = { projectName: projectName}
     execute_operation('create', data);
+}
+
+function closeProject() {
+    $.getJSON( url_close_project, {}, function( data ) {
+        innerRepresentation.clear();
+        $('#projectName').text("");
+        location.reload();
+    });
 }
 
 function importProject() {

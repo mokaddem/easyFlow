@@ -3,21 +3,30 @@ from os import listdir, remove
 from os.path import isfile, join
 import json
 import time
+import re
+
+from util import genUUID, objToDictionnary
+# from process import Process
+from process_print_to_console import Print_to_console
 
 class Project:
-    def __init__(self, projectFilename, projectName=None):
+    def __init__(self, projectFilename, projectName='__tempProject__'):
         self._project_directory = 'projects/'
 
-        if projectFilename is None: # create a new project
+        if projectFilename is None or projectFilename == '__tempProject__': # create a new project
             self.projectName = projectName
             self.projectFilename = Project.generateFilenameBaseOnProjectname(projectName)
+            self.isTempProject = True
+            self.isTempProjectStr = 'true'
             self._projectPath = join(self._project_directory, self.projectFilename)
             self.creationTimestamp = int(time.time())
             self.processNum = 0
-            self.processes = {}
+            self.processes = []
             self.save_project()
         else:
             self.projectFilename = projectFilename
+            self.isTempProject = False
+            self.isTempProjectStr = 'false'
             self._projectPath = join(self._project_directory, self.projectFilename)
             with open(self._projectPath, 'r') as f:
                 jProject = json.load(f)
@@ -25,7 +34,7 @@ class Project:
                 self.projectFilename = self.projectFilename
                 self.creationTimestamp = jProject['creationTimestamp']
                 self.processNum = jProject['processNum']
-                self.processes = jProject['processes']
+                self.processes = jProject['processes'] #FIXME Load and start all processes
             # put current project configuration into flow_realtime_db
 
     def get_project_summary(self):
@@ -37,12 +46,7 @@ class Project:
         return p
 
     def get_whole_project(self):
-        p = {}
-        for attr, value in self.__dict__.items():
-            if attr.startswith('_'):
-                continue
-            p[attr] = value
-        return p
+        return objToDictionnary(self)
 
     def rename_project(self, newName):
         self.projectName = newName
@@ -61,12 +65,47 @@ class Project:
         remove(self._projectPath)
 
     def generateFilenameBaseOnProjectname(projectName):
-        filename = projectName.replace(' ', '_') + '.json'
+        """
+        Normalizes string, converts to lowercase, removes non-alpha characters,
+        , converts spaces to underscore and add .json.
+        """
+        filename = str(projectName).strip().replace(' ', '_')
+        filename = re.sub(r'(?u)[^-\w.]', '', filename)
+        filename += '.json'
         return filename
+
+
+    def flowOperation(self, operation, data):
+        if operation == 'create_process':
+            p = Print_to_console(data)
+            self.processes.append(p)
+            # response = {'status': 'success'}
+            # response['id'] = genUUID()
+            # if data.get('x', None) is None or data.get('y', None) is None:
+            #     response['x'] = 0; response['y'] = 0
+            # else:
+            #     response['x'] = data.get('x'); response['y'] = data.get('y')
+            # response['name'] = data.get('name', None)
+            # response['type'] = data.get('type', None)
+            # response['description'] = data.get('description', '')
+            # response['bulletin_level'] = data.get('bulletin_level', None)
+            response = p.get_representation()
+            return response
+
+        elif operation == 'add_link':
+            response = {'status': 'success'}
+            response['id'] = genUUID()
+            return response
+
+        elif operation == 'update':
+            return {'status': 'error' }
+        else:
+            return {'status': 'error' }
 
 class Flow_project_manager:
     def __init__(self):
         self.project_directory = 'projects/'
+        self.selected_project = None
 
     def get_project_list(self):
         files = [f for f in listdir(self.project_directory) if isfile(join(self.project_directory, f))]
@@ -81,12 +120,37 @@ class Flow_project_manager:
                 pass # invalid file
         return ret
 
-    def get_project(self, projectFilename):
-        if projectFilename is None:
-            return {}
+    def select_project(self, projectFilename):
+        self.selected_project = Project(projectFilename)
+        return self.selected_project.get_whole_project()
+
+    def set_cookies(self, resp, req):
+        # project is open and the same in both server-side and client-side
+        if self.is_project_open() and self.selected_project.projectFilename == req.cookies.get('projectFilename'):
+            return
+
+        if self.is_project_open():
+            resp.set_cookie('isTempProject', self.selected_project.isTempProjectStr)
+            resp.set_cookie('projectFilename', self.selected_project.projectFilename)
+            resp.set_cookie('projectName', self.selected_project.projectName)
         else:
-            p = Project(projectFilename)
-            return p.get_whole_project()
+            print('Inconsistency between client-side and server-side')
+            resp.set_cookie('isTempProject', 'true')
+            resp.set_cookie('projectFilename', '__tempProject__')
+            resp.set_cookie('projectName', '__tempProject__')
+
+    def close_project(self, resp):
+        self.selected_project = None
+        # set cookies to 'null'
+        resp.set_cookie('isTempProject', 'true', expires=0)
+        resp.set_cookie('projectFilename', '', expires=0)
+        resp.set_cookie('projectName', '', expires=0)
+
+    def is_project_open(self):
+        if self.selected_project is None:
+            return False
+        else:
+            return True
 
     def applyOperation(self, data, operation):
         if data is None or operation is None:

@@ -15,6 +15,16 @@ function objectToArray(obj) {
     });
 }
 
+function getCookie(name) {
+    var value = "; " + document.cookie;
+    var parts = value.split("; " + name + "=");
+    if (parts.length == 2) {
+        var ret = parts.pop().split(";").shift();
+        ret = ret.replace(/\"/g ,''); // remove " from cookie
+        return ret;
+    }
+}
+
 function toggle_loading(display) {
     $('#loaderBack').toggleClass('loader-background', display);
     $('#loaderBack').toggle(display);

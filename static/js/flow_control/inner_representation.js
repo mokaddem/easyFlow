@@ -24,6 +24,12 @@ function getCenterCoord(fromID, toID) {
 
 class InnerRepresentation {
     constructor() {
+        this.projectName = getCookie('projectName');
+        this.isTempProject = getCookie('isTempProject');
+        if (this.isTempProject == 'true') {
+            notify('Temporary project:',
+            'This project is a temporary project for testing purpose.', 'warning');
+        }
         this.nodes = new vis.DataSet();
         this.edges = new vis.DataSet();
         this.processObj = {};
@@ -47,6 +53,7 @@ class InnerRepresentation {
 
     load_network(processes) {
         innerRepresentation.clear();
+        this.isTempProject = 'false';
         for (var node of processes) {
             this.addNode(node);
             for (var connection of node.connections) {

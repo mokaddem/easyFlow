@@ -117,6 +117,12 @@ function draw() {
                 flowControl.handleDrop(nodeData);
             }
     });
+
+    //try to load project based on cookies
+    load_project({
+        projectFilename: getCookie('projectFilename'),
+        projectName: getCookie('projectName')
+    });
 }
 // setTimeout(function(){innerRepresentation.update();}, 6000);
 // setTimeout(function(){network.addNodeMode();}, 6000);

@@ -9,11 +9,13 @@ from util import genUUID, objToDictionnary
 # from process import Process
 from process_print_to_console import Print_to_console
 
+DEFAULT_TEMP_PROJECT_NAME = 'Temporary project'
+
 class Project:
-    def __init__(self, projectFilename, projectName='__tempProject__'):
+    def __init__(self, projectFilename, projectName=DEFAULT_TEMP_PROJECT_NAME):
         self._project_directory = 'projects/'
 
-        if projectFilename is None or projectFilename == '__tempProject__': # create a new project
+        if projectFilename is None or projectFilename == DEFAULT_TEMP_PROJECT_NAME: # create a new project
             self.projectName = projectName
             self.projectFilename = Project.generateFilenameBaseOnProjectname(projectName)
             self.isTempProject = True
@@ -136,8 +138,8 @@ class Flow_project_manager:
         else:
             print('Inconsistency between client-side and server-side')
             resp.set_cookie('isTempProject', 'true')
-            resp.set_cookie('projectFilename', '__tempProject__')
-            resp.set_cookie('projectName', '__tempProject__')
+            resp.set_cookie('projectFilename', DEFAULT_TEMP_PROJECT_NAME)
+            resp.set_cookie('projectName', DEFAULT_TEMP_PROJECT_NAME)
 
     def close_project(self, resp):
         self.selected_project = None

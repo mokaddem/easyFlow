@@ -90,7 +90,9 @@ function list_projects() {
                     text: '<span class="glyphicon glyphicon-folder-close "></span> Close project',
                     action: function ( e, dt, node, config ) {
                         // call create project modal
-                        closeProject();
+                        $('#modalListProject').modal("hide").one('hidden.bs.modal', function(event) {
+                            closeProject();
+                        });
                     },
                     className: "btn btn-warning",
                 }

@@ -55,9 +55,9 @@ function load_project(project) {
         return;
     }
     toggle_loading(true);
-    innerRepresentation.projectName = project.projectName;
     $.getJSON( url_load_network, {projectUUID: project.projectUUID}, function( data ) {
-        $('#projectName').text(project.projectName);
+        innerRepresentation.projectName = data.projectName;
+        $('#projectName').text(data.projectName);
         $('#projectName').append('<small>'+data.projectInfo+'</small>');
         innerRepresentation.load_network(data.processes);
         toggle_loading(false);
@@ -214,10 +214,16 @@ function exportProject(rowID) {
 
 function show_projects() {
     list_projects();
-    $('#'+'modalListProject').modal({show: true});
+    try { // modal already initialized
+        $('#'+'modalListProject').data('bs.modal').options.backdrop = true;
+    } catch(err) { /* do nothing */ }
+    $('#'+'modalListProject').modal('show');
 }
 
 function force_project_select() {
     list_projects();
+    try { // modal already initialized
+        $('#'+'modalListProject').data('bs.modal').options.backdrop = 'static';
+    } catch(err) { /* do nothing */ }
     $('#'+'modalListProject').modal({show: true, backdrop: 'static'});
 }

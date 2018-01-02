@@ -89,10 +89,12 @@ function draw() {
     $('.btnDraggable').draggable({
         cancel:false,
         stack: "#mynetwork",
-        revert: true,
+        revert: false,
         revertDuration: 100,
         scroll: false,
         cursor: "move",
+        helper: "clone",
+        zIndex: 5000,
         cursorAt: {
             top: 31,
             left: 31

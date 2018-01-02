@@ -5,10 +5,10 @@ import uuid
 def genUUID():
     return str(uuid.uuid4())
 
-def objToDictionnary(obj):
+def objToDictionnary(obj, full=False):
     ret = {}
     for attr, value in obj.__dict__.items():
-        if attr.startswith('_'):
+        if not full and attr.startswith('_'):
             continue
         ret[attr] = value
     return ret

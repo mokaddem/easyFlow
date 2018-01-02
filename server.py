@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, Response, jsonify, flash, red
 from flask_socketio import SocketIO, emit
 from werkzeug.utils import secure_filename
 
+import redis
 import json
 from io import StringIO
 import random, math
@@ -14,7 +15,6 @@ import os
 
 from util import genUUID, objToDictionnary
 from flow_project_manager import ProjectNotFound, Flow_project_manager
-import flow_realtime_db
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -22,9 +22,14 @@ UPLOAD_FOLDER = 'projects/'
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-socketio = SocketIO(app)
+# socketio = SocketIO(app)
 flow_project_manager = Flow_project_manager()
-flow_realtime_db = flow_realtime_db.Realtime_db()
+host='localhost'
+port=6780
+db=0
+redis_pmanager = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
+pmanager_pubsub = redis_pmanager.pubsub()
+pmanager_pubsub.subscribe('processes_info')
 
 ALLOWED_EXTENSIONS = set(['json'])
 def allowed_file(filename):
@@ -140,11 +145,19 @@ def flow_operation():
     return jsonify(status)
 
 ''' SOCKET.IO '''
+'''
 @socketio.on('updateRequest', namespace='/update')
 def test_message(message):
     print(message)
     state = flow_realtime_db.get_state()
     emit('update', {'data': state})
+'''
+
+@app.route('/get_pMetadata')
+def get_pMetadata():
+    infos = flow_project_manager.selected_project._process_manager.get_processes_info()
+    return jsonify(infos)
 
 if __name__ == '__main__':
-    socketio.run(app, host='127.0.0.1', port=9090,  debug = True)
+    # socketio.run(app, host='127.0.0.1', port=9090,  debug = True)
+    app.run(host='127.0.0.1', port=9090,  debug = True, threaded=True)

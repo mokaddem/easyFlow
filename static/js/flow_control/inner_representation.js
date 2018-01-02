@@ -34,6 +34,14 @@ class InnerRepresentation {
         this.edges = new vis.DataSet();
         this.processObj = {};
         this.bufferObj = {};
+        this.auto_refresh = null;
+
+    }
+
+    get_processes_info() {
+        $.getJSON( url_get_processes_info, {}, function( data ) {
+            console.log(data);
+        });
     }
 
     nodeType(nodeID) {
@@ -64,6 +72,9 @@ class InnerRepresentation {
                 this.addBuffer(edgeData);
             }
         }
+
+        if (this.auto_refresh != null) { clearInterval(this.auto_refresh); } // clean up if already running
+        this.auto_refresh = setInterval(this.get_processes_info, 1000);
     }
 
     addNode(nodeData) {

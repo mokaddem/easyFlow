@@ -7,7 +7,9 @@ import re
 import redis
 
 from util import genUUID, objToDictionnary
-# from process import Process
+from process_metadata_interface import Process_metadata_interface
+from process_manager import Process_manager
+
 from process_print_to_console import Print_to_console
 
 DEFAULT_TEMP_PROJECT_UUID = '36bcefc6-4a7d-4605-96f6-94a133d0e82d'
@@ -39,7 +41,10 @@ class Project:
             self.creationTimestamp = jProject.get('creationTimestamp', 0)
             self.processNum = jProject.get('processNum', 0)
             self.processes = jProject.get('processes', []) #FIXME Load and start all processes
-        # put current project configuration into flow_realtime_db
+            # put current project configuration into flow_realtime_db
+
+            self._metadata_interface = Process_metadata_interface()
+            self._process_manager = Process_manager()
 
 
     def get_project_summary(self):
@@ -73,23 +78,21 @@ class Project:
         self._serv.srem(KEYALLPROJECT, self.projectUUID)
 
     def create_new_project(projectName, projectInfo=''):
-        newUUID = genUUID()
         p = {}
         p['projectName'] = projectName
         p['projectInfo'] = projectInfo
         p['creationTimestamp'] = int(time.time())
         p['processNum'] = 0
         p['processes'] = []
-        jProject = json.dump(p, f)
-        self._serv.set(newUUID, jProject)
-        self._serv.sadd(KEYALLPROJECT, newUUID)
+        jProject = json.dumps(p)
+        return jProject
 
     def flowOperation(self, operation, data):
         if operation == 'create_process':
-            p = Print_to_console(data)
-            self.processes.append(p)
-            response = p.get_representation()
-            return response
+            puuid = self._process_manager.create_process(data)
+            self.processes.append(puuid)
+            pinfo = self._metadata_interface.get_info(puuid)
+            return pinfo
 
         elif operation == 'add_link':
             response = {'status': 'success'}
@@ -117,6 +120,7 @@ class Flow_project_manager:
 
 
     def select_project(self, projectUUID):
+        print('selecting', projectUUID)
         self.selected_project = Project(projectUUID)
         return self.selected_project.get_whole_project()
 
@@ -126,8 +130,9 @@ class Flow_project_manager:
             # validate project: all requiered fields are present
             if all([rF in jProject for rF in Project.required_fields]):
                 newUUID = genUUID()
-                self.serv.set(newUUID, json.dumps(jProject))
-                self.serv.sadd(KEYALLPROJECT, newUUID)
+                keyP = 'project_{}'.format(newUUID)
+                self.serv.set(keyP, json.dumps(jProject))
+                self.serv.sadd(KEYALLPROJECT, keyP)
                 return {'status': True }
             else:
                 return {'status': False, 'message': 'Project does not contain all required fields'}
@@ -165,7 +170,11 @@ class Flow_project_manager:
             return [False, "No data or operation not supplied"]
 
         if operation == 'create':
-            Project.create_new_project(data['projectName'], projectInfo=data['projectInfo'])
+            jProject = Project.create_new_project(data['projectName'], projectInfo=data['projectInfo'])
+            newUUID = genUUID()
+            keyP = 'project_{}'.format(newUUID)
+            self.serv.set(keyP, jProject)
+            self.serv.sadd(KEYALLPROJECT, keyP)
             return [True, "OK"]
         elif operation == 'rename':
             p = Project(data['projectUUID'])

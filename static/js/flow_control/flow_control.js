@@ -1,18 +1,18 @@
 class FlowControl {
     constructor() {
         this._modalSuccess = false; // shows modal result (if user clicked cancel or not)
-        this.updateSocket = io.connect('http://' + document.domain + ':' + location.port + '/update');
+        // this.updateSocket = io.connect('http://' + document.domain + ':' + location.port + '/update');
 
-        this.updateSocket.on('update', function(msg) {
-            console.log('Received: ' + msg.data);
-            var state = msg.state;
-        });
+        // this.updateSocket.on('update', function(msg) {
+        //     console.log('Received: ' + msg.data);
+        //     var state = msg.state;
+        // });
     }
 
-    update() {
-        this.updateSocket.emit('updateRequest', {data: "Here's some text that the server is urgently awaiting!"});
-        return false;
-    }
+    // update() {
+    //     this.updateSocket.emit('updateRequest', {data: "Here's some text that the server is urgently awaiting!"});
+    //     return false;
+    // }
 
     modalStateSucess() { this._modalSuccess = true; }
     modalStateReset() { this._modalSuccess = false; }
@@ -37,6 +37,7 @@ class FlowControl {
                 self.execute_operation('create_process', modalData)
                 .done(function(responseData, textStatus, jqXHR) {
                     var nodeData = responseData;
+                    console.log(nodeData);
                     innerRepresentation.addNode(nodeData);
                 })
                 .fail(function() {

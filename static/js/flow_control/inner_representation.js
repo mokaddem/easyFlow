@@ -65,8 +65,27 @@ class InnerRepresentation {
 
     get_processes_info() {
         $.getJSON( url_get_processes_info, {}, function( data ) {
-            innerRepresentation.update_node(data);
+            innerRepresentation.update_nodes(data.processes);
         });
+    }
+
+    update_nodes(processes) {
+        var update_array = [];
+        console.log(processes);
+        try {
+            for (var node of processes) {
+                update_array.push({
+                    id: node['puuid'],
+                    image: construct_node(
+                        node['name'],
+                        node['timestamp'],  // bytes
+                        node['timestamp'], // flowItem
+                        node['timestamp']
+                    )
+                });
+            }
+            this.nodes.update(update_array);
+        } catch(err) { /* processes is empty */ }
     }
 
     nodeType(nodeID) {
@@ -87,6 +106,7 @@ class InnerRepresentation {
     load_network(processes) {
         innerRepresentation.clear();
         this.isTempProject = 'false';
+        console.log(processes);
         for (var node of processes) {
             this.addNode(node);
             for (var connection of node.connections) {
@@ -97,32 +117,17 @@ class InnerRepresentation {
                 this.addBuffer(edgeData);
             }
         }
-
         if (this.auto_refresh != null) { clearInterval(this.auto_refresh); } // clean up if already running
-        this.auto_refresh = setInterval(innerRepresentation.get_processes_info(), auto_refresh_rate);
-    }
-
-    update_node(data) {
-        var update_array = [];
-        for (var node of data) {
-            update_array.push({
-                id: node['uuid'],
-                image: construct_node(
-                    node['name'],
-                    node['timestamp'],  // bytes
-                    node['timestamp'], // flowItem
-                    node['timestamp']
-                )
-            });
-        }
-        this.nodes.update(update_array);
+        this.auto_refresh = setInterval( function() {
+            innerRepresentation.get_processes_info();
+        }, auto_refresh_rate);
     }
 
     addNode(nodeData) {
         this.processObj[nodeData.id] = nodeData.name;
-        var  i = parseInt(nodeData.uuid);
+        var  i = parseInt(nodeData.puuid);
         this.nodes.add({
-            id: nodeData.uuid,
+            id: nodeData.puuid,
             image: construct_node(
                 nodeData.name,
                 String(i*2)+' bytes / ' + String(i*3)+' bytes',

@@ -114,7 +114,10 @@ def load_network():
     if projectUUID is None: #FIXME: Throws exception if None or not matching existing project
         raise ProjectNotFound("No project UUID provided")
 
-    project = flow_project_manager.select_project(projectUUID)
+    if not flow_project_manager.is_project_open():
+        project = flow_project_manager.select_project(projectUUID)
+    else:
+        project = flow_project_manager.selected_project.get_project_summary()
     resp = make_response(jsonify(project))
     flow_project_manager.set_cookies(resp, request)
     return resp
@@ -156,7 +159,7 @@ def test_message(message):
 
 @app.route('/get_pMetadata')
 def get_pMetadata():
-    infos = flow_project_manager.selected_project._process_manager.get_processes_info()
+    infos = flow_project_manager.selected_project.get_whole_project()
     return jsonify(infos)
 
 if __name__ == '__main__':

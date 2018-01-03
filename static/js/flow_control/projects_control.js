@@ -59,6 +59,7 @@ function load_project(project) {
         innerRepresentation.projectName = data.projectName;
         $('#projectName').text(data.projectName);
         $('#projectName').append('<small>'+data.projectInfo+'</small>');
+        console.log(data);
         innerRepresentation.load_network(data.processes);
         toggle_loading(false);
     });
@@ -136,7 +137,6 @@ function list_projects() {
             var row = projectListDatatable.row( this ).data();
             if (row != undefined) {
                 $('#modalListProject').modal("hide");
-                console.log(row);
                 load_project(row);
             }
         });

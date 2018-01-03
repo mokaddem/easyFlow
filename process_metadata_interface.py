@@ -2,7 +2,7 @@
 
 import json
 import redis
-from util import genUUID
+from util import genUUID, objToDictionnary
 
 host='localhost'
 port=6780
@@ -21,5 +21,37 @@ class Process_metadata_interface:
 
     def push_info(self, pMetadata):
         jMetadata = json.dumps(pMetadata)
-        puuid = pMetadata['uuid']
+        puuid = pMetadata['puuid']
         self._serv.set(puuid, jMetadata)
+
+
+class Process_representation:
+    def __init__(self, data):
+        self.puuid = data['puuid']
+        self.x = data['x']
+        self.y = data['y']
+        self.name = data['name']
+        self.type = data['type']
+        self.description = data['description']
+        self.bulletin_level = data['bulletin_level']
+        self.connections = data.get('connections', [])
+        self._subprocessObj = data.get('subprocessObj', None)
+
+    def gen_process_config(self):
+        return objToDictionnary(self, full=False)
+
+    def add_subprocessObj(self, proc):
+        self._subprocessObj = proc
+
+    def __repr__(self):
+        return json.dumps(objToDictionnary(self, full=False))
+
+    def __str__(self):
+        return self.__repr__()
+
+    def toJSON(self):
+        # return json.dumps(self, default=lambda o: o.__dict__)
+        return self.__repr__()
+
+    def get_dico(self):
+        return self.gen_process_config()

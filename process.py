@@ -15,30 +15,31 @@ port=6780
 db=0
 
 class Process(metaclass=ABCMeta):
-    def __init__(self, uuid):
+    def __init__(self, puuid):
         # get config from redis
         self._serv_config = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
-        self.uuid = uuid
+        self.puuid = puuid
         self.pid = os.getpid()
-        configData = self._serv_config.get('config_'+uuid)
+        configData = self._serv_config.get('config_'+puuid)
         configData = json.loads(configData)
-        self._serv_config.delete('config_'+uuid)
+        self._serv_config.delete('config_'+puuid)
 
         # self.filepath = filepath
         self._keyCommands = 'keyCommands'
         # self.name = name if name is not None else os.path.basename(filepath)
         # self.link_manager = link.Link_manager(uuid)
 
-        self.name = configData.get('name', self.uuid)
+        self.name = configData.get('name', self.puuid)
         self.type = configData.get('type', None)
         self.description = configData.get('description', '')
         self.bulletin_level = configData.get('bulletin_level', 'WARNING')
         self.x = configData.get('x', 0)
         self.y = configData.get('y', 0)
+        self.connections = []
 
         self._metadata_interface = Process_metadata_interface()
         self.push_p_info()
-        print('process {} [{}] ready'.format(self.uuid, self.pid))
+        print('process {} [{}] ready'.format(self.puuid, self.pid))
         self.run()
 
 
@@ -46,7 +47,7 @@ class Process(metaclass=ABCMeta):
         self.name = name
 
     def get_uuid(self):
-        return self.uuid
+        return self.puuid
 
     def get_representation(self, full=False):
         return objToDictionnary(self, full=full)
@@ -77,7 +78,7 @@ class Process(metaclass=ABCMeta):
 
 
             time.sleep(1)
-            print('process {} [{}]: sleeping'.format(self.uuid, self.pid))
+            print('process {} [{}]: sleeping'.format(self.puuid, self.pid))
 
 
     # def push_message(self, msg):

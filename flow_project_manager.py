@@ -31,6 +31,7 @@ class Project:
             self._serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
             rawJSONProject = self._serv.get(projectUUID)
             jProject = json.loads(rawJSONProject)
+            self.jProject = jProject
             if jProject is None:
                 # throws project not found exception
                 raise ProjectNotFound("The provided projectUUID does not match any known project")
@@ -40,12 +41,22 @@ class Project:
             self.projectInfo = jProject.get('projectInfo', '')
             self.creationTimestamp = jProject.get('creationTimestamp', 0)
             self.processNum = jProject.get('processNum', 0)
-            self.processes = jProject.get('processes', []) #FIXME Load and start all processes
-            # put current project configuration into flow_realtime_db
 
-            self._metadata_interface = Process_metadata_interface()
-            self._process_manager = Process_manager()
+            self.processes = []
+            for p in self.jProject.get('processes', []):
+                self.processes.append(self.filter_correct_init_fields(p))
 
+    def setup_project_manager(self):
+        self._metadata_interface = Process_metadata_interface()
+        self._process_manager = Process_manager(self.processes)
+
+    def filter_correct_init_fields(self, proc):
+        init_fields = ['bulletin_level', 'connections', 'description', 'name', 'puuid', 'type', 'x', 'y']
+        dico = {}
+        for k, v in proc.items():
+            if k in init_fields:
+                dico[k] = v
+        return dico
 
     def get_project_summary(self):
         p = {}
@@ -54,23 +65,21 @@ class Project:
         p['projectInfo'] = self.projectInfo
         p['creationTimestamp'] = self.creationTimestamp
         p['processNum'] = self.processNum
+        p['processes'] = self.processes
         return p
 
     def get_whole_project(self):
-        return objToDictionnary(self)
+        p = self.get_project_summary()
+        p['processes'] = self._process_manager.get_processes_info()
+        return p
 
     def rename_project(self, newName):
         self.projectName = newName
         self.save_project()
 
     def save_project(self):
-        p = {}
-        for attr, value in self.__dict__.items():
-            if attr.startswith('_'):
-                continue
-            p[attr] = value
-
-        jProject = json.dump(p, f)
+        p = self.get_project_summary()
+        jProject = json.dumps(p)
         self._serv.set(self.projectUUID, jProject)
 
     def delete_project(self):
@@ -83,17 +92,19 @@ class Project:
         p['projectInfo'] = projectInfo
         p['creationTimestamp'] = int(time.time())
         p['processNum'] = 0
-        p['processes'] = []
         jProject = json.dumps(p)
         return jProject
 
     def flowOperation(self, operation, data):
         if operation == 'create_process':
-            puuid = self._process_manager.create_process(data)
+            process_config = self._process_manager.create_process(data)
+            puuid = process_config.puuid
             if puuid == 0:
                 return {'status': 'error'}
-            self.processes.append(puuid)
+
+            self.processes.append(self.filter_correct_init_fields(process_config.get_dico()))
             pinfo = self._metadata_interface.get_info(puuid)
+            self.save_project()
             return pinfo
 
         elif operation == 'add_link':
@@ -130,7 +141,8 @@ class Flow_project_manager:
     def select_project(self, projectUUID):
         print('selecting', projectUUID)
         self.selected_project = Project(projectUUID)
-        return self.selected_project.get_whole_project()
+        self.selected_project.setup_project_manager()
+        return self.selected_project.get_project_summary()
 
     def import_project(self, rawJSONProject):
         try:

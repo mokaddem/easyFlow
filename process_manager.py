@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.5
 
 from util import genUUID
-import redis, json, time
+import redis, json, time, os
 import shlex, subprocess
 
 from process_print_to_console import Print_to_console
@@ -10,6 +10,7 @@ from process_metadata_interface import Process_metadata_interface
 host='localhost'
 port=6780
 db=0
+ALLOWED_PROCESS_TYPE = set(['print_to_console', 'print_current_time'])
 
 class Process_manager:
     def __init__(self):
@@ -38,10 +39,15 @@ class Process_manager:
         # gen process UUID
         puuid = genUUID()
         data['uuid'] = puuid
+        process_type = data['type']
+        if process_type not in ALLOWED_PROCESS_TYPE:
+            print('0 returned')
+            return 0
         # put process config in redis_config
         self._serv.set('config_'+puuid, json.dumps(data))
         # start process with Popen
-        args = shlex.split('python3 process_print_to_console.py {}'.format(puuid))
+        args = shlex.split('python3 {} {}'.format(os.path.join('processes/', process_type+'.py'), puuid))
+        print(args)
         proc = subprocess.Popen(args)
         # wait that process start the run() phase
         self.wait_for_process_running_state(puuid)

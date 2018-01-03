@@ -52,6 +52,7 @@ class Process(metaclass=ABCMeta):
         return objToDictionnary(self, full=full)
 
     def push_p_info(self):
+        self.timestamp = time.time()
         self._metadata_interface.push_info(self.get_representation())
 
     '''
@@ -76,7 +77,7 @@ class Process(metaclass=ABCMeta):
 
 
             time.sleep(1)
-            # print('process {} [{}]: sleeping'.format(self.uuid, self.pid))
+            print('process {} [{}]: sleeping'.format(self.uuid, self.pid))
 
 
     # def push_message(self, msg):

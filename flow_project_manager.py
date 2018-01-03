@@ -90,6 +90,8 @@ class Project:
     def flowOperation(self, operation, data):
         if operation == 'create_process':
             puuid = self._process_manager.create_process(data)
+            if puuid == 0:
+                return {'status': 'error'}
             self.processes.append(puuid)
             pinfo = self._metadata_interface.get_info(puuid)
             return pinfo
@@ -108,6 +110,12 @@ class Flow_project_manager:
     def __init__(self):
         self.selected_project = None
         self.serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
+
+    def list_process_type():
+        mypath = './processes/'
+        ALLOWED_PROCESS_TYPE = set(['print_to_console.py', 'print_current_time.py'])
+        onlyfiles = [f.replace('.py', '') for f in listdir(mypath) if (isfile(join(mypath, f)) and f.endswith('.py') and f in ALLOWED_PROCESS_TYPE)]
+        return onlyfiles
 
     def get_project_list(self):
         ret = []

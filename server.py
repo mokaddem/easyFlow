@@ -32,6 +32,7 @@ pmanager_pubsub = redis_pmanager.pubsub()
 pmanager_pubsub.subscribe('processes_info')
 
 ALLOWED_EXTENSIONS = set(['json'])
+
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -47,7 +48,7 @@ def read_module_svg_template(filename):
 def index():
     raw_module_svg = read_module_svg_template('module_templatev5')
     raw_buffer_svg = read_module_svg_template('buffer_template')
-    all_process_type = ['Test_process1', 'Test_process2']
+    all_process_type = Flow_project_manager.list_process_type()
 
     resp = make_response(render_template('index.html',
             raw_module_svg=raw_module_svg,

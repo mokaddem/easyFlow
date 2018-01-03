@@ -1,18 +1,43 @@
 function construct_node(moduleName, bytes, flowItem, time) {
-    var replaced_svg = raw_module_svg.replace('\{\{moduleName\}\}', moduleName);
-    var replaced_svg = replaced_svg.replace('\{\{bytes\}\}', bytes);
-    var replaced_svg = replaced_svg.replace('\{\{flowItem\}\}', flowItem);
-    var replaced_svg = replaced_svg.replace('\{\{time\}\}', time);
+    // var replaced_svg = raw_module_svg.replace('\{\{moduleName\}\}', moduleName);
+    // var replaced_svg = replaced_svg.replace('\{\{bytes\}\}', bytes);
+    // var replaced_svg = replaced_svg.replace('\{\{flowItem\}\}', flowItem);
+    // var replaced_svg = replaced_svg.replace('\{\{time\}\}', time);
+    // var url = "data:image/svg+xml;charset=utf-8,"+ encodeURIComponent(replaced_svg);
+    // return url
+    var mapObj = {
+        '\{\{moduleName\}\}':   moduleName,
+        '\{\{bytes\}\}':        bytes,
+        '\{\{flowItem\}\}':     flowItem,
+        '\{\{time\}\}':         time
+    };
+
+    var re = new RegExp(Object.keys(mapObj).join("|"),"gi");
+    var replaced_svg = raw_module_svg.replace(re, function(matched){
+      return mapObj[matched];
+    });
     var url = "data:image/svg+xml;charset=utf-8,"+ encodeURIComponent(replaced_svg);
-    return url
+    return url;
 }
 
 function construct_buffer(bufferName, bytes, flowItem) {
-    var replaced_svg = raw_buffer_svg.replace('\{\{bufferName\}\}', bufferName);
-    var replaced_svg = replaced_svg.replace('\{\{bytes\}\}', bytes);
-    var replaced_svg = replaced_svg.replace('\{\{flowItem\}\}', flowItem);
+    // var replaced_svg = raw_buffer_svg.replace('\{\{bufferName\}\}', bufferName);
+    // var replaced_svg = replaced_svg.replace('\{\{bytes\}\}', bytes);
+    // var replaced_svg = replaced_svg.replace('\{\{flowItem\}\}', flowItem);
+    // var url = "data:image/svg+xml;charset=utf-8,"+ encodeURIComponent(replaced_svg);
+    // return url
+    var mapObj = {
+        '\{\{bufferName\}\}':   bufferName,
+        '\{\{bytes\}\}':        bytes,
+        '\{\{flowItem\}\}':     flowItem
+    };
+
+    var re = new RegExp(Object.keys(mapObj).join("|"),"gi");
+    var replaced_svg = raw_buffer_svg.replace(re, function(matched){
+      return mapObj[matched];
+    });
     var url = "data:image/svg+xml;charset=utf-8,"+ encodeURIComponent(replaced_svg);
-    return url
+    return url;
 }
 
 function getCenterCoord(fromID, toID) {
@@ -40,7 +65,7 @@ class InnerRepresentation {
 
     get_processes_info() {
         $.getJSON( url_get_processes_info, {}, function( data ) {
-            console.log(data);
+            innerRepresentation.update_node(data);
         });
     }
 
@@ -74,14 +99,30 @@ class InnerRepresentation {
         }
 
         if (this.auto_refresh != null) { clearInterval(this.auto_refresh); } // clean up if already running
-        this.auto_refresh = setInterval(this.get_processes_info, 1000);
+        this.auto_refresh = setInterval(innerRepresentation.get_processes_info(), auto_refresh_rate);
+    }
+
+    update_node(data) {
+        var update_array = [];
+        for (var node of data) {
+            update_array.push({
+                id: node['uuid'],
+                image: construct_node(
+                    node['name'],
+                    node['timestamp'],  // bytes
+                    node['timestamp'], // flowItem
+                    node['timestamp']
+                )
+            });
+        }
+        this.nodes.update(update_array);
     }
 
     addNode(nodeData) {
         this.processObj[nodeData.id] = nodeData.name;
-        var  i = parseInt(nodeData.id);
+        var  i = parseInt(nodeData.uuid);
         this.nodes.add({
-            id: nodeData.id,
+            id: nodeData.uuid,
             image: construct_node(
                 nodeData.name,
                 String(i*2)+' bytes / ' + String(i*3)+' bytes',

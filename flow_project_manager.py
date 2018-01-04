@@ -45,8 +45,11 @@ class Project:
 
             self.processes = {}
             for puuid, p in self.jProject.get('processes', {}).items():
-                # self.processes.append(self.filter_correct_init_fields(p))
                 self.processes[puuid] = self.filter_correct_init_fields(p)
+
+            self.buffers = {}
+            for buuid, b in self.jProject.get('buffers', {}).items():
+                self.buffers[buuid] = b
 
     def setup_project_manager(self):
         self._metadata_interface = Process_metadata_interface()
@@ -67,7 +70,8 @@ class Project:
         p['projectInfo'] = self.projectInfo
         p['creationTimestamp'] = self.creationTimestamp
         p['processNum'] = self.processNum
-        p['processes'] = dicoToList(self.processes)
+        p['processes'] = self.processes
+        p['buffers'] = self.buffers
         return p
 
     def get_whole_project(self):
@@ -122,11 +126,23 @@ class Project:
             return {'status': 'error' }
 
         elif operation == 'node_drag':
-            x = data['x']
-            y = data['y']
-            puuid = data['puuid']
-            self.processes[puuid]['x'] = x
-            self.processes[puuid]['y'] = y
+            if data['nodeType'] == 'process':
+                x = data['x']
+                y = data['y']
+                puuid = data['uuid']
+                self.processes[puuid]['x'] = x
+                self.processes[puuid]['y'] = y
+                # self.save_project()
+            elif data['nodeType'] == 'buffer':
+                print(data)
+                x = data['x']
+                y = data['y']
+                buuid = data['uuid']
+                self.buffers[buuid]['x'] = x
+                self.buffers[buuid]['y'] = y
+            else:
+                return {'status': 'error' }
+            self.save_project()
             return {'status': 'success' }
         else:
             return {'status': 'error' }

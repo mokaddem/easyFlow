@@ -59,8 +59,7 @@ function load_project(project) {
         innerRepresentation.projectName = data.projectName;
         $('#projectName').text(data.projectName);
         $('#projectName').append('<small>'+data.projectInfo+'</small>');
-        console.log(data);
-        innerRepresentation.load_network(data.processes);
+        innerRepresentation.load_network(data);
         toggle_loading(false);
     });
 }

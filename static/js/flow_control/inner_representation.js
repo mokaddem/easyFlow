@@ -71,7 +71,6 @@ class InnerRepresentation {
 
     update_nodes(processes) {
         var update_array = [];
-        console.log(processes);
         try {
             for (var node of processes) {
                 update_array.push({
@@ -103,19 +102,28 @@ class InnerRepresentation {
         this.edges.clear();
     }
 
-    load_network(processes) {
+    load_network(data) {
+        var processes = data.processes;
         innerRepresentation.clear();
         this.isTempProject = 'false';
-        for (var node of processes) {
-            this.addNode(node);
-            for (var connection of node.connections) {
-                var edgeData = {
-                    from: node.id, to: connection.toID, id: connection.BufferID,
-                    name: connection.name, x: connection.x, y: connection.y
-                };
-                this.addBuffer(edgeData);
+        for (var puuid in processes) {
+            if (processes.hasOwnProperty(puuid)) {
+                var node = processes[puuid];
+                this.addNode(node);
             }
         }
+        var buffers = data.buffers;
+        for (var buuid in buffers) {
+            if (buffers.hasOwnProperty(buuid)) {
+                var buffer = buffers[buuid];
+                var edgeData = {
+                    from: buffer.fromUUID, to: buffer.toUUID, id: buuid,
+                    name: buffer.name, x: buffer.x, y: buffer.y
+                };
+            }
+            this.addBuffer(edgeData);
+        }
+
         if (this.auto_refresh != null) { clearInterval(this.auto_refresh); } // clean up if already running
         this.auto_refresh = setInterval( function() {
             innerRepresentation.get_processes_info();
@@ -123,7 +131,7 @@ class InnerRepresentation {
     }
 
     addNode(nodeData) {
-        this.processObj[nodeData.id] = nodeData.name;
+        this.processObj[nodeData.puuid] = nodeData.name;
         var  i = parseInt(nodeData.puuid);
         this.nodes.add({
             id: nodeData.puuid,
@@ -197,7 +205,7 @@ class InnerRepresentation {
     }
 
     handleNodeSelection(params) {
-        selectedNodes = params.nodes;
+        var selectedNodes = params.nodes;
         if(selectedNodes.length > 1) {
             var selectedNodesText = "";
             var selectedNodeType;

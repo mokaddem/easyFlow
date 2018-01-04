@@ -59,7 +59,12 @@ class FlowControl {
     handleNodesDrag(nodes) {
         var position = network.getPositions(nodes);
         for (var nodeUUID of nodes) {
-            var data = { puuid: nodeUUID, x: position[nodeUUID].x, y: position[nodeUUID].y }
+            var data = {
+                uuid: nodeUUID,
+                nodeType: innerRepresentation.nodeType(nodeUUID),
+                x: position[nodeUUID].x,
+                y: position[nodeUUID].y
+            }
             this.execute_operation('node_drag', data, true)
         }
     }

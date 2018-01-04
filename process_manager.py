@@ -20,7 +20,7 @@ class Process_manager:
         self._serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
         self._metadata_interface = Process_metadata_interface()
         self._alert_manager = Alert_manager()
-        self.processes = []
+        self.processes = {}
         self.processes_uuid = []
         self.projectUUID = projectUUID
 
@@ -79,7 +79,7 @@ class Process_manager:
         )
 
     def shutdown(self):
-        for proc in self.processes:
+        for puuid, proc in self.processes.items():
             subProcObj = proc._subprocessObj
             subProcObj.terminate()
 
@@ -114,6 +114,6 @@ class Process_manager:
         self.wait_for_process_running_state(puuid)
 
         process_config.add_subprocessObj(proc)
-        self.processes.append(process_config)
+        self.processes[puuid] = process_config
         self.processes_uuid.append(puuid)
         return process_config

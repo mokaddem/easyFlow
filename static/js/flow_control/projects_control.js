@@ -61,6 +61,7 @@ function load_project(project) {
         $('#projectName').append('<small>'+data.projectInfo+'</small>');
         innerRepresentation.load_network(data);
         toggle_loading(false);
+        flowControl.startAll();
     });
 }
 

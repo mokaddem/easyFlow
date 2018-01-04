@@ -70,7 +70,6 @@ class FlowControl {
     }
 
     execute_operation(operation, data, quick) {
-        console.log(data);
         quick = quick === undefined ? false : quick;
         data.operation = operation;
         return $.ajax({
@@ -80,6 +79,17 @@ class FlowControl {
             contentType: 'application/json; charset=utf-8',
             beforeSend: function() { toggle_loading(true, quick); },
             complete: function() { toggle_loading(false, quick); }
+        });
+    }
+
+    startAll() {
+        var data = {};
+        data.operation = 'start_all';
+        $.ajax({
+            type: "POST",
+            url: url_flow_operation,
+            data: JSON.stringify(data),
+            contentType: 'application/json; charset=utf-8'
         });
     }
 }

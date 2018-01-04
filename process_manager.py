@@ -16,7 +16,7 @@ db=0
 ALLOWED_PROCESS_TYPE = set(['print_to_console', 'print_current_time'])
 
 class Process_manager:
-    def __init__(self, projectUUID, processes_to_start):
+    def __init__(self, projectUUID):
         self._serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
         self._metadata_interface = Process_metadata_interface()
         self._alert_manager = Alert_manager()
@@ -24,7 +24,7 @@ class Process_manager:
         self.processes_uuid = []
         self.projectUUID = projectUUID
 
-        self.start_processes(processes_to_start)
+        # self.start_processes(processes_to_start)
 
     def start_processes(self, processes_to_start):
         l = len(processes_to_start)
@@ -33,12 +33,12 @@ class Process_manager:
             for puuid, proc in processes_to_start.items():
                 time.sleep(0.1)
                 self.create_process(proc, puuid)
-        self._alert_manager.send_alert(
-            title='Hoy',
-            content='System is ready!',
-            mType='success',
-            group='singleton'
-        )
+            self._alert_manager.send_alert(
+                title='Hoy',
+                content='System is ready and running!',
+                mType='success',
+                group='singleton'
+            )
 
     def get_processes_info(self):
         info = []

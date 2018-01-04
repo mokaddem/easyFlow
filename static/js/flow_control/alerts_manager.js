@@ -51,7 +51,6 @@ class AlertsManager {
                     this.messageGroup[group] = {left: jsonData.totalCount, total: jsonData.totalCount, nobj: nobj}
                 } else { // update the notification
                     var completed = Math.round(100*(this.messageGroup[group].total-this.messageGroup[group].left+1)/this.messageGroup[group].total);
-                    console.log('setting pb to:', completed);
                     this.messageGroup[group].nobj.update({
                         message: jsonData.message,
                         title: '<strong>'+jsonData.title+': </strong>',

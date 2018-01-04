@@ -43,6 +43,8 @@ class Project:
             self.creationTimestamp = jProject.get('creationTimestamp', 0)
             self.processNum = jProject.get('processNum', 0)
 
+            self._start_command_already_called = False
+
             self.processes = {}
             for puuid, p in self.jProject.get('processes', {}).items():
                 self.processes[puuid] = self.filter_correct_init_fields(p)
@@ -53,7 +55,7 @@ class Project:
 
     def setup_project_manager(self):
         self._metadata_interface = Process_metadata_interface()
-        self._process_manager = Process_manager(self.projectUUID, self.processes)
+        self._process_manager = Process_manager(self.projectUUID)
 
     def filter_correct_init_fields(self, proc):
         init_fields = ['bulletin_level', 'connections', 'description', 'name', 'puuid', 'type', 'x', 'y']
@@ -122,8 +124,12 @@ class Project:
             response['id'] = genUUID()
             return response
 
-        elif operation == 'update':
-            return {'status': 'error' }
+        elif operation == 'start_all':
+            if self._start_command_already_called: # prevent multiple execution
+                return {'status': 'sucess' }
+            self._process_manager.start_processes(self.processes)
+            self._start_command_already_called = True
+            return {'status': 'sucess' }
 
         elif operation == 'node_drag':
             if data['nodeType'] == 'process':

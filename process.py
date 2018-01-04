@@ -63,8 +63,8 @@ class Process(metaclass=ABCMeta):
     def push_process_start(self):
         self._alert_manager.send_alert(
             title=self.name,
-            content='{now} {state}[{pid}] '.format(
-                now=time.time(),
+            content='{state}[{pid}] ({now})'.format(
+                now=time.strftime('%H:%M:%S'),
                 pid=self.pid,
                 state="started"
             ),

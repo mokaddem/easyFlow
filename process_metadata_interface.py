@@ -36,6 +36,7 @@ class Process_representation:
         self.bulletin_level = data['bulletin_level']
         self.connections = data.get('connections', [])
         self._subprocessObj = data.get('subprocessObj', None)
+        self.projectUUID = data['projectUUID']
 
     def gen_process_config(self):
         return objToDictionnary(self, full=False)

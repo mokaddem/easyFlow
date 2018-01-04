@@ -3,8 +3,10 @@
 from util import genUUID
 import redis, json, time, os
 import shlex, subprocess
+import psutil
 
 from util import genUUID, objToDictionnary
+from alerts_manager import Alert_manager
 from process_print_to_console import Print_to_console
 from process_metadata_interface import Process_metadata_interface, Process_representation
 
@@ -14,13 +16,20 @@ db=0
 ALLOWED_PROCESS_TYPE = set(['print_to_console', 'print_current_time'])
 
 class Process_manager:
-    def __init__(self, processes_to_start):
+    def __init__(self, projectUUID, processes_to_start):
         self._serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
         self._metadata_interface = Process_metadata_interface()
+        self._alert_manager = Alert_manager()
         self.processes = []
         self.processes_uuid = []
+        self.projectUUID = projectUUID
 
+        self.start_processes(processes_to_start)
+
+    def start_processes(self, processes_to_start):
+        self.push_starting_all_processes(len(processes_to_start));
         for proc in processes_to_start:
+            time.sleep(0.1)
             self.create_process(proc)
 
     def get_processes_info(self):
@@ -35,11 +44,31 @@ class Process_manager:
         while True:
             if not self._serv.exists('config_'+puuid):
                 break
-            time.sleep(0.1)
+            # time.sleep(0.1)
+            time.sleep(1)
             print('wait_for_process_running_state')
 
-    def process_already_started(self, puuid):
+    def process_started_and_managed(self, puuid):
         return puuid in self.processes_uuid
+
+    def process_started_in_system(self, puuid, killIt=False):
+        for p in psutil.process_iter(attrs=['name', 'cmdline']):
+            if (puuid in p.info['name']) or (puuid in p.info['cmdline']):
+                if killIt:
+                    _, alive = psutil.wait_procs([p], timeout=1)
+                if len(alive) > 0: # process not killed -> force kill
+                    alive[0].kill()
+                return True
+        return False
+
+    def push_starting_all_processes(self, count):
+        self._alert_manager.send_alert(
+            title='Processes',
+            content='starting all processes',
+            mType='info',
+            group=self.projectUUID+'_processes',
+            totalCount=count
+        )
 
     def create_process(self, data):
         puuid = data.get('puuid', None)
@@ -47,9 +76,15 @@ class Process_manager:
             # gen process UUID
             puuid = genUUID()
             data['puuid'] = puuid
+        data['projectUUID'] = self.projectUUID
 
-        if self.process_already_started(puuid):
+        if self.process_started_and_managed(puuid):
             return "process already started"
+        elif self.process_started_in_system(puuid, killIt=True):
+            print("process was started in system")
+            self._alert_manager.send_alert(title='Process',
+                content='Process {} was started in system and has been killed'.format(data.get('name', None)),
+                mType='warning', group='singleton')
 
         process_type = data['type']
         if process_type not in ALLOWED_PROCESS_TYPE:
@@ -61,8 +96,9 @@ class Process_manager:
         # start process with Popen
         args = shlex.split('python3 {} {}'.format(os.path.join('processes/', process_type+'.py'), puuid))
         proc = subprocess.Popen(args)
-        # wait that process start the run() phase
+        # wait that process start the run() phase, publish info
         self.wait_for_process_running_state(puuid)
+
         process_config.add_subprocessObj(proc)
         self.processes.append(process_config)
         self.processes_uuid.append(puuid)

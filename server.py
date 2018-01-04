@@ -14,6 +14,7 @@ import datetime
 import os
 
 from util import genUUID, objToDictionnary
+from alerts_manager import Alert_manager
 from flow_project_manager import ProjectNotFound, Flow_project_manager
 
 app = Flask(__name__)
@@ -28,8 +29,7 @@ host='localhost'
 port=6780
 db=0
 redis_pmanager = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
-pmanager_pubsub = redis_pmanager.pubsub()
-pmanager_pubsub.subscribe('processes_info')
+alert_manager = Alert_manager()
 
 ALLOWED_EXTENSIONS = set(['json'])
 
@@ -159,8 +159,16 @@ def test_message(message):
 
 @app.route('/get_pMetadata')
 def get_pMetadata():
-    infos = flow_project_manager.selected_project.get_whole_project()
+    if flow_project_manager.is_project_open():
+        infos = flow_project_manager.selected_project.get_whole_project()
+    else:
+        infos = {}
     return jsonify(infos)
+
+@app.route('/alert_stream')
+def alert_stream():
+    return Response(alert_manager.make_response_stream(), mimetype="text/event-stream")
+
 
 if __name__ == '__main__':
     # socketio.run(app, host='127.0.0.1', port=9090,  debug = True)

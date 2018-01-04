@@ -7,6 +7,7 @@ import re
 import redis
 
 from util import genUUID, objToDictionnary
+from alerts_manager import Alert_manager
 from process_metadata_interface import Process_metadata_interface
 from process_manager import Process_manager
 
@@ -48,7 +49,7 @@ class Project:
 
     def setup_project_manager(self):
         self._metadata_interface = Process_metadata_interface()
-        self._process_manager = Process_manager(self.processes)
+        self._process_manager = Process_manager(self.projectUUID, self.processes)
 
     def filter_correct_init_fields(self, proc):
         init_fields = ['bulletin_level', 'connections', 'description', 'name', 'puuid', 'type', 'x', 'y']

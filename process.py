@@ -8,6 +8,7 @@ import os, time, sys
 import redis, json
 
 from util import genUUID, objToDictionnary
+from alerts_manager import Alert_manager
 from process_metadata_interface import Process_metadata_interface
 
 host='localhost'
@@ -18,6 +19,7 @@ class Process(metaclass=ABCMeta):
     def __init__(self, puuid):
         # get config from redis
         self._serv_config = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
+        self._alert_manager = Alert_manager()
         self.puuid = puuid
         self.pid = os.getpid()
         configData = self._serv_config.get('config_'+puuid)
@@ -29,7 +31,8 @@ class Process(metaclass=ABCMeta):
         # self.name = name if name is not None else os.path.basename(filepath)
         # self.link_manager = link.Link_manager(uuid)
 
-        self.name = configData.get('name', self.puuid)
+        self.projectUUID = configData.get('projectUUID', 'No projectUUID')
+        self.name = configData.get('name', 'No name')
         self.type = configData.get('type', None)
         self.description = configData.get('description', '')
         self.bulletin_level = configData.get('bulletin_level', 'WARNING')
@@ -38,6 +41,7 @@ class Process(metaclass=ABCMeta):
         self.connections = []
 
         self._metadata_interface = Process_metadata_interface()
+        self._alert_manager = Alert_manager()
         self.push_p_info()
         print('process {} [{}] ready'.format(self.puuid, self.pid))
         self.run()
@@ -56,12 +60,25 @@ class Process(metaclass=ABCMeta):
         self.timestamp = time.time()
         self._metadata_interface.push_info(self.get_representation())
 
+    def push_process_start(self):
+        self._alert_manager.send_alert(
+            title=self.name,
+            content='{now} {state}[{pid}] '.format(
+                now=time.time(),
+                pid=self.pid,
+                state="started"
+            ),
+            mType='info',
+            group=self.projectUUID+'_processes'
+        )
+
     '''
         - Process incoming commands
         - Push self info
         - Process messages
     '''
     def run(self):
+        self.push_process_start()
         while True:
             flag_cmds = True
 

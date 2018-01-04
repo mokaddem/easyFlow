@@ -120,6 +120,10 @@ function draw() {
             }
     });
 
+    // generique alerts manager that displays alerts
+    alertManager = new AlertsManager();
+
+
     //try to load project based on cookies
     init_load();
 

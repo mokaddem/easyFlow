@@ -56,15 +56,25 @@ class FlowControl {
         });
     }
 
-    execute_operation(operation, data) {
+    handleNodesDrag(nodes) {
+        var position = network.getPositions(nodes);
+        for (var nodeUUID of nodes) {
+            var data = { puuid: nodeUUID, x: position[nodeUUID].x, y: position[nodeUUID].y }
+            this.execute_operation('node_drag', data, true)
+        }
+    }
+
+    execute_operation(operation, data, quick) {
+        console.log(data);
+        quick = quick === undefined ? false : quick;
         data.operation = operation;
         return $.ajax({
             type: "POST",
             url: url_flow_operation,
             data: JSON.stringify(data),
             contentType: 'application/json; charset=utf-8',
-            beforeSend: function() { toggle_loading(true); },
-            complete: function() { toggle_loading(false); }
+            beforeSend: function() { toggle_loading(true, quick); },
+            complete: function() { toggle_loading(false, quick); }
         });
     }
 }

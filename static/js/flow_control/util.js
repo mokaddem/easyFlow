@@ -25,10 +25,33 @@ function getCookie(name) {
     }
 }
 
-function toggle_loading(display) {
-    $('#loaderBack').toggleClass('loader-background', display);
-    $('#loaderBack').toggle(display);
-    $('#loader').toggle(display);
+function toggle_loading(display, quick) {
+    if(quick && display) {
+        $.notify({
+                icon: 'glyphicon glyphicon-save',
+                title: '<strong>Saving... </strong>',
+                message: "",
+            },{
+                type: 'info',
+                allow_dismiss: false,
+                showProgressbar: true,
+                delay: 500,
+                // timer: 1000,
+                placement: {
+                    from: "top",
+                    align: "right"
+                },
+                z_index: 3000,
+                animate: {
+                    enter: 'animated bounceInDownFast',
+                    exit: 'animated flipOutXFast'
+                }
+        });
+    } else {
+        $('#loaderBack').toggleClass('loader-background', display);
+        $('#loaderBack').toggle(display);
+        $('#loader').toggle(display);
+    }
 }
 
 function notify(title, message, type) {

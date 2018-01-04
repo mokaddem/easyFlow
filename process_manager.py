@@ -27,10 +27,18 @@ class Process_manager:
         self.start_processes(processes_to_start)
 
     def start_processes(self, processes_to_start):
-        self.push_starting_all_processes(len(processes_to_start));
-        for proc in processes_to_start:
-            time.sleep(0.1)
-            self.create_process(proc)
+        l = len(processes_to_start)
+        if l>0:
+            self.push_starting_all_processes(l);
+            for puuid, proc in processes_to_start.items():
+                time.sleep(0.1)
+                self.create_process(proc, puuid)
+        self._alert_manager.send_alert(
+            title='Hoy',
+            content='System is ready!',
+            mType='success',
+            group='singleton'
+        )
 
     def get_processes_info(self):
         info = []
@@ -70,12 +78,18 @@ class Process_manager:
             totalCount=count
         )
 
-    def create_process(self, data):
-        puuid = data.get('puuid', None)
+    def shutdown(self):
+        for proc in self.processes:
+            subProcObj = proc._subprocessObj
+            subProcObj.terminate()
+
+    def create_process(self, data, puuid=None):
         if puuid is None:
-            # gen process UUID
-            puuid = genUUID()
-            data['puuid'] = puuid
+            puuid = data.get('puuid', None)
+            if puuid is None:
+                # gen process UUID
+                puuid = genUUID()
+        data['puuid'] = puuid
         data['projectUUID'] = self.projectUUID
 
         if self.process_started_and_managed(puuid):

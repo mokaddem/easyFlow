@@ -106,7 +106,6 @@ class InnerRepresentation {
     load_network(processes) {
         innerRepresentation.clear();
         this.isTempProject = 'false';
-        console.log(processes);
         for (var node of processes) {
             this.addNode(node);
             for (var connection of node.connections) {
@@ -195,5 +194,29 @@ class InnerRepresentation {
         });
         btnPipe.attr('activated', 'false');
         toggle_btn_pipe(false);
+    }
+
+    handleNodeSelection(params) {
+        selectedNodes = params.nodes;
+        if(selectedNodes.length > 1) {
+            var selectedNodesText = "";
+            var selectedNodeType;
+            selectedNodes.map(function(value, index, arr) {
+                if (index == 0) {  // check if same node type
+                    selectedNodeType = innerRepresentation.nodeType(value);
+                }
+
+                if (innerRepresentation.nodeType(value) != selectedNodeType) {
+                    return false; // skip
+                }
+                if (index < arr.length-1) {
+                    selectedNodesText += innerRepresentation.processObj[value]+', ';
+                } else {
+                    selectedNodesText += innerRepresentation.processObj[value];
+                    }
+            });
+            $('#selectedNodeName').text(selectedNodesText);
+        }
+        $('#selectedNodeName').text(innerRepresentation.processObj[selectedNodes]);
     }
 }

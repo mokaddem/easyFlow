@@ -6,7 +6,7 @@ import time
 import re
 import redis
 
-from util import genUUID, objToDictionnary
+from util import genUUID, objToDictionnary, dicoToList
 from alerts_manager import Alert_manager
 from process_metadata_interface import Process_metadata_interface
 from process_manager import Process_manager
@@ -43,9 +43,10 @@ class Project:
             self.creationTimestamp = jProject.get('creationTimestamp', 0)
             self.processNum = jProject.get('processNum', 0)
 
-            self.processes = []
-            for p in self.jProject.get('processes', []):
-                self.processes.append(self.filter_correct_init_fields(p))
+            self.processes = {}
+            for puuid, p in self.jProject.get('processes', {}).items():
+                # self.processes.append(self.filter_correct_init_fields(p))
+                self.processes[puuid] = self.filter_correct_init_fields(p)
 
     def setup_project_manager(self):
         self._metadata_interface = Process_metadata_interface()
@@ -66,7 +67,7 @@ class Project:
         p['projectInfo'] = self.projectInfo
         p['creationTimestamp'] = self.creationTimestamp
         p['processNum'] = self.processNum
-        p['processes'] = self.processes
+        p['processes'] = dicoToList(self.processes)
         return p
 
     def get_whole_project(self):
@@ -87,6 +88,9 @@ class Project:
         self._serv.delete(self.projectUUID)
         self._serv.srem(KEYALLPROJECT, self.projectUUID)
 
+    def close_project(self):
+        self._process_manager.shutdown()
+
     def create_new_project(projectName, projectInfo=''):
         p = {}
         p['projectName'] = projectName
@@ -103,7 +107,8 @@ class Project:
             if puuid == 0:
                 return {'status': 'error'}
 
-            self.processes.append(self.filter_correct_init_fields(process_config.get_dico()))
+            # self.processes.append(self.filter_correct_init_fields(process_config.get_dico()))
+            self.processes[puuid] = self.filter_correct_init_fields(process_config.get_dico())
             pinfo = self._metadata_interface.get_info(puuid)
             self.save_project()
             return pinfo
@@ -115,6 +120,14 @@ class Project:
 
         elif operation == 'update':
             return {'status': 'error' }
+
+        elif operation == 'node_drag':
+            x = data['x']
+            y = data['y']
+            puuid = data['puuid']
+            self.processes[puuid]['x'] = x
+            self.processes[puuid]['y'] = y
+            return {'status': 'success' }
         else:
             return {'status': 'error' }
 
@@ -177,6 +190,7 @@ class Flow_project_manager:
         resp.set_cookie('projectName', '', expires=0)
 
     def close_project(self, resp):
+        self.selected_project.close_project()
         self.selected_project = None
         self.reset_cookies # set cookies to 'null'
 

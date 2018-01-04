@@ -7,12 +7,13 @@ def genUUID():
 
 def objToDictionnary(obj, full=False):
     ret = {}
+    # print(type(obj))
     for attr, value in obj.__dict__.items():
         if not full and attr.startswith('_'):
             continue
         #recursive
         if type(value) is dict:
-            ret[attr] = objToDictionnary(value)
+            ret[attr] = dicoToList(value)
         elif type(value) is list:
             ret[attr] = listToDictionnary(value)
         else:
@@ -22,5 +23,11 @@ def objToDictionnary(obj, full=False):
 def listToDictionnary(list, full=False):
     ret = []
     for elem in list:
-        ret.append(objToDictionnary(elem))
+        ret.append(dicoToList(elem))
+    return ret
+
+def dicoToList(dic):
+    ret = []
+    for k, v in dic.items():
+        ret.append(v)
     return ret

@@ -65,10 +65,13 @@ function draw() {
 
     // add event listeners
     network.on("selectNode", function (params) {
-        handleNodeSelection(params);
+        innerRepresentation.handleNodeSelection(params);
     });
     network.on("deselectNode", function (params) {
-        handleNodeSelection(params);
+        innerRepresentation.handleNodeSelection(params);
+    });
+    network.on("dragEnd", function (params) {
+        flowControl.handleNodesDrag(params.nodes);
     });
 
     $('button[name="pipe"]').on("click", function (eventObject) {
@@ -130,30 +133,6 @@ function draw() {
 }
 // setTimeout(function(){innerRepresentation.update();}, 6000);
 // setTimeout(function(){network.addNodeMode();}, 6000);
-
-function handleNodeSelection(params) {
-    selectedNodes = params.nodes;
-    if(selectedNodes.length > 1) {
-        var selectedNodesText = "";
-        var selectedNodeType;
-        selectedNodes.map(function(value, index, arr) {
-            if (index == 0) {  // check if same node type
-                selectedNodeType = innerRepresentation.nodeType(value);
-            }
-
-            if (innerRepresentation.nodeType(value) != selectedNodeType) {
-                return false; // skip
-            }
-            if (index < arr.length-1) {
-                selectedNodesText += innerRepresentation.processObj[value]+', ';
-            } else {
-                selectedNodesText += innerRepresentation.processObj[value];
-                }
-        });
-        $('#selectedNodeName').text(selectedNodesText);
-    }
-    $('#selectedNodeName').text(innerRepresentation.processObj[selectedNodes]);
-}
 
 function init_load() {
     if (getCookie('projectUUID') === undefined) {

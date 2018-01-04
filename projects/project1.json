@@ -3,12 +3,14 @@
     "projectInfo": "With few test processes",
     "creationTimestamp": 1513854352,
     "processNum": 0,
-    "processes": [
-            {
-                "id": "b9a7c9c0-db04-4f1e-aa32-29efdacc13aa",
+    "processes": {
+            "b9a7c9c0-db04-4f1e-aa32-29efdacc13aa": {
+                "name": "Process1",
+                "type": "print_to_console",
+                "description": "",
+                "bulletin_level": "info",
                 "x": 0,
                 "y": 0,
-                "name": "Process1",
                 "connections": [
                         {
                             "BufferID": "0c12b620-7192-44d5-a7ab-5989339d09a8",
@@ -26,19 +28,23 @@
                         }
                     ]
                 },
-                {
-                    "id": "b7645724-9599-45fa-a422-3e0fd3476340",
+                "b7645724-9599-45fa-a422-3e0fd3476340": {
                     "name": "Process2",
+                    "type": "print_to_console",
+                    "description": "",
+                    "bulletin_level": "info",
                     "x": 200,
                     "y": 200,
                     "connections": []
                 },
-                {
-                    "id": "7f7945ef-ebb5-4ea9-bda3-0020d75206e6",
+                "7f7945ef-ebb5-4ea9-bda3-0020d75206e6": {
                     "name": "Process3",
+                    "type": "print_to_console",
+                    "description": "",
+                    "bulletin_level": "info",
                     "x": -200,
                     "y": -200,
                     "connections": []
                 }
-    ]
+    }
 }

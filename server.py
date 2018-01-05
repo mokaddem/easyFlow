@@ -58,7 +58,7 @@ def index():
 
     if not flow_project_manager.is_project_open():
         print('reseting cookies')
-        flow_project_manager.reset_cookies(resp, request)
+        flow_project_manager.reset_cookies(resp)
     else: # a project is open
         flow_project_manager.set_cookies(resp, request)
     return resp

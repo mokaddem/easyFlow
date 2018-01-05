@@ -38,7 +38,7 @@ class Process(metaclass=ABCMeta):
         self.bulletin_level = configData.get('bulletin_level', 'WARNING')
         self.x = configData.get('x', 0)
         self.y = configData.get('y', 0)
-        self.connections = []
+        # self.connections = []
 
         self._metadata_interface = Process_metadata_interface()
         self._alert_manager = Alert_manager()

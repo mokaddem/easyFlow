@@ -207,14 +207,14 @@ class Flow_project_manager:
             resp.set_cookie('projectUUID', self.selected_project.projectUUID)
             resp.set_cookie('projectName', self.selected_project.projectName)
 
-    def reset_cookies(self, resp, req):
+    def reset_cookies(self, resp):
         resp.set_cookie('projectUUID', '', expires=0)
         resp.set_cookie('projectName', '', expires=0)
 
     def close_project(self, resp):
         self.selected_project.close_project()
         self.selected_project = None
-        self.reset_cookies # set cookies to 'null'
+        self.reset_cookies(resp) # set cookies to 'null'
 
     def is_project_open(self):
         if self.selected_project is None:
@@ -238,6 +238,9 @@ class Flow_project_manager:
             p.rename_project(data['newProjectName'])
             return [True, "OK"]
         elif operation == 'delete':
+            #Close project if already running
+            if data['projectUUID'] == self.selected_project.projectUUID:
+                self.selected_project.close_project()
             p = Project(data['projectUUID'])
             p.delete_project()
             return [True, "OK"]

@@ -1,10 +1,4 @@
 function construct_node(moduleName, bytes, flowItem, time) {
-    // var replaced_svg = raw_module_svg.replace('\{\{moduleName\}\}', moduleName);
-    // var replaced_svg = replaced_svg.replace('\{\{bytes\}\}', bytes);
-    // var replaced_svg = replaced_svg.replace('\{\{flowItem\}\}', flowItem);
-    // var replaced_svg = replaced_svg.replace('\{\{time\}\}', time);
-    // var url = "data:image/svg+xml;charset=utf-8,"+ encodeURIComponent(replaced_svg);
-    // return url
     var mapObj = {
         '\{\{moduleName\}\}':   moduleName,
         '\{\{bytes\}\}':        bytes,
@@ -21,11 +15,6 @@ function construct_node(moduleName, bytes, flowItem, time) {
 }
 
 function construct_buffer(bufferName, bytes, flowItem) {
-    // var replaced_svg = raw_buffer_svg.replace('\{\{bufferName\}\}', bufferName);
-    // var replaced_svg = replaced_svg.replace('\{\{bytes\}\}', bytes);
-    // var replaced_svg = replaced_svg.replace('\{\{flowItem\}\}', flowItem);
-    // var url = "data:image/svg+xml;charset=utf-8,"+ encodeURIComponent(replaced_svg);
-    // return url
     var mapObj = {
         '\{\{bufferName\}\}':   bufferName,
         '\{\{bytes\}\}':        bytes,
@@ -109,6 +98,7 @@ class InnerRepresentation {
         for (var puuid in processes) {
             if (processes.hasOwnProperty(puuid)) {
                 var node = processes[puuid];
+                node.puuid = puuid;
                 this.addNode(node);
             }
         }
@@ -123,10 +113,10 @@ class InnerRepresentation {
             }
             this.addBuffer(edgeData);
         }
-
         if (this.auto_refresh != null) { clearInterval(this.auto_refresh); } // clean up if already running
         this.auto_refresh = setInterval( function() {
             innerRepresentation.get_processes_info();
+
         }, auto_refresh_rate);
     }
 

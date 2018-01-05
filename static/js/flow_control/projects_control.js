@@ -54,19 +54,11 @@ function load_project(project) {
         console.log('projectName not valid');
         return;
     }
-    // toggle_loading(true);
-    // $.getJSON( url_load_network, {projectUUID: project.projectUUID}, function( data ) {
-        // innerRepresentation.projectName = data.projectName;
-        // $('#projectName').text(data.projectName);
-        // $('#projectName').append('<small>'+data.projectInfo+'</small>');
-        // innerRepresentation.load_network(data);
-        // toggle_loading(false)
-        // innerRepresentation.project.projectUUID = project.projectUUID;
+
     innerRepresentation.set_project(project);
     innerRepresentation.resync_representation(function() {
         flowControl.startAll();
     })
-    // });
 }
 
 function list_projects() {
@@ -201,11 +193,9 @@ function importProject() {
 
 function exportProject(rowID) {
     var rowData = projectListDatatable.row(rowID).data();
+    console.log('performing ajax');
     $.ajax({
-        url: url_download_file,
-        processData: false, // important
-        contentType: false, // important
-        data: { projectUUID: rowData.projectUUID },
+        url: url_download_file+'?projectUUID='+rowData.projectUUID,
         success: function() {
             document.location.href = url_download_file+'?projectUUID='+rowData.projectUUID;
         },

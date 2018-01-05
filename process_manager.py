@@ -65,10 +65,10 @@ class Process_manager:
             if (puuid in p.info['name']) or (puuid in p.info['cmdline']):
                 if killIt:
                     _, alive = psutil.wait_procs([p], timeout=1)
-                if len(alive) > 0: # process not killed -> force kill
-                    alive[0].kill()
-                return True
-        return False
+                    if len(alive) > 0: # process not killed -> force kill
+                        alive[0].kill()
+                return [True, p.pid]
+        return [False, 0]
 
     def push_starting_all_processes(self, count):
         self._alert_manager.send_alert(
@@ -95,29 +95,37 @@ class Process_manager:
 
         if self.process_started_and_managed(puuid):
             return "process already started"
-        elif self.process_started_in_system(puuid, killIt=True):
+
+        pStarted, pid = self.process_started_in_system(puuid, killIt=False)
+        if pStarted:
             print("process was started in system")
             self._alert_manager.send_alert(title='Process',
-                content='Process {} was started in system and has been killed'.format(data.get('name', None)),
+                content='{} was started in system (pid={}). Trying to recover state...'.format(data.get('name', None), pid),
                 mType='warning', group='singleton')
+            process_config = Process_representation(data)
+            process_config.add_subprocessObj(psutil.Process(pid))
+            self.processes[puuid] = process_config
+            self.processes_uuid.append(puuid)
+            return process_config
 
-        process_type = data['type']
-        if process_type not in ALLOWED_PROCESS_TYPE:
-            print('Unkown process type')
-            return 0
-        # gen config
-        process_config = Process_representation(data)
-        self._serv.set('config_'+puuid, process_config.toJSON())
-        # start process with Popen
-        args = shlex.split('python3 {} {}'.format(os.path.join('processes/', process_type+'.py'), puuid))
-        proc = subprocess.Popen(args)
-        # wait that process start the run() phase, publish info
-        self.wait_for_process_running_state(puuid)
+        else:
+            process_type = data['type']
+            if process_type not in ALLOWED_PROCESS_TYPE:
+                print('Unkown process type')
+                return 0
+            # gen config
+            process_config = Process_representation(data)
+            self._serv.set('config_'+puuid, process_config.toJSON())
+            # start process with Popen
+            args = shlex.split('python3 {} {}'.format(os.path.join('processes/', process_type+'.py'), puuid))
+            proc = subprocess.Popen(args)
+            # wait that process start the run() phase, publish info
+            self.wait_for_process_running_state(puuid)
 
-        process_config.add_subprocessObj(proc)
-        self.processes[puuid] = process_config
-        self.processes_uuid.append(puuid)
-        return process_config
+            process_config.add_subprocessObj(proc)
+            self.processes[puuid] = process_config
+            self.processes_uuid.append(puuid)
+            return process_config
 
     def delete_process(self, puuid):
         proc = self.processes[puuid]

@@ -224,7 +224,7 @@ class Flow_project_manager:
             return {'status': False, 'message': 'Project not valid'}
 
     def projectToJSON(self, projectUUID):
-        return json.dumps(Project(projectUUID).get_whole_project())
+        return json.dumps(Project(projectUUID).get_project_summary())
 
     def set_cookies(self, resp, req):
         # project is open and the same in both server-side and client-side

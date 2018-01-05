@@ -6,7 +6,7 @@ from werkzeug.utils import secure_filename
 
 import redis
 import json
-from io import StringIO
+from io import BytesIO
 import random, math
 import configparser
 from time import sleep, strftime
@@ -94,17 +94,16 @@ def upload_file():
 def download_file():
     projectUUID = request.args.get('projectUUID', None)
     if projectUUID is None:
-        print('error')
+        print('error: no project uuid provided')
         return 'KO'
 
-    strIO = StringIO()
-    JSONProject = flow_project_manager.projectToJSON(projectUUID)
-    strIO.write(JSONProject)
-    strIO.seek(0)
+    JSONProject = flow_project_manager.projectToJSON(projectUUID).encode('utf-8')
     print('sending')
-    return send_file(strIO,
-             attachment_filename="testing.txt",
-             as_attachment=True)
+    resp = make_response(send_file(BytesIO(JSONProject),
+             attachment_filename="projectUUID.json",
+             as_attachment=True))
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
+    return resp
 
 @app.route("/load_network")
 def load_network():
@@ -174,4 +173,8 @@ def alert_stream():
 
 if __name__ == '__main__':
     # socketio.run(app, host='127.0.0.1', port=9090,  debug = True)
-    app.run(host='127.0.0.1', port=9090,  debug = True, threaded=True)
+    try:
+        app.run(host='127.0.0.1', port=9090,  debug = True, threaded=True, use_reloader=False)
+    except KeyboardInterrupt as e:
+        print("closing processes")
+        flow_project_manager.close_project()

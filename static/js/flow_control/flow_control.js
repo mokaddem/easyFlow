@@ -37,7 +37,6 @@ class FlowControl {
                 self.execute_operation('create_process', modalData)
                 .done(function(responseData, textStatus, jqXHR) {
                     var nodeData = responseData;
-                    console.log(nodeData);
                 })
                 .fail(function() {
                     console.log( "An error occured" );

@@ -65,7 +65,6 @@ class InnerRepresentation {
     }
 
     update_nodes(processes) {
-        console.log(processes);
         var update_array = [];
         try {
             for (var node of processes) {

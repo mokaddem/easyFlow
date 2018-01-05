@@ -135,10 +135,10 @@ class Project:
 
         elif operation == 'add_link':
             link_config = self._process_manager.create_link(data)
-            buuid = process_config.puuid
+            buuid = link_config.buuid
             if buuid == 0:
                 return {'status': 'error'}
-            self.buffers[buuid] = self.link_config.get_dico()
+            self.buffers[buuid] = link_config.get_dico()
 
         elif operation == 'delete_link':
             buuid = data['buuid']
@@ -184,6 +184,10 @@ class Flow_project_manager:
         ALLOWED_PROCESS_TYPE = set(['print_to_console.py', 'print_current_time.py'])
         onlyfiles = [f.replace('.py', '') for f in listdir(mypath) if (isfile(join(mypath, f)) and f.endswith('.py') and f in ALLOWED_PROCESS_TYPE)]
         return onlyfiles
+
+    def list_buffer_type():
+        ALLOWED_BUFFER_TYPE = set(['FIFO', 'LIFO'])
+        return list(ALLOWED_BUFFER_TYPE)
 
     def get_project_list(self):
         ret = []

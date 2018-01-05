@@ -11,15 +11,22 @@ class FlowControl {
         this.execute_operation('delete_process', {puuid: puuid}, false);
     }
 
-    add_link(data) {
-        this.execute_operation('add_link', data)
-        .done(function(responseData, textStatus, jqXHR) {
-            // set correct fields depending on the server's response
-            var edgeData = mergeInto(data, responseData);
-            console.log(edgeData);
-        })
-        .fail(function() {
-            console.log( "An error occured" );
+    add_link(linkData) {
+        var self = this;
+        var linkDataCorrectKeyname = {};
+        linkDataCorrectKeyname.fromUUID = linkData.from;
+        linkDataCorrectKeyname.toUUID = linkData.to;
+        var pos = getCenterCoord(linkData.from, linkData.to)
+        linkDataCorrectKeyname.x = pos.x;
+        linkDataCorrectKeyname.y = pos.y;
+
+        self.handleModal('AddLink', linkDataCorrectKeyname, function(modalData) {
+            self.execute_operation('add_link', modalData)
+            .done(function(responseData, textStatus, jqXHR) {
+            })
+            .fail(function() {
+                console.log( "An error occured" );
+            });
         });
     }
 

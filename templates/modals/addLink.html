@@ -1,23 +1,51 @@
-<div id="modalImportProject" class="modal fade" role="dialog">
+<div id="modalAddLink" class="modal fade" role="dialog">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                 <h4 class="modal-title">Import project</h4>
+                 <h4 class="modal-title">Add buffer</h4>
             </div><!-- /modal-header -->
             <div class="modal-body">
+                <form id="formAddLink">
 
-                <div class="form-group">
-                    <form id="importForm" action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
-                        <label>Project JSON file</label>
-                        <input id="uploadFileName" type="file" name="file" accept=".json">
-                    </form>
-                </div>
+                        <!-- Nav tabs -->
+                        <ul class="nav nav-tabs">
+                            <li class="active"><a href="#AddLinkSettings" data-toggle="tab">Settings</a></li>
+                            <li><a href="#bufferCustomSetting" data-toggle="tab">Buffer custom settings</a></li>
+                        </ul>
+
+                        <!-- Tab panes -->
+                        <div class="tab-content" style="padding-top: 10px;">
+                            <div class="tab-pane fade in active" id="AddLinkSettings">
+                                <div class="form-group">
+                                    <label>Buffer name</label>
+                                    <input class="form-control" name="name" placeholder="Enter process name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Buffer type</label>
+                                    <select class="form-control" name="type" required>
+                                        {% for buffer_type in all_buffer_type %}
+                                            <option>{{ buffer_type }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <textarea class="form-control" rows="3" name="description"></textarea>
+                                </div>
+
+                            </div>
+
+                            <div class="tab-pane fade" id="bufferCustomSetting">
+                            </div>
+                        </div>
+
+                </form>
 
             </div><!-- /modal-body -->
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="importProject()" data-dismiss="modal">Import</button>
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" confirm="1" class="btn btn-primary" data-formID="formAddLink" data-modalID="modalAddLink">Create</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
             </div>
         </div><!-- /modal-content -->
     </div><!-- /modal-dialog -->

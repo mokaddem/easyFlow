@@ -56,3 +56,31 @@ class Process_representation:
 
     def get_dico(self):
         return self.gen_process_config()
+
+class Link_representation:
+    def __init__(self, data):
+        self.buuid = data['buuid']
+        self.name = data['name']
+        self.x = data['x']
+        self.y = data['y']
+        self.type = data['type']
+        self.description = data['description']
+        self.projectUUID = data['projectUUID']
+        self.fromUUID = data['fromUUID']
+        self.toUUID = data['toUUID']
+
+    def gen_buffer_config(self):
+        return objToDictionnary(self, full=False)
+
+    def __repr__(self):
+        return json.dumps(objToDictionnary(self, full=False))
+
+    def __str__(self):
+        return self.__repr__()
+
+    def toJSON(self):
+        # return json.dumps(self, default=lambda o: o.__dict__)
+        return self.__repr__()
+
+    def get_dico(self):
+        return self.gen_buffer_config()

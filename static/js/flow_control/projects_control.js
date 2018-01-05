@@ -54,15 +54,19 @@ function load_project(project) {
         console.log('projectName not valid');
         return;
     }
-    toggle_loading(true);
-    $.getJSON( url_load_network, {projectUUID: project.projectUUID}, function( data ) {
-        innerRepresentation.projectName = data.projectName;
-        $('#projectName').text(data.projectName);
-        $('#projectName').append('<small>'+data.projectInfo+'</small>');
-        innerRepresentation.load_network(data);
-        toggle_loading(false);
+    // toggle_loading(true);
+    // $.getJSON( url_load_network, {projectUUID: project.projectUUID}, function( data ) {
+        // innerRepresentation.projectName = data.projectName;
+        // $('#projectName').text(data.projectName);
+        // $('#projectName').append('<small>'+data.projectInfo+'</small>');
+        // innerRepresentation.load_network(data);
+        // toggle_loading(false)
+        // innerRepresentation.project.projectUUID = project.projectUUID;
+    innerRepresentation.set_project(project);
+    innerRepresentation.resync_representation(function() {
         flowControl.startAll();
-    });
+    })
+    // });
 }
 
 function list_projects() {

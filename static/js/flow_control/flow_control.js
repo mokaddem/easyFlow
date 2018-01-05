@@ -7,13 +7,16 @@ class FlowControl {
     modalStateSucess() { this._modalSuccess = true; }
     modalStateReset() { this._modalSuccess = false; }
 
+    delete_process(puuid) {
+        this.execute_operation('delete_process', {puuid: puuid}, false);
+    }
+
     add_link(data) {
         this.execute_operation('add_link', data)
         .done(function(responseData, textStatus, jqXHR) {
             // set correct fields depending on the server's response
             var edgeData = mergeInto(data, responseData);
             console.log(edgeData);
-            innerRepresentation.addBuffer(edgeData);
         })
         .fail(function() {
             console.log( "An error occured" );
@@ -28,7 +31,6 @@ class FlowControl {
                 .done(function(responseData, textStatus, jqXHR) {
                     var nodeData = responseData;
                     console.log(nodeData);
-                    innerRepresentation.addNode(nodeData);
                 })
                 .fail(function() {
                     console.log( "An error occured" );
@@ -78,7 +80,12 @@ class FlowControl {
             data: JSON.stringify(data),
             contentType: 'application/json; charset=utf-8',
             beforeSend: function() { toggle_loading(true, quick); },
-            complete: function() { toggle_loading(false, quick); }
+            complete: function() {
+                toggle_loading(false, quick);
+                if (!quick) {
+                    innerRepresentation.resync_representation();
+                }
+            }
         });
     }
 

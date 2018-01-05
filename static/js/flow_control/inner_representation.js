@@ -38,18 +38,24 @@ function getCenterCoord(fromID, toID) {
 
 class InnerRepresentation {
     constructor() {
-        this.projectName = getCookie('projectName');
-        this.isTempProject = getCookie('isTempProject');
-        if (this.isTempProject == 'true') {
-            notify('Temporary project:',
-            'This project is a temporary project for testing purpose.', 'warning');
+        this.project = {
+            projectName: getCookie('projectName'),
+            projectUUID: getCookie('projectUUID'),
+            projectInfo: getCookie('projectInfo')
         }
+
         this.nodes = new vis.DataSet();
         this.edges = new vis.DataSet();
         this.processObj = {};
         this.bufferObj = {};
         this.auto_refresh = null;
 
+    }
+
+    set_project(project) {
+        this.project.projectName = project.projectName;
+        this.project.projectUUID = project.projectUUID;
+        this.project.projectInfo = project.projectInfo;
     }
 
     get_processes_info() {
@@ -59,6 +65,7 @@ class InnerRepresentation {
     }
 
     update_nodes(processes) {
+        console.log(processes);
         var update_array = [];
         try {
             for (var node of processes) {
@@ -94,7 +101,6 @@ class InnerRepresentation {
     load_network(data) {
         var processes = data.processes;
         innerRepresentation.clear();
-        this.isTempProject = 'false';
         for (var puuid in processes) {
             if (processes.hasOwnProperty(puuid)) {
                 var node = processes[puuid];
@@ -120,16 +126,29 @@ class InnerRepresentation {
         }, auto_refresh_rate);
     }
 
+    resync_representation(callback_resync) {
+        toggle_loading(true);
+        $.getJSON( url_load_network, {projectUUID: this.project.projectUUID}, function( data ) {
+            $('#projectName').text(data.projectName);
+            $('#projectName').append('<small>'+data.projectInfo+'</small>');
+            innerRepresentation.load_network(data);
+            toggle_loading(false);
+            if (callback_resync != undefined) {
+                callback_resync();
+            }
+        });
+    }
+
     addNode(nodeData) {
-        this.processObj[nodeData.puuid] = nodeData.name;
+        this.processObj[nodeData.puuid] = nodeData;
         var  i = parseInt(nodeData.puuid);
         this.nodes.add({
             id: nodeData.puuid,
             image: construct_node(
                 nodeData.name,
-                String(i*2)+' bytes / ' + String(i*3)+' bytes',
-                String(i*5)+' / ' + String(i*4),
-                String(i*i*i) + ' sec',
+                '?',
+                '?',
+                '?',
             ),
             x: nodeData.x,
             y: nodeData.y,
@@ -196,25 +215,44 @@ class InnerRepresentation {
 
     handleNodeSelection(params) {
         var selectedNodes = params.nodes;
-        if(selectedNodes.length > 1) {
+        if(selectedNodes.length > 1) { // multiple node selected
             var selectedNodesText = "";
             var selectedNodeType;
+            var selectedProcUuid = [];
             selectedNodes.map(function(value, index, arr) {
                 if (index == 0) {  // check if same node type
                     selectedNodeType = innerRepresentation.nodeType(value);
                 }
 
-                if (innerRepresentation.nodeType(value) != selectedNodeType) {
+                if (innerRepresentation.nodeType(value) != selectedNodeType) { // not same type of node
                     return false; // skip
                 }
-                if (index < arr.length-1) {
-                    selectedNodesText += innerRepresentation.processObj[value]+', ';
+                selectedProcUuid.push(innerRepresentation.processObj[value].puuid)
+                if (index < arr.length-1) { // prevent adding ',' in the end
+                    selectedNodesText += innerRepresentation.processObj[value].name+', ';
                 } else {
-                    selectedNodesText += innerRepresentation.processObj[value];
-                    }
+                    selectedNodesText += innerRepresentation.processObj[value].name;
+                }
             });
             $('#selectedNodeName').text(selectedNodesText);
+            this.setControlButtonData(selectedProcUuid);
+        } else if (selectedNodes.length == 0){ // no node selected
+            $('#selectedNodeName').text("");
+            this.setControlButtonData("")
+        } else { // one node selected
+            var proc = innerRepresentation.processObj[selectedNodes];
+            $('#selectedNodeName').text(proc.name);
+            this.setControlButtonData([proc.puuid])
         }
-        $('#selectedNodeName').text(innerRepresentation.processObj[selectedNodes]);
     }
+
+    setControlButtonData(puuid) {
+        $('#pcontrol_play').data("puuid", puuid)
+        $('#pcontrol_pause').data("puuid", puuid)
+        $('#pcontrol_param').data("puuid", puuid)
+        $('#pcontrol_logs').data("puuid", puuid)
+        console.log($('#pcontrol_param').data("puuid"));
+    }
+
+
 }

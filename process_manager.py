@@ -8,12 +8,13 @@ import psutil
 from util import genUUID, objToDictionnary
 from alerts_manager import Alert_manager
 from process_print_to_console import Print_to_console
-from process_metadata_interface import Process_metadata_interface, Process_representation
+from process_metadata_interface import Process_metadata_interface, Process_representation, Link_representation
 
 host='localhost'
 port=6780
 db=0
 ALLOWED_PROCESS_TYPE = set(['print_to_console', 'print_current_time'])
+ALLOWED_BUFFER_TYPE = set(['FIFO', 'LIFO'])
 
 class Process_manager:
     def __init__(self, projectUUID):
@@ -102,7 +103,7 @@ class Process_manager:
 
         process_type = data['type']
         if process_type not in ALLOWED_PROCESS_TYPE:
-            print('0 returned')
+            print('Unkown process type')
             return 0
         # gen config
         process_config = Process_representation(data)
@@ -117,3 +118,33 @@ class Process_manager:
         self.processes[puuid] = process_config
         self.processes_uuid.append(puuid)
         return process_config
+
+    def delete_process(self, puuid):
+        proc = self.processes[puuid]
+        subProcObj = proc._subprocessObj
+        subProcObj.terminate()
+        self.processes_uuid.remove(puuid)
+        del self.processes[puuid]
+        # also remove links
+
+
+    def create_link(self, data, buuid=None):
+        if buuid is None:
+            buuid = data.get('buuid', None)
+            if buuid is None:
+                # gen buffer UUID
+                buuid = genUUID()
+        data['buuid'] = buuid
+        data['projectUUID'] = self.projectUUID
+
+        buffer_type = data['type']
+        if buffer_type not in ALLOWED_BUFFER_TYPE:
+            print('Unkown buffer type')
+            return 0
+        # gen config
+        buffer_config = Link_representation(data)
+        self._serv.set('config_'+buuid, buffer_config.toJSON())
+
+        # add it to self.buffers ???
+        # add it to self.buffers_uuid ????
+        return buffer_config

@@ -36,6 +36,8 @@
                 "name": "FIFO buffer",
                 "x": 100,
                 "y": 100,
+                "type": "FIFO",
+                "description": "A simple FIFO buffer",
                 "fromUUID": "b9a7c9c0-db04-4f1e-aa32-29efdacc13aa",
                 "toUUID": "b7645724-9599-45fa-a422-3e0fd3476340"
             },
@@ -43,6 +45,8 @@
                 "name": "LSFO buffer",
                 "x": -100,
                 "y": -100,
+                "type": "LIFO",
+                "description": "A LIFO buffer",
                 "fromUUID": "b9a7c9c0-db04-4f1e-aa32-29efdacc13aa",
                 "toUUID": "7f7945ef-ebb5-4ea9-bda3-0020d75206e6"
             }

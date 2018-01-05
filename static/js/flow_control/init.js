@@ -73,6 +73,18 @@ function draw() {
     network.on("dragEnd", function (params) {
         flowControl.handleNodesDrag(params.nodes);
     });
+    $('#pcontrol_play').click(function(){
+
+    });
+    $('#pcontrol_pause').click(function(){
+
+    });
+    $('#pcontrol_param').click(function(){
+        flowControl.delete_process($(this).data('puuid'))
+    });
+    $('#pcontrol_logs').click(function(){
+
+    });
 
     $('button[name="pipe"]').on("click", function (eventObject) {
         var btnPipe = $(eventObject.currentTarget);

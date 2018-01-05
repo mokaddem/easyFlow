@@ -106,6 +106,15 @@ class Project:
         jProject = json.dumps(p)
         return jProject
 
+    def delete_links_of_process(self, puuid):
+        temp = {}
+        for buuid, buf in self.buffers.items():
+            if (puuid in buf['fromUUID']) or (puuid in buf['toUUID']):
+                continue # delete it
+            else:
+                temp[buuid] = buf
+        self.buffers = temp
+
     def flowOperation(self, operation, data):
         if operation == 'create_process':
             process_config = self._process_manager.create_process(data)
@@ -113,23 +122,28 @@ class Project:
             if puuid == 0:
                 return {'status': 'error'}
 
-            # self.processes.append(self.filter_correct_init_fields(process_config.get_dico()))
             self.processes[puuid] = self.filter_correct_init_fields(process_config.get_dico())
-            pinfo = self._metadata_interface.get_info(puuid)
-            self.save_project()
-            return pinfo
+
+        elif operation == 'delete_process':
+            for puuid in data.get('puuid', []): # may contain multiple processes
+                self._process_manager.delete_process(puuid)
+                # delete every links of this process
+                self.delete_links_of_process(puuid)
+                print(len(self.processes))
+                del self.processes[puuid]
+                print(len(self.processes))
 
         elif operation == 'add_link':
-            response = {'status': 'success'}
-            response['id'] = genUUID()
-            return response
+            link_config = self._process_manager.create_link(data)
+            buuid = process_config.puuid
+            if buuid == 0:
+                return {'status': 'error'}
+            self.buffers[buuid] = self.link_config.get_dico()
 
-        elif operation == 'start_all':
-            if self._start_command_already_called: # prevent multiple execution
-                return {'status': 'sucess' }
-            self._process_manager.start_processes(self.processes)
-            self._start_command_already_called = True
-            return {'status': 'sucess' }
+        elif operation == 'delete_link':
+            buuid = data['buuid']
+            del self.buffers[buuid]
+
 
         elif operation == 'node_drag':
             if data['nodeType'] == 'process':
@@ -146,12 +160,19 @@ class Project:
                 buuid = data['uuid']
                 self.buffers[buuid]['x'] = x
                 self.buffers[buuid]['y'] = y
-            else:
-                return {'status': 'error' }
-            self.save_project()
-            return {'status': 'success' }
+
+        elif operation == 'start_all':
+            if self._start_command_already_called: # prevent multiple execution
+                return {'status': 'sucess' }
+            self._process_manager.start_processes(self.processes)
+            self._start_command_already_called = True
+            return {'status': 'sucess' }
+
         else:
             return {'status': 'error' }
+
+        self.save_project()
+        return {'status': 'success' }
 
 class Flow_project_manager:
     def __init__(self):
@@ -176,6 +197,8 @@ class Flow_project_manager:
 
     def select_project(self, projectUUID):
         print('selecting', projectUUID)
+        if self.is_project_open():
+            self.close_project()
         self.selected_project = Project(projectUUID)
         self.selected_project.setup_project_manager()
         return self.selected_project.get_project_summary()
@@ -211,10 +234,11 @@ class Flow_project_manager:
         resp.set_cookie('projectUUID', '', expires=0)
         resp.set_cookie('projectName', '', expires=0)
 
-    def close_project(self, resp):
+    def close_project(self, resp=None):
         self.selected_project.close_project()
         self.selected_project = None
-        self.reset_cookies(resp) # set cookies to 'null'
+        if resp is None:
+            self.reset_cookies(resp) # set cookies to 'null'
 
     def is_project_open(self):
         if self.selected_project is None:
@@ -239,7 +263,7 @@ class Flow_project_manager:
             return [True, "OK"]
         elif operation == 'delete':
             #Close project if already running
-            if data['projectUUID'] == self.selected_project.projectUUID:
+            if self.is_project_open() and data['projectUUID'] == self.selected_project.projectUUID:
                 self.selected_project.close_project()
             p = Project(data['projectUUID'])
             p.delete_project()

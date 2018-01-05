@@ -70,7 +70,7 @@
         var projectListDatatable = null;
         var alertManager = null;
 
-        var auto_refresh_rate = 5000;
+        var auto_refresh_rate = 3000;
         // var auto_refresh_rate = 50000;
     </script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/inner_representation.js') }}"></script>
@@ -120,12 +120,12 @@
                         <div class="panel-body" style="padding: 0px;">
                             <div>
                                 <div style="display: inline-block;">
-                                <button type="button" class="btn btn-success" style="display: inline-block; margin: 5px;"><span class="glyphicon glyphicon-play"></span></button>
-                                <button type="button" class="btn btn-danger" style="display: inline-block; margin: 5px; margin-left: 0px;"><span class="glyphicon glyphicon-stop"></span></button>
+                                <button id="pcontrol_play" type="button" class="btn btn-success" style="display: inline-block; margin: 5px;"><span class="glyphicon glyphicon-play"></span></button>
+                                <button id="pcontrol_pause" type="button" class="btn btn-danger" style="display: inline-block; margin: 5px; margin-left: 0px;"><span class="glyphicon glyphicon-pause"></span></button>
                                 </div>
                                 <div style="display: inline-block; float:right;">
-                                <button type="button" class="btn btn-default" style="display: inline-block; margin: 5px;"><span class="glyphicon glyphicon-cog "></span></button>
-                                <button type="button" class="btn btn-info" style="display: inline-block; margin: 5px;  margin-left: 0px;"><span class="glyphicon glyphicon-list-alt "></span></button>
+                                <button id="pcontrol_param" type="button" class="btn btn-default" style="display: inline-block; margin: 5px;"><span class="glyphicon glyphicon-cog "></span></button>
+                                <button id="pcontrol_logs" type="button" class="btn btn-info" style="display: inline-block; margin: 5px;  margin-left: 0px;"><span class="glyphicon glyphicon-list-alt "></span></button>
                                 </div>
                             </div>
                             <table class="table table-striped" style="margin-bottom: 0px;">

@@ -54,7 +54,21 @@ function draw() {
                 }
             },
             editEdge: function(edgeData,callback) {
+            },
+            controlNodeStyle: {
+                shape:'diamond',
+                size:7,
+                color: {
+                    background: '#ffffff',
+                    border: '#3c3c3c',
+                    highlight: {
+                      background: '#07f968',
+                      border: '#3c3c3c'
+                    }
+                },
+                borderWidth: 2,
             }
+
         }
     };
 

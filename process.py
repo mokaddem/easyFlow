@@ -18,7 +18,8 @@ db=0
 class Process(metaclass=ABCMeta):
     def __init__(self, puuid):
         # get config from redis
-        self._serv_config = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
+        # self._serv_config = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
+        self._serv_config = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
         self._alert_manager = Alert_manager()
         self.puuid = puuid
         self.pid = os.getpid()
@@ -41,9 +42,8 @@ class Process(metaclass=ABCMeta):
         # self.connections = []
 
         self._metadata_interface = Process_metadata_interface()
-        self._alert_manager = Alert_manager()
         self.push_p_info()
-        print('process {} [{}] ready'.format(self.puuid, self.pid))
+        # print('{} {} [{}] ready'.format(self.name, self.puuid, self.pid))
         self.run()
 
 
@@ -95,7 +95,7 @@ class Process(metaclass=ABCMeta):
 
 
             time.sleep(1)
-            print('process {} [{}]: sleeping'.format(self.puuid, self.pid))
+            # print('process {} [{}]: sleeping'.format(self.puuid, self.pid))
 
 
     # def push_message(self, msg):

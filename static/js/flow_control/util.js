@@ -48,10 +48,9 @@ function notify(title, message, type) {
     $.notify({
     // options
     icon: 'glyphicon glyphicon-warning-sign',
-    title: title,
+    title: '<strong>'+title+'</strong>',
     message: message,
-    // url: 'https://github.com/mouse0270/bootstrap-notify',
-    target: '_blank'
+    // target: '_blank'
 },{
     // settings
     // element: 'body',

@@ -29,7 +29,8 @@ class Project:
     required_fields = ['projectName', 'projectInfo', 'creationTimestamp', 'processNum', 'processes']
     def __init__(self, projectUUID, projectName=DEFAULT_TEMP_PROJECT_NAME, projectInfo=DEFAULT_TEMP_PROJECT_INFO):
             # get project from redis
-            self._serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
+            # self._serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
+            self._serv = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
             rawJSONProject = self._serv.get(projectUUID)
             jProject = json.loads(rawJSONProject)
             self.jProject = jProject
@@ -56,6 +57,13 @@ class Project:
     def setup_project_manager(self):
         self._metadata_interface = Process_metadata_interface()
         self._process_manager = Process_manager(self.projectUUID)
+        self._process_manager._alert_manager.send_alert(
+            title='System',
+            content='Process manager ready',
+            mType='success',
+            group='singleton',
+            totalCount=0
+        )
 
     def filter_correct_init_fields(self, proc):
         init_fields = ['bulletin_level', 'connections', 'description', 'name', 'puuid', 'type', 'x', 'y']
@@ -95,6 +103,13 @@ class Project:
         self._serv.srem(KEYALLPROJECT, self.projectUUID)
 
     def close_project(self):
+        self._process_manager._alert_manager.send_alert(
+            title='Processes',
+            content='Shutting down processes',
+            mType='warning',
+            group='singleton',
+            totalCount=0
+        )
         self._process_manager.shutdown()
 
     def create_new_project(projectName, projectInfo=''):

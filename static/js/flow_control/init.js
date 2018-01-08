@@ -1,7 +1,4 @@
 function draw() {
-    innerRepresentation = new InnerRepresentation();
-    flowControl = new FlowControl();
-
     // create a network
     var container = document.getElementById('mynetwork');
     var data = {
@@ -134,16 +131,22 @@ function draw() {
                 flowControl.handleDrop(nodeData);
             }
     });
-
-    // generique alerts manager that displays alerts
-    alertManager = new AlertsManager();
-
-    //try to load project based on cookies
-    init_load();
-
 }
-// setTimeout(function(){innerRepresentation.update();}, 6000);
-// setTimeout(function(){network.addNodeMode();}, 6000);
+
+$( document ).ready(function() {
+    innerRepresentation = new InnerRepresentation();
+    flowControl = new FlowControl();
+    alertManager = new AlertsManager();
+    init_load(); //try to load project based on cookies
+
+    draw();
+
+    window.onbeforeunload = function() {
+        alertManager.close_listener();
+        alert('Are you sure to reload?');
+    }
+
+});
 
 function init_load() {
     if (getCookie('projectUUID') === undefined) {

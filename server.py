@@ -1,7 +1,6 @@
 #!/usr/bin/env python3.5
 
 from flask import Flask, render_template, request, Response, jsonify, flash, redirect, make_response, send_file
-from flask_socketio import SocketIO, emit
 from werkzeug.utils import secure_filename
 
 import redis
@@ -28,8 +27,10 @@ flow_project_manager = Flow_project_manager()
 host='localhost'
 port=6780
 db=0
-redis_pmanager = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
+# redis_pmanager = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
+redis_pmanager = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
 alert_manager = Alert_manager()
+alert_manager.subscribe()
 
 ALLOWED_EXTENSIONS = set(['json'])
 

@@ -11,7 +11,8 @@ db=0
 ''' for now, raw json in redis '''
 class Process_metadata_interface:
     def __init__(self):
-        self._serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
+        # self._serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
+        self._serv = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
 
 
     def get_info(self, puuid):

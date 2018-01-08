@@ -18,7 +18,8 @@ ALLOWED_BUFFER_TYPE = set(['FIFO', 'LIFO'])
 
 class Process_manager:
     def __init__(self, projectUUID):
-        self._serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
+        # self._serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
+        self._serv = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
         self._metadata_interface = Process_metadata_interface()
         self._alert_manager = Alert_manager()
         self.processes = {}
@@ -31,15 +32,9 @@ class Process_manager:
         l = len(processes_to_start)
         if l>0:
             self.push_starting_all_processes(l);
-            for puuid, proc in processes_to_start.items():
+            for puuid, procData in processes_to_start.items():
                 time.sleep(0.1)
-                self.create_process(proc, puuid)
-            self._alert_manager.send_alert(
-                title='Hoy',
-                content='System is ready and running!',
-                mType='success',
-                group='singleton'
-            )
+                self.create_process(procData, puuid)
 
     def get_processes_info(self):
         info = []
@@ -53,9 +48,7 @@ class Process_manager:
         while True:
             if not self._serv.exists('config_'+puuid):
                 break
-            # time.sleep(0.1)
-            time.sleep(1)
-            print('wait_for_process_running_state')
+            time.sleep(0.1)
 
     def process_started_and_managed(self, puuid):
         return puuid in self.processes_uuid
@@ -96,6 +89,7 @@ class Process_manager:
         if self.process_started_and_managed(puuid):
             return "process already started"
 
+        # pStarted, pid = self.process_started_in_system(puuid, killIt=True)
         pStarted, pid = self.process_started_in_system(puuid, killIt=False)
         if pStarted:
             print("process was started in system")
@@ -117,10 +111,10 @@ class Process_manager:
             process_config = Process_representation(data)
             self._serv.set('config_'+puuid, process_config.toJSON())
             # start process with Popen
-            args = shlex.split('python3 {} {}'.format(os.path.join('processes/', process_type+'.py'), puuid))
+            args = shlex.split('python3.5 {} {}'.format(os.path.join('processes/', process_type+'.py'), puuid))
             proc = subprocess.Popen(args)
             # wait that process start the run() phase, publish info
-            self.wait_for_process_running_state(puuid)
+            # self.wait_for_process_running_state(puuid)
 
             process_config.add_subprocessObj(proc)
             self.processes[puuid] = process_config

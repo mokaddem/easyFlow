@@ -176,7 +176,10 @@ function closeProject() {
     $.getJSON( url_close_project, {}, function( data ) {
         innerRepresentation.clear();
         $('#projectName').text("");
-        location.reload();
+        alertManager.close_listener();
+        setTimeout(function() {
+            location.reload(true);
+        }, 1000);
     });
 }
 

@@ -57,6 +57,7 @@
 
         var url_get_processes_info = '{{ url_for("get_pMetadata") }}';
         var url_alert_stream = '{{ url_for("alert_stream") }}';
+        var url_bootstrap_alertHandler = '{{ url_for("alert_stream") }}';
         var url_flow_operation = '{{ url_for("flow_operation") }}';
 
         /* RESSOURCES URLS */
@@ -74,15 +75,15 @@
         // var auto_refresh_rate = 50000;
     </script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/inner_representation.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/init.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/util.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/projects_control.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/flow_control.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/alerts_manager.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/init.js') }}"></script>
 
 </head>
 
-<body onload="draw();">
+<body>
     <div id="loaderBack" class="loader-background" style="display: none;"><div id="loader" class="loader" style="display: none;"></div></div>
     <div id="network-popUp">
         <span id="operation">node</span> <br>
@@ -179,7 +180,7 @@
 
     </div>
 
-    <a id="downloadA" href="#"></a> 
+    <a id="downloadA" href="#"></a>
     <p id="selection"></p>
 </body>
 </html>

@@ -3,7 +3,7 @@
 from util import genUUID
 import redis, json, time, os
 import shlex, subprocess
-import psutil
+import psutil, signal
 
 from util import genUUID, objToDictionnary
 from alerts_manager import Alert_manager
@@ -13,7 +13,7 @@ from process_metadata_interface import Process_metadata_interface, Process_repre
 host='localhost'
 port=6780
 db=0
-ALLOWED_PROCESS_TYPE = set(['print_to_console', 'print_current_time', 'multiplexer_in', 'multiplexer_out'])
+ALLOWED_PROCESS_TYPE = set(['print_to_console', 'print_current_time', 'multiplexer_in', 'multiplexer_out', 'generate_lorem_ipsum'])
 ALLOWED_BUFFER_TYPE = set(['FIFO', 'LIFO'])
 
 class Process_manager:
@@ -24,6 +24,7 @@ class Process_manager:
         self._alert_manager = Alert_manager()
         self.processes = {}
         self.processes_uuid = []
+        self.processes_uuid_with_signal = []
         self.projectUUID = projectUUID
 
         # self.start_processes(processes_to_start)
@@ -76,6 +77,29 @@ class Process_manager:
         for puuid in self.processes.keys():
             self.kill_process(puuid)
 
+    def reload_states(self, process_uuids):
+        # print(process_uuids)
+        for puuid in process_uuids:
+            self.send_command(puuid, 'reload')
+
+        for puuid in [p for p in process_uuids if p in self.processes_uuid_with_signal]:
+            # send signal to the module
+            self.processes[puuid]._subprocessObj.send_signal(signal.SIGUSR1)
+
+    def send_command(self, puuid, command, data=None):
+        jCommand = {}
+        jCommand['operation'] = command
+        jCommand['data'] = data
+        keyCommands = 'command_'+puuid
+        process_config = self.processes[puuid]
+        self._serv.set('config_'+puuid, process_config.toJSON())
+        self._serv.lpush(keyCommands, json.dumps(jCommand))
+
+    def should_send_signal(self, process_type):
+        MODULE_WITH_SIGNAL = ['generate_lorem_ipsum']
+        if process_type in MODULE_WITH_SIGNAL:
+            return True
+
     def kill_process(self, puuid):
         subProcObj = self.processes[puuid]._subprocessObj
         subProcObj.terminate()
@@ -104,6 +128,8 @@ class Process_manager:
             process_config.add_subprocessObj(psutil.Process(pid))
             self.processes[puuid] = process_config
             self.processes_uuid.append(puuid)
+            if self.should_send_signal(process_config.type):
+                self.processes_uuid_with_signal.append(puuid)
             return process_config
 
         else:
@@ -116,21 +142,28 @@ class Process_manager:
             self._serv.set('config_'+puuid, process_config.toJSON())
             # start process with Popen
             args = shlex.split('python3.5 {} {}'.format(os.path.join('processes/', process_type+'.py'), puuid))
-            proc = subprocess.Popen(args)
+            # args = shlex.split('screen -S "easyFlow_processes" -X screen -t "{puuid}" bash -c "python3.5 {scriptName} {puuid}; read x"'.format(scriptName=os.path.join('processes/', process_type+'.py'), puuid=puuid))
+            # proc = subprocess.Popen(args)
+            proc = psutil.Popen(args)
             # wait that process start the run() phase, publish info
             # self.wait_for_process_running_state(puuid)
 
             process_config.add_subprocessObj(proc)
             self.processes[puuid] = process_config
             self.processes_uuid.append(puuid)
+            if self.should_send_signal(process_type):
+                self.processes_uuid_with_signal.append(puuid)
             return process_config
 
     def delete_process(self, puuid):
         self.kill_process(puuid)
         self.processes_uuid.remove(puuid)
+        try:
+            self.processes_uuid_with_signal.remove(puuid)
+        except ValueError as e:
+            pass
         del self.processes[puuid]
         # also remove links
-
 
     def create_link(self, data, buuid=None):
         if buuid is None:

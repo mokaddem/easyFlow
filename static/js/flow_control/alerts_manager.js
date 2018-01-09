@@ -38,26 +38,30 @@ class AlertsManager {
                 // incrementally update the pb
                 var completed = 0;
                 if (this.messageGroup[group] === undefined) { // group does not exists
-                    var nobj = $.notify({
-                            icon: 'glyphicon glyphicon-refresh',
-                            title: '<strong>'+jsonData.title+': </strong>',
-                            message: jsonData.message,
-                            progress: completed
-                        },{
-                            type: jsonData.type,
-                            showProgressbar: true,
-                            delay: 0,
-                            placement: {
-                                from: "top",
-                                align: "right"
-                            },
-                            z_index: 3000,
-                            animate: {
-                                enter: 'animated bounceInDown',
-                                exit: 'animated flipOutX'
-                            }
-                    });
-                    this.messageGroup[group] = {left: jsonData.totalCount, total: jsonData.totalCount, nobj: nobj}
+                    if (jsonData.totalCount > 0) { //no total count
+                        notify(jsonData.title+': ', jsonData.message, jsonData.type)
+                    } else {
+                        var nobj = $.notify({
+                                icon: 'glyphicon glyphicon-refresh',
+                                title: '<strong>'+jsonData.title+': </strong>',
+                                message: jsonData.message,
+                                progress: completed
+                            },{
+                                type: jsonData.type,
+                                showProgressbar: showPB,
+                                delay: 0,
+                                placement: {
+                                    from: "top",
+                                    align: "right"
+                                },
+                                z_index: 3000,
+                                animate: {
+                                    enter: 'animated bounceInDown',
+                                    exit: 'animated flipOutX'
+                                }
+                        });
+                        this.messageGroup[group] = {left: jsonData.totalCount, total: jsonData.totalCount, nobj: nobj}
+                    }
                 } else { // update the notification
                     var completed = Math.round(100*(this.messageGroup[group].total-this.messageGroup[group].left+1)/this.messageGroup[group].total);
                     this.messageGroup[group].nobj.update({
@@ -81,7 +85,7 @@ class AlertsManager {
                     }
                 }
             }
-        } catch(e) { /* JSONDecodeError */ console.log('error');}
+        } catch(e) { /* JSONDecodeError */ console.log('error', message);}
     }
 
 }

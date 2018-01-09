@@ -234,7 +234,9 @@ class InnerRepresentation {
                 }
             });
             $('#selectedNodeName').text(selectedNodesText);
-            this.setControlButtonData(selectedProcUuid);
+            if (selectedNodeType == 'process') { // is process
+                this.setProcessControlButtonData(selectedProcUuid);
+            }
         } else if (selectedNodes.length == 0){ // no node selected
             $('#selectedNodeName').text("");
             this.setControlButtonData("")
@@ -245,12 +247,18 @@ class InnerRepresentation {
         }
     }
 
-    setControlButtonData(puuid) {
+    setProcessControlButtonData(puuid) {
         $('#pcontrol_play').data("puuid", puuid)
         $('#pcontrol_pause').data("puuid", puuid)
         $('#pcontrol_param').data("puuid", puuid)
         $('#pcontrol_logs').data("puuid", puuid)
         console.log($('#pcontrol_param').data("puuid"));
+    }
+
+    setBufferControlButtonData(buuid) {
+        $('#pcontrol_param').data("buuid", buuid)
+        $('#pcontrol_logs').data("buuid", buuid)
+        console.log($('#pcontrol_param').data("buuid"));
     }
 
 

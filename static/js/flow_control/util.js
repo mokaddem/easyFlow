@@ -118,7 +118,57 @@ function validateForm(formID) {
 
 function getFormData(formID) {
     return $('#'+formID).serializeArray().reduce(function(obj, item) {
-        obj[item.name] = item.value;
+        var itemValue = !isNaN(parseFloat(item.value)) && isFinite(item.value) ? parseFloat(item.value) : item.value;
+        obj[item.name] = itemValue;
         return obj;
     }, {});
+}
+
+function create_html_from_json(pName, j) {
+    var div = document.createElement('div');
+    div.classList.add('form-group')
+
+    var domType = j.DOM
+    var label = document.createElement('label');
+    label.innerHTML = j.label;
+    var elem = document.createElement(domType);
+    elem.setAttribute("required", "");
+    elem.setAttribute("name", pName);
+    elem.classList.add('form-control');
+
+    switch (domType) {
+        case "input": // should support text, password, checkbox, email, number, range, tel, url
+            elem.setAttribute("placeholder", j.placeholder);
+            elem.setAttribute("type", j.inputType);
+            elem.setAttribute("min", j.min);
+            elem.setAttribute("max", j.max);
+            elem.setAttribute("step", j.step);
+            elem.setAttribute("value", j.default);
+            break;
+        case "select":
+            for (var option of j.options) {
+                var domOption = document.createElement('option');
+                domOption.innerHTML = option;
+                if (option == j.default) {
+                    domOption.setAttribute("required", "");
+                }
+                elem.appendChild(domOption);
+            }
+            break;
+        default:
+            break;
+    }
+    div.appendChild(label);
+    div.appendChild(elem);
+    return div;
+}
+
+function add_html_based_on_json(pName, jqObject) {
+    var config = custom_config_json[pName];
+    for (var pName in config) {
+        if (config.hasOwnProperty(pName)) {
+            var domElement = create_html_from_json(pName, config[pName])
+            jqObject.append(domElement)
+        }
+    }
 }

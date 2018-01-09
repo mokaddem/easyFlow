@@ -112,6 +112,7 @@ class Project:
         )
         self._process_manager.shutdown()
 
+    @staticmethod
     def create_new_project(projectName, projectInfo=''):
         p = {}
         p['projectName'] = projectName
@@ -143,9 +144,7 @@ class Project:
                 self._process_manager.delete_process(puuid)
                 # delete every links of this process
                 self.delete_links_of_process(puuid)
-                print(len(self.processes))
                 del self.processes[puuid]
-                print(len(self.processes))
 
         # ''' LINKS '''
         elif operation == 'add_link':
@@ -154,6 +153,8 @@ class Project:
             if buuid == 0:
                 return {'status': 'error'}
             self.buffers[buuid] = link_config.get_dico()
+            concerned_processes = [link_config.fromUUID, link_config.toUUID]
+            self._process_manager.reload_states(concerned_processes)
         elif operation == 'delete_link':
             buuid = data['buuid']
             del self.buffers[buuid]
@@ -209,17 +210,30 @@ class Flow_project_manager:
         self.selected_project = None
         self.serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
 
+    @staticmethod
     def list_process_type():
         mypath = './processes/'
-        ALLOWED_PROCESS_TYPE = set(['print_to_console.py', 'print_current_time.py'])
+        ALLOWED_PROCESS_TYPE = set(['print_to_console.py', 'print_current_time.py', 'generate_lorem_ipsum.py'])
         onlyfiles = [f.replace('.py', '') for f in listdir(mypath) if (isfile(join(mypath, f)) and f.endswith('.py') and f in ALLOWED_PROCESS_TYPE)]
         return onlyfiles
 
+    @staticmethod
+    def get_processes_config(procs):
+        mypath = './processes/'
+        to_ret = {}
+        for procName in procs:
+            with open(join(mypath, procName+'.json')) as f:
+                to_ret[procName] = json.load(f)
+        return to_ret
+
+    @staticmethod
     def list_all_multiplexer_in():
         return ['multiplexer_in']
+    @staticmethod
     def list_all_multiplexer_out():
         return ['multiplexer_out']
 
+    @staticmethod
     def list_buffer_type():
         ALLOWED_BUFFER_TYPE = set(['FIFO', 'LIFO'])
         return list(ALLOWED_BUFFER_TYPE)

@@ -33,6 +33,7 @@ class FlowControl {
         var self = this;
         if (dropData.type == 'process') {
             self.handleModal('AddProcess', dropData, function(modalData) {
+                console.log(modalData);
                 self.execute_operation('create_process', modalData)
                 .done(function(responseData, textStatus, jqXHR) {
                     var nodeData = responseData;
@@ -77,15 +78,23 @@ class FlowControl {
         var formID = 'form'+modalType;
         var formIDCustom = 'form'+modalType+'Custom';
         var modalID = 'modal'+modalType;
+
         $('#'+modalID).modal('show');
+        add_html_based_on_json($('#processTypeSelector').val(), $('#'+formIDCustom));
+        // Create custom_config html element on click
+        $('#processTypeSelector').on('change', function() {
+            $('#'+formIDCustom).empty();
+            add_html_based_on_json($( this ).val(), $('#'+formIDCustom));
+        })
+
         $('#'+modalID).find('button[confirm="1"]').one('click', function(event) {
             if (validateForm(formID)) {
                 var formData = getFormData(formID);
                 $('#'+formID)[0].reset();
                 var modalData = mergeInto(dropData, formData);
                 var formDataCustom = getFormData(formIDCustom);
-                $('#'+formIDCustom)[0].reset();
-                console.log(formDataCustom);
+                // $('#'+formIDCustom)[0].reset();
+                $('#'+formIDCustom).empty();
                 var modalData = mergeInto(modalData, {custom_config: formDataCustom });
                 $('#'+modalID).modal('hide');
                 callback(modalData);

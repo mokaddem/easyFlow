@@ -3,7 +3,6 @@ class FlowControl {
         this._modalSuccess = false; // shows modal result (if user clicked cancel or not)
     }
 
-
     modalStateSucess() { this._modalSuccess = true; }
     modalStateReset() { this._modalSuccess = false; }
 
@@ -43,6 +42,31 @@ class FlowControl {
                 });
             });
 
+        } else if (dropData.type == 'mult_input') {
+            self.handleModal('AddMultInput', dropData, function(modalData) {
+                console.log(modalData);
+                self.execute_operation('create_mult_input', modalData)
+                .done(function(responseData, textStatus, jqXHR) {
+                    var nodeData = responseData;
+                })
+                .fail(function() {
+                    console.log( "An error occured" );
+                });
+            });
+        } else if (dropData.type == 'mult_output') {
+            self.handleModal('AddMultOutput', dropData, function(modalData) {
+                console.log(modalData);
+                self.execute_operation('create_mult_output', modalData)
+                .done(function(responseData, textStatus, jqXHR) {
+                    var nodeData = responseData;
+                })
+                .fail(function() {
+                    console.log( "An error occured" );
+                });
+            });
+
+        } else if (dropData.type == 'remote_input') {
+        } else if (dropData.type == 'remote_output') {
         } else {
             console.log(dropData);
         }
@@ -51,6 +75,7 @@ class FlowControl {
     handleModal(modalType, dropData, callback) {
         var self = this;
         var formID = 'form'+modalType;
+        var formIDCustom = 'form'+modalType+'Custom';
         var modalID = 'modal'+modalType;
         $('#'+modalID).modal('show');
         $('#'+modalID).find('button[confirm="1"]').one('click', function(event) {
@@ -58,6 +83,10 @@ class FlowControl {
                 var formData = getFormData(formID);
                 $('#'+formID)[0].reset();
                 var modalData = mergeInto(dropData, formData);
+                var formDataCustom = getFormData(formIDCustom);
+                $('#'+formIDCustom)[0].reset();
+                console.log(formDataCustom);
+                var modalData = mergeInto(modalData, {custom_config: formDataCustom });
                 $('#'+modalID).modal('hide');
                 callback(modalData);
             }

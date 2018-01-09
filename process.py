@@ -10,6 +10,7 @@ import redis, json
 from util import genUUID, objToDictionnary
 from alerts_manager import Alert_manager
 from process_metadata_interface import Process_metadata_interface
+from link_manager import Link_manager, Multiple_link_manager
 
 host='localhost'
 port=6780
@@ -25,12 +26,12 @@ class Process(metaclass=ABCMeta):
         self.pid = os.getpid()
         configData = self._serv_config.get('config_'+puuid)
         configData = json.loads(configData)
+        self.custom_config = configData['custom_config']
         self._serv_config.delete('config_'+puuid)
 
         # self.filepath = filepath
         self._keyCommands = 'keyCommands'
         # self.name = name if name is not None else os.path.basename(filepath)
-        # self.link_manager = link.Link_manager(uuid)
 
         self.projectUUID = configData.get('projectUUID', 'No projectUUID')
         self.name = configData.get('name', 'No name')
@@ -39,11 +40,18 @@ class Process(metaclass=ABCMeta):
         self.bulletin_level = configData.get('bulletin_level', 'WARNING')
         self.x = configData.get('x', 0)
         self.y = configData.get('y', 0)
-        # self.connections = []
 
         self._metadata_interface = Process_metadata_interface()
         self.push_p_info()
         # print('{} {} [{}] ready'.format(self.name, self.puuid, self.pid))
+
+        if self.type == 'multiplexer_in':
+            self._link_manager = Multiple_link_manager(self.projectUUID, self.puuid, self.custom_config, multi_in=True)
+        if self.type == 'multiplexer_out':
+            self._link_manager = Multiple_link_manager(self.projectUUID, self.puuid, self.custom_config, multi_in=False)
+        else:
+            self._link_manager = Link_manager(self.projectUUID, self.puuid)
+
         self.run()
 
 
@@ -93,27 +101,17 @@ class Process(metaclass=ABCMeta):
 
             self.push_p_info()
 
+            # Process flowItems
+            flowItem = self._link_manager.get_flowItem()
+            # msg = flowItem['message']
+            self.process_message(flowItem)
 
             time.sleep(1)
             # print('process {} [{}]: sleeping'.format(self.puuid, self.pid))
 
 
-    # def push_message(self, msg):
-    #         self.link_manager.push_message(msg)
-
-
-
-
-
-    # def run(self):
-    #     for msg in self.link_manager.get_message():
-    #         if msg is not None:
-    #             self.process_message(msg)
-    #         else:
-    #             sleep(self.config.process.sleepTime)
-    #
-    # def push_message(self, msg):
-    #         self.link_manager.push_message(msg)
+    def forward(self, msg):
+            self._link_manager.push_flowItem(msg)
 
     @abstractmethod
     def process_message(self, msg):

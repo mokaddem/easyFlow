@@ -50,12 +50,16 @@ def index():
     raw_module_svg = read_module_svg_template('module_templatev5')
     raw_buffer_svg = read_module_svg_template('buffer_template')
     all_process_type = Flow_project_manager.list_process_type()
+    all_multiplexer_in = Flow_project_manager.list_all_multiplexer_in()
+    all_multiplexer_out = Flow_project_manager.list_all_multiplexer_out()
     all_buffer_type = Flow_project_manager.list_buffer_type()
 
     resp = make_response(render_template('index.html',
             raw_module_svg=raw_module_svg,
             raw_buffer_svg=raw_buffer_svg,
             all_process_type=all_process_type,
+            all_multiplexer_in=all_multiplexer_in,
+            all_multiplexer_out=all_multiplexer_out,
             all_buffer_type=all_buffer_type
     ))
 

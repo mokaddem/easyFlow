@@ -13,16 +13,17 @@ def objToDictionnary(obj, full=False):
             continue
         #recursive
         if type(value) is dict:
-            ret[attr] = dicoToList(value)
+            # ret[attr] = dicoToList(value)
+            ret[attr] = value
         elif type(value) is list:
             ret[attr] = listToDictionnary(value)
         else:
             ret[attr] = value
     return ret
 
-def listToDictionnary(list, full=False):
+def listToDictionnary(l, full=False):
     ret = []
-    for elem in list:
+    for elem in l:
         ret.append(dicoToList(elem))
     return ret
 

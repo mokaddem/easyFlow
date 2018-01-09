@@ -66,7 +66,7 @@ class Project:
         )
 
     def filter_correct_init_fields(self, proc):
-        init_fields = ['bulletin_level', 'connections', 'description', 'name', 'puuid', 'type', 'x', 'y']
+        init_fields = ['bulletin_level', 'custom_config', 'description', 'name', 'puuid', 'type', 'x', 'y']
         dico = {}
         for k, v in proc.items():
             if k in init_fields:
@@ -131,14 +131,13 @@ class Project:
         self.buffers = temp
 
     def flowOperation(self, operation, data):
+        # ''' PROCESSES '''
         if operation == 'create_process':
             process_config = self._process_manager.create_process(data)
             puuid = process_config.puuid
             if puuid == 0:
                 return {'status': 'error'}
-
             self.processes[puuid] = self.filter_correct_init_fields(process_config.get_dico())
-
         elif operation == 'delete_process':
             for puuid in data.get('puuid', []): # may contain multiple processes
                 self._process_manager.delete_process(puuid)
@@ -148,18 +147,34 @@ class Project:
                 del self.processes[puuid]
                 print(len(self.processes))
 
+        # ''' LINKS '''
         elif operation == 'add_link':
             link_config = self._process_manager.create_link(data)
             buuid = link_config.buuid
             if buuid == 0:
                 return {'status': 'error'}
             self.buffers[buuid] = link_config.get_dico()
-
         elif operation == 'delete_link':
             buuid = data['buuid']
             del self.buffers[buuid]
 
+        # ''' MULT_INPUT '''
+        elif operation == 'create_mult_input':
+            mult_input_config = self._process_manager.create_process(data)
+            puuid = mult_input_config.puuid
+            if puuid == 0:
+                return {'status': 'error'}
+            self.processes[puuid] = self.filter_correct_init_fields(mult_input_config.get_dico())
 
+        # ''' MULT_OUTPUT '''
+        elif operation == 'create_mult_output':
+            mult_output_config = self._process_manager.create_process(data)
+            puuid = mult_output_config.puuid
+            if puuid == 0:
+                return {'status': 'error'}
+            self.processes[puuid] = self.filter_correct_init_fields(mult_output_config.get_dico())
+
+        # ''' DRAGGING '''
         elif operation == 'node_drag':
             if data['nodeType'] == 'process':
                 x = data['x']
@@ -169,13 +184,13 @@ class Project:
                 self.processes[puuid]['y'] = y
                 # self.save_project()
             elif data['nodeType'] == 'buffer':
-                print(data)
                 x = data['x']
                 y = data['y']
                 buuid = data['uuid']
                 self.buffers[buuid]['x'] = x
                 self.buffers[buuid]['y'] = y
 
+        # ''' OTHERS '''
         elif operation == 'start_all':
             if self._start_command_already_called: # prevent multiple execution
                 return {'status': 'sucess' }
@@ -199,6 +214,11 @@ class Flow_project_manager:
         ALLOWED_PROCESS_TYPE = set(['print_to_console.py', 'print_current_time.py'])
         onlyfiles = [f.replace('.py', '') for f in listdir(mypath) if (isfile(join(mypath, f)) and f.endswith('.py') and f in ALLOWED_PROCESS_TYPE)]
         return onlyfiles
+
+    def list_all_multiplexer_in():
+        return ['multiplexer_in']
+    def list_all_multiplexer_out():
+        return ['multiplexer_out']
 
     def list_buffer_type():
         ALLOWED_BUFFER_TYPE = set(['FIFO', 'LIFO'])

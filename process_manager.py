@@ -13,7 +13,7 @@ from process_metadata_interface import Process_metadata_interface, Process_repre
 host='localhost'
 port=6780
 db=0
-ALLOWED_PROCESS_TYPE = set(['print_to_console', 'print_current_time'])
+ALLOWED_PROCESS_TYPE = set(['print_to_console', 'print_current_time', 'multiplexer_in', 'multiplexer_out'])
 ALLOWED_BUFFER_TYPE = set(['FIFO', 'LIFO'])
 
 class Process_manager:
@@ -73,9 +73,13 @@ class Process_manager:
         )
 
     def shutdown(self):
-        for puuid, proc in self.processes.items():
-            subProcObj = proc._subprocessObj
-            subProcObj.terminate()
+        for puuid in self.processes.keys():
+            self.kill_process(puuid)
+
+    def kill_process(self, puuid):
+        subProcObj = self.processes[puuid]._subprocessObj
+        subProcObj.terminate()
+        self._serv.delete(puuid)
 
     def create_process(self, data, puuid=None):
         if puuid is None:
@@ -122,9 +126,7 @@ class Process_manager:
             return process_config
 
     def delete_process(self, puuid):
-        proc = self.processes[puuid]
-        subProcObj = proc._subprocessObj
-        subProcObj.terminate()
+        self.kill_process(puuid)
         self.processes_uuid.remove(puuid)
         del self.processes[puuid]
         # also remove links

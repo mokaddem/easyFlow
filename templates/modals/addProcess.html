@@ -6,7 +6,6 @@
                  <h4 class="modal-title">Create process</h4>
             </div><!-- /modal-header -->
             <div class="modal-body">
-                <form id="formAddProcess">
 
                         <!-- Nav tabs -->
                         <ul class="nav nav-tabs">
@@ -17,6 +16,7 @@
                         <!-- Tab panes -->
                         <div class="tab-content" style="padding-top: 10px;">
                             <div class="tab-pane fade in active" id="addProcessSettings">
+                                <form id="formAddProcess">
                                 <div class="form-group">
                                     <label>Process name</label>
                                     <input class="form-control" name="name" placeholder="Enter process name" required>
@@ -43,9 +43,12 @@
                                         <option>NONE</option>
                                     </select>
                                 </div>
+                                </form>
                             </div>
 
                             <div class="tab-pane fade" id="processCustomSetting">
+                                <form id="formAddProcessCustom">
+                                </form>
                             </div>
                         </div>
 

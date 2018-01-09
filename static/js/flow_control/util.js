@@ -100,7 +100,7 @@ function toggle_btn_pipe(display) {
 
 // merge fields of obj2 into obj1
 function mergeInto(obj1, obj2) {
-    var to_ret = $.extend( {}, obj1, obj2 );;
+    var to_ret = $.extend( {}, obj1, obj2 );
     return to_ret;
 }
 

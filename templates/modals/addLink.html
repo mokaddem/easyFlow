@@ -6,7 +6,6 @@
                  <h4 class="modal-title">Add buffer</h4>
             </div><!-- /modal-header -->
             <div class="modal-body">
-                <form id="formAddLink">
 
                         <!-- Nav tabs -->
                         <ul class="nav nav-tabs">
@@ -17,6 +16,7 @@
                         <!-- Tab panes -->
                         <div class="tab-content" style="padding-top: 10px;">
                             <div class="tab-pane fade in active" id="AddLinkSettings">
+                                <form id="formAddLink">
                                 <div class="form-group">
                                     <label>Buffer name</label>
                                     <input class="form-control" name="name" placeholder="Enter process name" required>
@@ -33,14 +33,15 @@
                                     <label>Description</label>
                                     <textarea class="form-control" rows="3" name="description"></textarea>
                                 </div>
-
+                                </form>
                             </div>
 
                             <div class="tab-pane fade" id="bufferCustomSetting">
+                                <form id="formAddLinkCustom">
+                                </form>
                             </div>
                         </div>
 
-                </form>
 
             </div><!-- /modal-body -->
             <div class="modal-footer">

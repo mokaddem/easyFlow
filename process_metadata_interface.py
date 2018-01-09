@@ -35,7 +35,7 @@ class Process_representation:
         self.type = data['type']
         self.description = data['description']
         self.bulletin_level = data['bulletin_level']
-        self.connections = data.get('connections', [])
+        self.custom_config = data.get('custom_config', {})
         self._subprocessObj = data.get('subprocessObj', None) # /!\ may be a subprocess or psutil object
         self.projectUUID = data['projectUUID']
 

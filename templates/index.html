@@ -130,9 +130,17 @@
                                     </button>
                                 </div>
                                 <div style="display: inline-block; float:right;">
-                                    <button id="pcontrol_param" type="button" class="btn btn-default" style="display: inline-block; margin: 5px;" disabled>
-                                        <span class="glyphicon glyphicon-cog"></span>
-                                    </button>
+                                    <div class="btn-group dropright">
+                                        <button id="pcontrol_param" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" disabled>
+                                            <span class="glyphicon glyphicon-cog"></span>
+                                        </button>
+                                        <div class="dropdown-menu dropdown-param" aria-labelledby="dropdownMenuButton">
+                                            <button id="pcontrol_delete" type="button" class="btn btn-default" style="display: inline-block; margin: 5px;" disabled>
+                                                <span class="glyphicon glyphicon-trash"></span>
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     <button id="pcontrol_logs" type="button" class="btn btn-info" style="display: inline-block; margin: 5px;  margin-left: 0px;" disabled>
                                         <span class="glyphicon glyphicon-list-alt"></span>
                                     </button>

@@ -18,6 +18,10 @@ body, select {
     margin-left: 10px;
 }
 
+.dropdown-param {
+    min-width: 0px;
+}
+
 #mynetwork {
     position: absolute;
     top: 117px;

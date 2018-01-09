@@ -1,16 +1,14 @@
 class FlowControl {
     constructor() {
-        this._modalSuccess = false; // shows modal result (if user clicked cancel or not)
+        this.selected = [];
     }
 
-    modalStateSucess() { this._modalSuccess = true; }
-    modalStateReset() { this._modalSuccess = false; }
-
-    delete_node(uuid) {
-        if (innerRepresentation.nodeType(uuid) == 'process') {
-            this.execute_operation('delete_process', {puuid: uuid}, false);
-        } else if ((innerRepresentation.nodeType(uuid) == 'buffer')) {
-            this.execute_operation('delete_link', {buuid: uuid}, false);
+    delete_node() {
+        var uuids = this.selected;
+        if (innerRepresentation.nodeType(uuids[0]) == 'process') { // uuids are the same type
+            this.execute_operation('delete_process', {puuid: uuids}, false);
+        } else if ((innerRepresentation.nodeType(uuids[0]) == 'buffer')) { // uuids are the same type
+            this.execute_operation('delete_link', {buuid: uuids}, false);
         } else {
         }
     }

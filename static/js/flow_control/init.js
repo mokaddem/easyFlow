@@ -90,8 +90,8 @@ function draw() {
     $('#pcontrol_pause').click(function(){
 
     });
-    $('#pcontrol_param').click(function(){
-        flowControl.delete_node($(this).data('uuid'))
+    $('#pcontrol_delete').click(function(){
+        flowControl.delete_node()
     });
     $('#pcontrol_logs').click(function(){
 

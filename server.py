@@ -173,6 +173,15 @@ def get_pMetadata():
         infos = {}
     return jsonify(infos)
 
+@app.route('/get_node_configuration', methods=['POST'])
+def get_node_configuration():
+    data = request.get_json()
+    if flow_project_manager.is_project_open():
+        config = flow_project_manager.selected_project.get_configuration(data)
+    else:
+        config = {}
+    return jsonify(config)
+
 @app.route('/alert_stream')
 def alert_stream():
     return Response(alert_manager.make_response_stream(), mimetype="text/event-stream")

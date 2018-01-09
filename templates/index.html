@@ -56,6 +56,7 @@
         var url_project_operation = '{{ url_for("project_operation") }}';
 
         var url_get_processes_info = '{{ url_for("get_pMetadata") }}';
+        var url_get_node_configuration = '{{ url_for("get_node_configuration") }}';
         var url_alert_stream = '{{ url_for("alert_stream") }}';
         var url_bootstrap_alertHandler = '{{ url_for("alert_stream") }}';
         var url_flow_operation = '{{ url_for("flow_operation") }}';
@@ -135,8 +136,11 @@
                                             <span class="glyphicon glyphicon-cog"></span>
                                         </button>
                                         <div class="dropdown-menu dropdown-param" aria-labelledby="dropdownMenuButton">
-                                            <button id="pcontrol_delete" type="button" class="btn btn-default" style="display: inline-block; margin: 5px;" disabled>
-                                                <span class="glyphicon glyphicon-trash"></span>
+                                            <button id="pcontrol_edit" type="button" class="btn btn-default btn-dropdown" style="display: inline-block; margin: 5px;" disabled>
+                                                <span class="glyphicon glyphicon-list-alt "></span> Edit configuration
+                                            </button>
+                                            <button id="pcontrol_delete" type="button" class="btn btn-default btn-dropdown" style="display: inline-block; margin: 5px;" disabled>
+                                                <span class="glyphicon glyphicon-trash"></span> Delete selected items
                                             </button>
                                         </div>
                                     </div>

@@ -165,6 +165,14 @@ class Process_manager:
         del self.processes[puuid]
         # also remove links
 
+    def update_process(self, data):
+        puuid = data.get('puuid', None)
+        if puuid is None:
+            return {'state': 'error: puuid is None'}
+        self.processes[puuid].update(data)
+        return self.processes[puuid]
+
+
     def create_link(self, data, buuid=None):
         if buuid is None:
             buuid = data.get('buuid', None)

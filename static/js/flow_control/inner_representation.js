@@ -260,27 +260,30 @@ class InnerRepresentation {
     setProcessControlButtonData(puuid) {
         $('#pcontrol_play').prop("disabled", false);
         $('#pcontrol_pause').prop("disabled", false);
-        $('#pcontrol_param').prop("disabled", false);
-        $('#pcontrol_delete').prop("disabled", false);
         $('#pcontrol_logs').prop("disabled", false);
+        $('#pcontrol_param').prop("disabled", false);
+            $('#pcontrol_delete').prop("disabled", false);
+            $('#pcontrol_edit').prop("disabled", false);
         flowControl.selected = puuid;
     }
 
     setBufferControlButtonData(buuid) {
         $('#pcontrol_play').prop("disabled", true);
         $('#pcontrol_pause').prop("disabled", true);
-        $('#pcontrol_param').prop("disabled", false);
-        $('#pcontrol_delete').prop("disabled", false);
         $('#pcontrol_logs').prop("disabled", false);
+        $('#pcontrol_param').prop("disabled", false);
+            $('#pcontrol_delete').prop("disabled", false);
+            $('#pcontrol_edit').prop("disabled", false);
         flowControl.selected = buuid;
     }
 
     resetControlButtonData() {
         $('#pcontrol_play').prop("disabled", true);
         $('#pcontrol_pause').prop("disabled", true);
-        $('#pcontrol_param').prop("disabled", true);
-        $('#pcontrol_delete').prop("disabled", true);
         $('#pcontrol_logs').prop("disabled", true);
+        $('#pcontrol_param').prop("disabled", true);
+            $('#pcontrol_delete').prop("disabled", true);
+            $('#pcontrol_edit').prop("disabled", true);
         flowControl.selected = [];
     }
 

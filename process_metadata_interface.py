@@ -39,6 +39,13 @@ class Process_representation:
         self._subprocessObj = data.get('subprocessObj', None) # /!\ may be a subprocess or psutil object
         self.projectUUID = data['projectUUID']
 
+    def update(self, data):
+        self.name = data['name']
+        self.type = data['type']
+        self.description = data['description']
+        self.bulletin_level = data['bulletin_level']
+        self.custom_config = data.get('custom_config', {})
+
     def gen_process_config(self):
         return objToDictionnary(self, full=False)
 

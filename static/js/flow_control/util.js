@@ -124,6 +124,31 @@ function getFormData(formID) {
     }, {});
 }
 
+function fillForm(formID, formIDCustom, formData) {
+    for(key in formData) {
+        if(formData.hasOwnProperty(key)){
+            // standard input
+            $('input[name='+key+']').val(formData[key]);
+            // select
+            $('select[name='+key+']').val(formData[key]);
+        }
+    }
+    // empty form and create input for custom config
+    $('#'+formIDCustom).empty();
+    add_html_based_on_json($('#processTypeSelector').val(), $('#'+formIDCustom));
+    // add data for custom config
+    var form_custom_config = formData.custom_config;
+    for(key in form_custom_config) {
+        if(form_custom_config.hasOwnProperty(key)){
+            // standard input
+            $('input[name='+key+']').val(form_custom_config[key]);
+            // select
+            $('select[name='+key+']').val(form_custom_config[key]);
+        }
+    }
+
+}
+
 function create_html_from_json(pName, j) {
     var div = document.createElement('div');
     div.classList.add('form-group')

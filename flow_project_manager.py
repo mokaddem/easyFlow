@@ -89,6 +89,18 @@ class Project:
         p['processes'] = self._process_manager.get_processes_info()
         return p
 
+    def get_configuration(self, data):
+        node_type = data.get('type', None)
+        if node_type == 'process':
+            puuid = data.get('uuid', None)
+            return self.processes[puuid]
+        elif node_type == 'buffer':
+            buuid = data.get('uuid', None)
+            return self.buffers[buuid]
+        else:
+            print('unkown node type')
+
+
     def rename_project(self, newName):
         self.projectName = newName
         self.save_project()
@@ -132,6 +144,7 @@ class Project:
         self.buffers = temp
 
     def flowOperation(self, operation, data):
+        concerned_processes = []
         # ''' PROCESSES '''
         if operation == 'create_process':
             process_config = self._process_manager.create_process(data)
@@ -145,6 +158,11 @@ class Project:
                 # delete every links of this process
                 self.delete_links_of_process(puuid)
                 del self.processes[puuid]
+        elif operation == 'edit_process':
+            process_config = self._process_manager.update_process(data)
+            puuid = process_config.puuid
+            self.processes[puuid] = self.filter_correct_init_fields(process_config.get_dico())
+            concerned_processes = [puuid]
 
         # ''' LINKS '''
         elif operation == 'add_link':
@@ -160,7 +178,10 @@ class Project:
                 link_config = self.buffers[buuid] # get old processes
                 concerned_processes = [link_config['fromUUID'], link_config['toUUID']]
                 del self.buffers[buuid] # effectively delete
-                self._process_manager.reload_states(concerned_processes)
+                # self._process_manager.reload_states(concerned_processes)
+        elif operation == 'edit_link':
+            print(operation)
+            print(data)
 
         # ''' MULT_INPUT '''
         elif operation == 'create_mult_input':
@@ -206,6 +227,7 @@ class Project:
             return {'status': 'error' }
 
         self.save_project()
+        self._process_manager.reload_states(concerned_processes)
         return {'status': 'success' }
 
 class Flow_project_manager:

@@ -19,7 +19,12 @@ body, select {
 }
 
 .dropdown-param {
-    min-width: 0px;
+    width: 200px;
+}
+
+.btn-dropdown {
+    width: 185px;
+    text-align: left;
 }
 
 #mynetwork {

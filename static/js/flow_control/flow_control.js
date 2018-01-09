@@ -13,6 +13,41 @@ class FlowControl {
         }
     }
 
+    edit_node() {
+        var self = this;
+        if (this.selected.length > 1) { return; /* do not edit if multiple nodes are selected */ }
+        var uuid = this.selected[0];
+        if (innerRepresentation.nodeType(uuid) == 'process') {
+            this.query_config_and_fill_form(uuid, 'AddProcess', {type: 'process', uuid: uuid}, function() {
+                // self.handleModal('AddProcess', {}, function(modalData) {
+                var modalType = 'AddProcess';
+                var modalID = 'modal'+modalType;
+                $('#'+modalID).modal('show');
+                self.handleModalConfirm(modalType, {puuid: uuid}, function(modalData) {
+                    self.execute_operation('edit_process', modalData)
+                    .done(function(responseData, textStatus, jqXHR) {
+                    })
+                    .fail(function() {
+                        console.log( "An error occured" );
+                    });
+                });
+
+            });
+        } else if (innerRepresentation.nodeType(uuid) == 'buffer') {
+            this.query_config_and_fill_form(uuid, 'AddLink', {type: 'buffer', uuid: uuid}, function() {
+                self.handleModal('AddLink', {buuid: uuid}, function(modalData) {
+                    self.execute_operation('edit_link', modalData)
+                    .done(function(responseData, textStatus, jqXHR) {
+                    })
+                    .fail(function() {
+                        console.log( "An error occured" );
+                    });
+                });
+            });
+        } else {
+        }
+    }
+
     add_link(linkData) {
         var self = this;
         var linkDataCorrectKeyname = {};
@@ -39,7 +74,6 @@ class FlowControl {
                 console.log(modalData);
                 self.execute_operation('create_process', modalData)
                 .done(function(responseData, textStatus, jqXHR) {
-                    var nodeData = responseData;
                 })
                 .fail(function() {
                     console.log( "An error occured" );
@@ -51,7 +85,6 @@ class FlowControl {
                 console.log(modalData);
                 self.execute_operation('create_mult_input', modalData)
                 .done(function(responseData, textStatus, jqXHR) {
-                    var nodeData = responseData;
                 })
                 .fail(function() {
                     console.log( "An error occured" );
@@ -62,7 +95,6 @@ class FlowControl {
                 console.log(modalData);
                 self.execute_operation('create_mult_output', modalData)
                 .done(function(responseData, textStatus, jqXHR) {
-                    var nodeData = responseData;
                 })
                 .fail(function() {
                     console.log( "An error occured" );
@@ -76,13 +108,28 @@ class FlowControl {
         }
     }
 
+    query_config_and_fill_form(uuid, modalType, uuidData, form_callback) {
+        var formID = 'form'+modalType;
+        var formIDCustom = 'form'+modalType+'Custom';
+        return $.ajax({
+            type: "POST",
+            url: url_get_node_configuration,
+            data: JSON.stringify(uuidData),
+            contentType: 'application/json; charset=utf-8',
+        }).done(function( data ) {
+                fillForm(formID, formIDCustom, data);
+                form_callback();
+            }
+        );
+    }
+
     handleModal(modalType, dropData, callback) {
-        var self = this;
         var formID = 'form'+modalType;
         var formIDCustom = 'form'+modalType+'Custom';
         var modalID = 'modal'+modalType;
 
         $('#'+modalID).modal('show');
+        $('#'+formIDCustom).empty();
         add_html_based_on_json($('#processTypeSelector').val(), $('#'+formIDCustom));
         // Create custom_config html element on click
         $('#processTypeSelector').on('change', function() {
@@ -90,13 +137,31 @@ class FlowControl {
             add_html_based_on_json($( this ).val(), $('#'+formIDCustom));
         })
 
+        this.handleModalConfirm(modalType, dropData, callback);
+        // $('#'+modalID).find('button[confirm="1"]').one('click', function(event) {
+        //     if (validateForm(formID)) {
+        //         var formData = getFormData(formID);
+        //         $('#'+formID)[0].reset();
+        //         var modalData = mergeInto(dropData, formData);
+        //         var formDataCustom = getFormData(formIDCustom);
+        //         $('#'+formIDCustom).empty();
+        //         var modalData = mergeInto(modalData, {custom_config: formDataCustom });
+        //         $('#'+modalID).modal('hide');
+        //         callback(modalData);
+        //     }
+        // });
+    }
+
+    handleModalConfirm(modalType, dropData, callback) {
+        var formID = 'form'+modalType;
+        var formIDCustom = 'form'+modalType+'Custom';
+        var modalID = 'modal'+modalType;
         $('#'+modalID).find('button[confirm="1"]').one('click', function(event) {
             if (validateForm(formID)) {
                 var formData = getFormData(formID);
                 $('#'+formID)[0].reset();
                 var modalData = mergeInto(dropData, formData);
                 var formDataCustom = getFormData(formIDCustom);
-                // $('#'+formIDCustom)[0].reset();
                 $('#'+formIDCustom).empty();
                 var modalData = mergeInto(modalData, {custom_config: formDataCustom });
                 $('#'+modalID).modal('hide');

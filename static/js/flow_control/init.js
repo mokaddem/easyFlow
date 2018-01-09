@@ -90,11 +90,14 @@ function draw() {
     $('#pcontrol_pause').click(function(){
 
     });
+    $('#pcontrol_logs').click(function(){
+
+    });
     $('#pcontrol_delete').click(function(){
         flowControl.delete_node()
     });
-    $('#pcontrol_logs').click(function(){
-
+    $('#pcontrol_edit').click(function(){
+        flowControl.edit_node()
     });
 
     $('button[name="pipe"]').on("click", function (eventObject) {

@@ -120,8 +120,8 @@ class Process(metaclass=ABCMeta):
             if flowItem is not None: # if not part of the flow yet
                 # msg = flowItem['message']
                 self.process_message(flowItem)
-
-            time.sleep(1)
+            else:
+                time.sleep(0.5)
             # print('process {} [{}]: sleeping'.format(self.puuid, self.pid))
 
 

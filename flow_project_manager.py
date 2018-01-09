@@ -156,8 +156,11 @@ class Project:
             concerned_processes = [link_config.fromUUID, link_config.toUUID]
             self._process_manager.reload_states(concerned_processes)
         elif operation == 'delete_link':
-            buuid = data['buuid']
-            del self.buffers[buuid]
+            for buuid in data.get('buuid', []):
+                link_config = self.buffers[buuid] # get old processes
+                concerned_processes = [link_config['fromUUID'], link_config['toUUID']]
+                del self.buffers[buuid] # effectively delete
+                self._process_manager.reload_states(concerned_processes)
 
         # ''' MULT_INPUT '''
         elif operation == 'create_mult_input':

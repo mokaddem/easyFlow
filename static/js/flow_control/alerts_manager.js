@@ -38,7 +38,7 @@ class AlertsManager {
                 // incrementally update the pb
                 var completed = 0;
                 if (this.messageGroup[group] === undefined) { // group does not exists
-                    if (jsonData.totalCount > 0) { //no total count
+                    if (jsonData.totalCount == 0) { //no total count
                         notify(jsonData.title+': ', jsonData.message, jsonData.type)
                     } else {
                         var nobj = $.notify({
@@ -48,7 +48,7 @@ class AlertsManager {
                                 progress: completed
                             },{
                                 type: jsonData.type,
-                                showProgressbar: showPB,
+                                showProgressbar: true,
                                 delay: 0,
                                 placement: {
                                     from: "top",
@@ -85,7 +85,7 @@ class AlertsManager {
                     }
                 }
             }
-        } catch(e) { /* JSONDecodeError */ console.log('error', message);}
+        } catch(e) { /* JSONDecodeError */ console.log(message);}
     }
 
 }

@@ -91,7 +91,7 @@ function draw() {
 
     });
     $('#pcontrol_param').click(function(){
-        flowControl.delete_process($(this).data('puuid'))
+        flowControl.delete_node($(this).data('uuid'))
     });
     $('#pcontrol_logs').click(function(){
 

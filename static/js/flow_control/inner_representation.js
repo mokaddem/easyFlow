@@ -112,7 +112,7 @@ class InnerRepresentation {
             if (buffers.hasOwnProperty(buuid)) {
                 var buffer = buffers[buuid];
                 var edgeData = {
-                    from: buffer.fromUUID, to: buffer.toUUID, id: buuid,
+                    from: buffer.fromUUID, to: buffer.toUUID, buuid: buuid,
                     name: buffer.name, x: buffer.x, y: buffer.y
                 };
             }
@@ -170,7 +170,7 @@ class InnerRepresentation {
 
     addBuffer(edgeData) {
         var btnPipe = $('button[name="pipe"]');
-        if (edgeData.id === undefined) {
+        if (edgeData.buuid === undefined) {
             alert('no id');
         }
         if (edgeData.x === undefined || edgeData.y === undefined) {
@@ -179,9 +179,9 @@ class InnerRepresentation {
             edgeData.y = centerCoord.y;
         }
         var i = Math.floor((1 + Math.random()));
-        this.bufferObj[edgeData.id] = edgeData.name;
+        this.bufferObj[edgeData.buuid] = edgeData;
         this.nodes.add({ // add the buffer between the 2 nodes
-            id: edgeData.id,
+            id: edgeData.buuid,
             image: construct_buffer(
                 edgeData.name,
                 String(i*2)+' bytes / ' + String(i*3)+' bytes',
@@ -196,13 +196,13 @@ class InnerRepresentation {
         });
         this.edges.add({ // link nodes to buffer
             from: edgeData.from,
-            to: edgeData.id,
+            to: edgeData.buuid,
             arrows: {
                 to: {enabled: true, type:'arrow'}
             },
         });
         this.edges.add({
-            from: edgeData.id,
+            from: edgeData.buuid,
             to: edgeData.to,
             arrows: {
                 to: {enabled: true, type:'arrow'}
@@ -236,29 +236,59 @@ class InnerRepresentation {
             $('#selectedNodeName').text(selectedNodesText);
             if (selectedNodeType == 'process') { // is process
                 this.setProcessControlButtonData(selectedProcUuid);
+            } else if (selectedNodeType == 'buffer') {
+                this.setBufferControlButtonData(selectedProcUuid);
             }
         } else if (selectedNodes.length == 0){ // no node selected
             $('#selectedNodeName').text("");
-            this.setControlButtonData("")
+            this.resetControlButtonData();
         } else { // one node selected
-            var proc = innerRepresentation.processObj[selectedNodes];
-            $('#selectedNodeName').text(proc.name);
-            this.setControlButtonData([proc.puuid])
+            var node;
+            var selectedNodeType = innerRepresentation.nodeType(selectedNodes);
+            if (selectedNodeType == 'process') {
+                node = innerRepresentation.processObj[selectedNodes];
+                this.setProcessControlButtonData([node.puuid])
+            } else if (selectedNodeType == 'buffer') {
+                node = innerRepresentation.bufferObj[selectedNodes];
+                this.setBufferControlButtonData([node.buuid])
+            } else {
+            }
+            $('#selectedNodeName').text(node.name);
         }
     }
 
     setProcessControlButtonData(puuid) {
+        $('#pcontrol_play').prop("disabled", false);
+        $('#pcontrol_pause').prop("disabled", false);
+        $('#pcontrol_param').prop("disabled", false);
+        $('#pcontrol_logs').prop("disabled", false);
         $('#pcontrol_play').data("puuid", puuid)
         $('#pcontrol_pause').data("puuid", puuid)
         $('#pcontrol_param').data("puuid", puuid)
+        $('#pcontrol_param').data("uuid", puuid) // support for delete function
         $('#pcontrol_logs').data("puuid", puuid)
-        console.log($('#pcontrol_param').data("puuid"));
     }
 
     setBufferControlButtonData(buuid) {
+        $('#pcontrol_play').prop("disabled", true);
+        $('#pcontrol_pause').prop("disabled", true);
+        $('#pcontrol_param').prop("disabled", false);
+        $('#pcontrol_logs').prop("disabled", false);
         $('#pcontrol_param').data("buuid", buuid)
+        $('#pcontrol_param').data("uuid", buuid)
         $('#pcontrol_logs').data("buuid", buuid)
-        console.log($('#pcontrol_param').data("buuid"));
+    }
+
+    resetControlButtonData() {
+        $('#pcontrol_play').prop("disabled", true);
+        $('#pcontrol_pause').prop("disabled", true);
+        $('#pcontrol_param').prop("disabled", true);
+        $('#pcontrol_logs').prop("disabled", true);
+        $('#pcontrol_play').data("puuid", "")
+        $('#pcontrol_pause').data("puuid", "")
+        $('#pcontrol_param').data("puuid", "")
+        $('#pcontrol_param').data("uuid", "") // support for delete function
+        $('#pcontrol_logs').data("puuid", "")
     }
 
 

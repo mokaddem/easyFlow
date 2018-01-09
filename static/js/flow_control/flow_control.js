@@ -6,8 +6,17 @@ class FlowControl {
     modalStateSucess() { this._modalSuccess = true; }
     modalStateReset() { this._modalSuccess = false; }
 
-    delete_process(puuid) {
-        this.execute_operation('delete_process', {puuid: puuid}, false);
+    delete_node(uuid) {
+        if (innerRepresentation.nodeType(uuid) == 'process') {
+            console.log('deleting process');
+            this.execute_operation('delete_process', {puuid: uuid}, false);
+        } else if ((innerRepresentation.nodeType(uuid) == 'buffer')) {
+            console.log('deleting buffer');
+            this.execute_operation('delete_link', {buuid: uuid}, false);
+        } else new Promise(function(resolve, reject) {
+            console.log(uuid);
+            console.log(innerRepresentation.nodeType(uuid));
+        });
     }
 
     add_link(linkData) {

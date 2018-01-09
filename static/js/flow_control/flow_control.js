@@ -8,15 +8,11 @@ class FlowControl {
 
     delete_node(uuid) {
         if (innerRepresentation.nodeType(uuid) == 'process') {
-            console.log('deleting process');
             this.execute_operation('delete_process', {puuid: uuid}, false);
         } else if ((innerRepresentation.nodeType(uuid) == 'buffer')) {
-            console.log('deleting buffer');
             this.execute_operation('delete_link', {buuid: uuid}, false);
-        } else new Promise(function(resolve, reject) {
-            console.log(uuid);
-            console.log(innerRepresentation.nodeType(uuid));
-        });
+        } else {
+        }
     }
 
     add_link(linkData) {

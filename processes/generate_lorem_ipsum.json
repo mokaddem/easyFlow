@@ -1,0 +1,20 @@
+{
+    "sleepTime": {
+        "label": "Time to wait between text generation",
+        "DOM": "input",
+        "inputType": "number",
+        "min": 0.2,
+        "max": 60,
+        "step": 0.2,
+        "default": 1,
+        "placeholder": "sleepTime",
+        "required": "true"
+    },
+    "ipsumType": {
+        "label": "Type of dummy text to generate",
+        "DOM": "select",
+        "options": ["text", "numbers"],
+        "default": "text",
+        "required": "true"
+    }
+}

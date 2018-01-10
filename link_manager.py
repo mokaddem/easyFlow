@@ -72,7 +72,10 @@ class Multiple_link_manager(Link_manager):
         self.interleave_index = 0 # last poped buffer index
 
     def inc_interleave_index(self):
-        self.interleave_index = self.interleave_index+1 if self.interleave_index < len(self.ingress)-1 else 0
+        if self.multi_in:
+            self.interleave_index = self.interleave_index+1 if self.interleave_index < len(self.ingress)-1 else 0
+        else:
+            self.interleave_index = self.interleave_index+1 if self.interleave_index < len(self.egress)-1 else 0
 
     def update_connections(self):
         self.ingress = []
@@ -118,49 +121,3 @@ class Multiple_link_manager(Link_manager):
                 print('Unkown multiplexer logic')
         else: # same as simple link manager
             self._serv.lpush(self.egress[0], flowItem)
-
-
-# class Multiple_link_manager:
-#     def __init__(self, projectUUID, puuid, custom_config, multi_in=True):
-#         # from puuid, get buuid
-#         self.projectUUID = projectUUID
-#         self.puuid = puuid
-#         self.custom_config = custom_config
-#         self._serv = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
-#         self.multi_in = multi_in
-#         self.multi_out = not multi_in
-#         self.ingress = []
-#         self.egress = []
-#         self.update_connections()
-#
-#         self.mult_logic = self.custom_config['multiplex_logic']
-#
-#     def update_connections(self):
-#         self.ingress = []
-#         self.egress = []
-#         config = self.get_config()
-#
-#         for buuid, bConfig in config.items():
-#             procTo = bConfig['toUUID']
-#             procFrom = bConfig['fromUUID']
-#             if procTo == self.puuid:
-#                 self.ingress.append(buuid)
-#             if procFrom == self.puuid:
-#                 self.egress.append(buuid)
-#
-#     def get_flowItem(self):
-#         if self.multi_in: # custom logic: interleaving, priority
-#             flowItem = self._serv.rpop(self.ingress)
-#             return flowItem
-#         else: # same as simple link manager
-#             flowItem = self._serv.rpop(self.ingress)
-#             return flowItem
-#
-#     def push_flowItem(self, flowItem):
-#         if self.multi_out: # custom logic: copy, dispatch
-#             self._serv.lpush(self.egress, flowItem)
-#         else: # same as simple link manager
-#             self._serv.lpush(self.egress, flowItem)
-#
-#     def get_config(self):
-#         return json.loads(self._serv.get(self.projectUUID))['buffers']

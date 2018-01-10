@@ -1,1 +1,9 @@
-{}
+{
+    "multiplex_logic": {
+        "label": "Multiplexer logic",
+        "DOM": "select",
+        "options": ["Interleave", "Priority"],
+        "default": "Interleave",
+        "required": "true"
+    }
+}

@@ -173,13 +173,11 @@ class Project:
                 return {'status': 'error'}
             self.buffers[buuid] = link_config.get_dico()
             concerned_processes = [link_config.fromUUID, link_config.toUUID]
-            self._process_manager.reload_states(concerned_processes)
         elif operation == 'delete_link':
             for buuid in data.get('buuid', []):
                 link_config = self.buffers[buuid] # get old processes
                 concerned_processes = [link_config['fromUUID'], link_config['toUUID']]
                 del self.buffers[buuid] # effectively delete
-                # self._process_manager.reload_states(concerned_processes)
         elif operation == 'edit_link':
             print(operation)
             print(data)

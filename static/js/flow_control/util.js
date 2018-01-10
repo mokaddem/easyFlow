@@ -125,12 +125,13 @@ function getFormData(formID) {
 }
 
 function fillForm(formID, formIDCustom, formData) {
+    // var pSelector = $('#'+modalID).find('[name="type"]');
     for(key in formData) {
         if(formData.hasOwnProperty(key)){
             // standard input
-            $('input[name='+key+']').val(formData[key]);
+            $('#'+formID).find('input[name='+key+']').val(formData[key]);
             // select
-            $('select[name='+key+']').val(formData[key]);
+            $('#'+formID).find('select[name='+key+']').val(formData[key]);
         }
     }
     // empty form and create input for custom config
@@ -141,9 +142,9 @@ function fillForm(formID, formIDCustom, formData) {
     for(key in form_custom_config) {
         if(form_custom_config.hasOwnProperty(key)){
             // standard input
-            $('input[name='+key+']').val(form_custom_config[key]);
+            $('#'+formIDCustom).find('input[name='+key+']').val(form_custom_config[key]);
             // select
-            $('select[name='+key+']').val(form_custom_config[key]);
+            $('#'+formIDCustom).find('select[name='+key+']').val(form_custom_config[key]);
         }
     }
 

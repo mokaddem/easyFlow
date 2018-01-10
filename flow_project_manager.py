@@ -145,6 +145,7 @@ class Project:
 
     def flowOperation(self, operation, data):
         concerned_processes = []
+        print('Flow operation:', operation)
         # ''' PROCESSES '''
         if operation == 'create_process':
             process_config = self._process_manager.create_process(data)

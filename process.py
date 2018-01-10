@@ -19,7 +19,6 @@ db=0
 class Process(metaclass=ABCMeta):
     def __init__(self, puuid):
         # get config from redis
-        # self._serv_config = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
         self._serv_config = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
         self._alert_manager = Alert_manager()
         self.puuid = puuid

@@ -19,11 +19,10 @@ class FlowControl {
         var uuid = this.selected[0];
         if (innerRepresentation.nodeType(uuid) == 'process') {
             this.query_config_and_fill_form(uuid, 'AddProcess', {type: 'process', uuid: uuid}, function() {
-                // self.handleModal('AddProcess', {}, function(modalData) {
                 var modalType = 'AddProcess';
                 var modalID = 'modal'+modalType;
                 $('#'+modalID).modal('show');
-                self.handleModalConfirm(modalType, {puuid: uuid}, function(modalData) {
+                self.handleModalConfirm(modalType, {puuid: uuid, update: true}, function(modalData) {
                     self.execute_operation('edit_process', modalData)
                     .done(function(responseData, textStatus, jqXHR) {
                     })
@@ -49,6 +48,21 @@ class FlowControl {
     }
 
     add_link(linkData) {
+        // check only one link per process
+        var destProcType = innerRepresentation.processObj[linkData.to].type;
+        var destConnectionNum = network.getConnectedNodes(linkData.to);
+        var srcProcType = innerRepresentation.processObj[linkData.from].type;
+        var srcConnectionNum = network.getConnectedNodes(linkData.from);
+        // validate link creation
+        if (destConnectionNum.length == 1 && destProcType != 'multiplexer_in') {
+            notify('Error:', 'Only <strong>multiplexer_in</strong> are allowed to have multiple ingress connections', 'danger');
+            return;
+        }
+        if (srcConnectionNum.length == 1 && srcProcType != 'multiplexer_out') {
+            notify('Error:', 'Only <strong>multiplexer_out</strong> are allowed to have multiple egress connections', 'danger');
+            return;
+        }
+
         var self = this;
         var linkDataCorrectKeyname = {};
         linkDataCorrectKeyname.fromUUID = linkData.from;
@@ -130,7 +144,8 @@ class FlowControl {
 
         $('#'+modalID).modal('show');
         $('#'+formIDCustom).empty();
-        add_html_based_on_json($('#processTypeSelector').val(), $('#'+formIDCustom));
+        var pSelector = $('#'+modalID).find('[name="type"]');
+        add_html_based_on_json(pSelector.val(), $('#'+formIDCustom));
         // Create custom_config html element on click
         $('#processTypeSelector').on('change', function() {
             $('#'+formIDCustom).empty();
@@ -138,25 +153,21 @@ class FlowControl {
         })
 
         this.handleModalConfirm(modalType, dropData, callback);
-        // $('#'+modalID).find('button[confirm="1"]').one('click', function(event) {
-        //     if (validateForm(formID)) {
-        //         var formData = getFormData(formID);
-        //         $('#'+formID)[0].reset();
-        //         var modalData = mergeInto(dropData, formData);
-        //         var formDataCustom = getFormData(formIDCustom);
-        //         $('#'+formIDCustom).empty();
-        //         var modalData = mergeInto(modalData, {custom_config: formDataCustom });
-        //         $('#'+modalID).modal('hide');
-        //         callback(modalData);
-        //     }
-        // });
     }
 
     handleModalConfirm(modalType, dropData, callback) {
         var formID = 'form'+modalType;
         var formIDCustom = 'form'+modalType+'Custom';
         var modalID = 'modal'+modalType;
-        $('#'+modalID).find('button[confirm="1"]').one('click', function(event) {
+        var confirmBtn = $('#'+modalID).find('button[confirm="1"]');
+        // set correct button text
+        if (dropData.update) {
+            confirmBtn.text('Update');
+        } else {
+            confirmBtn.text('Create');
+        }
+        // main logic
+        confirmBtn.one('click', function(event) {
             if (validateForm(formID)) {
                 var formData = getFormData(formID);
                 $('#'+formID)[0].reset();

@@ -8,6 +8,7 @@ import time
 import signal
 from abc import ABCMeta, abstractmethod
 from process import Process
+from link_manager import FlowItem
 
 
 class Process_no_input(Process, metaclass=ABCMeta):
@@ -38,4 +39,6 @@ class Process_no_input(Process, metaclass=ABCMeta):
     # forward is called from generate_data().
     def forward(self, msg):
         self.push_p_info()
-        self._link_manager.push_message(msg)
+        flowItem = FlowItem(msg)
+        self._processStat.register_forward(flowItem)
+        self._link_manager.push_flowItem(flowItem)

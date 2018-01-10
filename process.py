@@ -10,7 +10,7 @@ import redis, json
 from util import genUUID, objToDictionnary
 from alerts_manager import Alert_manager
 from process_metadata_interface import Process_metadata_interface
-from link_manager import Link_manager, Multiple_link_manager
+from link_manager import Link_manager, Multiple_link_manager, FlowItem
 
 host='localhost'
 port=6780
@@ -29,6 +29,8 @@ class Process(metaclass=ABCMeta):
 
         self._metadata_interface = Process_metadata_interface()
         self.last_refresh = time.time() - self.state_refresh_rate # ensure a refresh
+
+        self._processStat = ProcessStat()
         self.push_p_info()
 
         if self.type == 'multiplexer_in':
@@ -115,10 +117,10 @@ class Process(metaclass=ABCMeta):
             self.push_p_info()
 
             # Process flowItems
-            flowItem = self._link_manager.get_message()
+            flowItem = self._link_manager.get_flowItem()
             if flowItem is not None: # if not part of the flow yet
-                # msg = flowItem['message']
-                self.process_message(flowItem)
+                self._processStat.register_processing(flowItem)
+                self.process_message(flowItem.message())
             else:
                 time.sleep(0.3)
                 # time.sleep(0.01)
@@ -126,7 +128,9 @@ class Process(metaclass=ABCMeta):
 
 
     def forward(self, msg):
-        self._link_manager.push_message(msg)
+        flowItem = FlowItem(msg)
+        self._processStat.register_forward(flowItem)
+        self._link_manager.push_flowItem(flowItem)
 
     def apply_operation(self, operation, data):
         if operation == 'reload':
@@ -155,7 +159,7 @@ class Process(metaclass=ABCMeta):
     def process_message(self, msg):
         pass
 
-class processStat:
+class ProcessStat:
     def __init__(self):
         self.start_processing_time = 0
         self.bytes_in = 0
@@ -163,21 +167,20 @@ class processStat:
         self.flowItem_in = 0
         self.flowItem_out = 0
 
-    def start_processing(self, item):
+    def register_processing(self, flowItem):
         self.start_processing_time = time.time()
-
+        self.bytes_in += flowItem.size
+        self.flowItem_in += 1
 
     def get_processing_time(self):
         return time.time() - self.start_processing_time
 
-    def get_bytes_int(self):
-        pass
+    def register_forward(self, flowItem):
+        self.bytes_out += flowItem.size
+        self.flowItem_out += 1
 
-    def get_bytes_out(self):
-        pass
+    def __repr__(self):
+        return json.dumps(objToDictionnary(self))
 
-    def get_flowItem_in(self):
-        pass
-
-    def get_flowItem_out(self):
-        pass
+    def __str__(self):
+        return self.__repr__()

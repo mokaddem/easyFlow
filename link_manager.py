@@ -40,16 +40,18 @@ class Link_manager:
                 self.egress = buuid
         # self.show_connections()
 
-    def get_message(self):
+    def get_flowItem(self):
         if self.ingress is not None:
             flowItem_raw = self._serv.rpop(self.ingress)
-            return FlowItem(flowItem_raw, raw=True).message()
+            if flowItem_raw is None:
+                return None
+            else:
+                return FlowItem(flowItem_raw, raw=True)
         else:
             # Either return None or wait until part of the flow
             return None
 
-    def push_message(self, message):
-        flowItem = FlowItem(message)
+    def push_flowItem(self, flowItem):
         if self.egress is not None:
             self._serv.lpush(self.egress, flowItem)
 
@@ -94,7 +96,7 @@ class Multiple_link_manager(Link_manager):
             if procFrom == self.puuid:
                 self.egress.append(buuid)
 
-    def get_message(self):
+    def get_flowItem(self):
         if len(self.ingress) > 0: # check that has at least 1 ingess connection
             if self.multi_in: # custom logic: interleaving, priority
                 if self.custom_config['multiplex_logic'] == 'Interleave':
@@ -108,15 +110,20 @@ class Multiple_link_manager(Link_manager):
                 else:
                     print('Unkown multiplexer logic')
 
-                return FlowItem(flowItem_raw, raw=True).message()
+                if flowItem_raw is None:
+                    return None
+                else:
+                    return FlowItem(flowItem_raw, raw=True)
 
             else: # same as simple link manager
                 flowItem_raw = self._serv.rpop(self.ingress[0])
-                return FlowItem(flowItem_raw, raw=True).message()
+                if flowItem_raw is None:
+                    return None
+                else:
+                    return FlowItem(flowItem_raw, raw=True)
 
-    def push_message(self, message):
+    def push_flowItem(self, flowItem):
         if len(self.egress) > 0: # check that has at least 1 egress connection
-            flowItem = FlowItem(message)
             if self.multi_out: # custom logic: copy, dispatch
                 if self.custom_config['multiplex_logic'] == 'Interleave':
                     self._serv.lpush(self.egress[self.interleave_index], flowItem)

@@ -40,15 +40,16 @@ class Link_manager:
                 self.egress = buuid
         # self.show_connections()
 
-    def get_flowItem(self):
+    def get_message(self):
         if self.ingress is not None:
-            flowItem = self._serv.rpop(self.ingress)
-            return flowItem
+            flowItem_raw = self._serv.rpop(self.ingress)
+            return FlowItem(flowItem_raw, raw=True).message()
         else:
             # Either return None or wait until part of the flow
             return None
 
-    def push_flowItem(self, flowItem):
+    def push_message(self, message):
+        flowItem = FlowItem(message)
         if self.egress is not None:
             self._serv.lpush(self.egress, flowItem)
 
@@ -93,27 +94,29 @@ class Multiple_link_manager(Link_manager):
             if procFrom == self.puuid:
                 self.egress.append(buuid)
 
-    def get_flowItem(self):
+    def get_message(self):
         if len(self.ingress) > 0: # check that has at least 1 ingess connection
             if self.multi_in: # custom logic: interleaving, priority
                 if self.custom_config['multiplex_logic'] == 'Interleave':
                     # print('popping from '+self.ingress[self.interleave_index])
-                    flowItem = self._serv.rpop(self.ingress[self.interleave_index])
+                    flowItem_raw = self._serv.rpop(self.ingress[self.interleave_index])
                     self.inc_interleave_index()
                 elif self.custom_config['multiplex_logic'] == 'Priority':
                     print('ingoring priority for the moment')
-                    flowItem = self._serv.rpop(self.ingress[self.interleave_index])
+                    flowItem_raw = self._serv.rpop(self.ingress[self.interleave_index])
                     self.inc_interleave_index()
                 else:
                     print('Unkown multiplexer logic')
-                return flowItem
+
+                return FlowItem(flowItem_raw, raw=True).message()
 
             else: # same as simple link manager
-                flowItem = self._serv.rpop(self.ingress[0])
-                return flowItem
+                flowItem_raw = self._serv.rpop(self.ingress[0])
+                return FlowItem(flowItem_raw, raw=True).message()
 
-    def push_flowItem(self, flowItem):
+    def push_message(self, message):
         if len(self.egress) > 0: # check that has at least 1 egress connection
+            flowItem = FlowItem(message)
             if self.multi_out: # custom logic: copy, dispatch
                 if self.custom_config['multiplex_logic'] == 'Interleave':
                     self._serv.lpush(self.egress[self.interleave_index], flowItem)
@@ -129,3 +132,27 @@ class Multiple_link_manager(Link_manager):
                     print('Unkown multiplexer logic')
             else: # same as simple link manager
                 self._serv.lpush(self.egress[0], flowItem)
+
+class FlowItem:
+    def __init__(self, content, origin=None, raw=False):
+        if raw:
+            if content is None:
+                self.content = None
+            else:
+                jflowItem = json.loads(content)
+                self.content = jflowItem['content']
+                self.size = jflowItem['size']
+                self.origin = jflowItem['origin']
+        else:
+            self.content = content
+            self.size = len(content.encode('utf-8'))
+            self.origin = origin
+
+    def message(self):
+        return self.content
+
+    def __repr__(self):
+        return json.dumps(objToDictionnary(self))
+
+    def __str__(self):
+        return self.__repr__()

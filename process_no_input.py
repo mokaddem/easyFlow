@@ -38,4 +38,4 @@ class Process_no_input(Process, metaclass=ABCMeta):
     # forward is called from generate_data().
     def forward(self, msg):
         self.push_p_info()
-        self._link_manager.push_flowItem(msg)
+        self._link_manager.push_message(msg)

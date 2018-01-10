@@ -115,7 +115,7 @@ class Process(metaclass=ABCMeta):
             self.push_p_info()
 
             # Process flowItems
-            flowItem = self._link_manager.get_flowItem()
+            flowItem = self._link_manager.get_message()
             if flowItem is not None: # if not part of the flow yet
                 # msg = flowItem['message']
                 self.process_message(flowItem)
@@ -126,7 +126,7 @@ class Process(metaclass=ABCMeta):
 
 
     def forward(self, msg):
-        self._link_manager.push_flowItem(msg)
+        self._link_manager.push_message(msg)
 
     def apply_operation(self, operation, data):
         if operation == 'reload':
@@ -153,4 +153,31 @@ class Process(metaclass=ABCMeta):
 
     @abstractmethod
     def process_message(self, msg):
+        pass
+
+class processStat:
+    def __init__(self):
+        self.start_processing_time = 0
+        self.bytes_in = 0
+        self.bytes_out = 0
+        self.flowItem_in = 0
+        self.flowItem_out = 0
+
+    def start_processing(self, item):
+        self.start_processing_time = time.time()
+
+
+    def get_processing_time(self):
+        return time.time() - self.start_processing_time
+
+    def get_bytes_int(self):
+        pass
+
+    def get_bytes_out(self):
+        pass
+
+    def get_flowItem_in(self):
+        pass
+
+    def get_flowItem_out(self):
         pass

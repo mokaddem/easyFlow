@@ -120,7 +120,8 @@ class Process(metaclass=ABCMeta):
                 # msg = flowItem['message']
                 self.process_message(flowItem)
             else:
-                time.sleep(0.5)
+                time.sleep(0.3)
+                # time.sleep(0.01)
             # print('process {} [{}]: sleeping'.format(self.puuid, self.pid))
 
 

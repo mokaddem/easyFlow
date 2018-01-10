@@ -117,11 +117,16 @@ function validateForm(formID) {
 }
 
 function getFormData(formID) {
-    return $('#'+formID).serializeArray().reduce(function(obj, item) {
+    // enable all fields so that they get picked by serializeArray
+    var disabled = $('#'+formID).find(':input:disabled').removeAttr('disabled');
+    var formData = $('#'+formID).serializeArray().reduce(function(obj, item) {
         var itemValue = !isNaN(parseFloat(item.value)) && isFinite(item.value) ? parseFloat(item.value) : item.value;
         obj[item.name] = itemValue;
         return obj;
     }, {});
+    // disable previously disabled fields
+    disabled.attr('disabled','disabled');
+    return formData
 }
 
 function fillForm(formID, formIDCustom, formData) {

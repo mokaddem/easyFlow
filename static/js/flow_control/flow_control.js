@@ -85,7 +85,6 @@ class FlowControl {
         var self = this;
         if (dropData.type == 'process') {
             self.handleModal('AddProcess', dropData, function(modalData) {
-                console.log(modalData);
                 self.execute_operation('create_process', modalData)
                 .done(function(responseData, textStatus, jqXHR) {
                 })
@@ -94,7 +93,7 @@ class FlowControl {
                 });
             });
 
-        } else if (dropData.type == 'mult_input') {
+        } else if (dropData.type == 'multiplexer_input') {
             self.handleModal('AddMultInput', dropData, function(modalData) {
                 console.log(modalData);
                 self.execute_operation('create_mult_input', modalData)
@@ -104,7 +103,7 @@ class FlowControl {
                     console.log( "An error occured" );
                 });
             });
-        } else if (dropData.type == 'mult_output') {
+        } else if (dropData.type == 'multiplexer_output') {
             self.handleModal('AddMultOutput', dropData, function(modalData) {
                 console.log(modalData);
                 self.execute_operation('create_mult_output', modalData)

@@ -71,7 +71,9 @@ class Process(metaclass=ABCMeta):
         return self.puuid
 
     def get_representation(self, full=False):
-        return objToDictionnary(self, full=full)
+        pInfo = objToDictionnary(self, full=full)
+        pInfo['stats'] = objToDictionnary(self._processStat)
+        return pInfo
 
     # push current process info to redis depending on the refresh value.
     def push_p_info(self):
@@ -122,8 +124,8 @@ class Process(metaclass=ABCMeta):
                 self._processStat.register_processing(flowItem)
                 self.process_message(flowItem.message())
             else:
-                time.sleep(0.3)
-                # time.sleep(0.01)
+                # time.sleep(0.3)
+                time.sleep(0.01)
             # print('process {} [{}]: sleeping'.format(self.puuid, self.pid))
 
 
@@ -161,7 +163,8 @@ class Process(metaclass=ABCMeta):
 
 class ProcessStat:
     def __init__(self):
-        self.start_processing_time = 0
+        self._start_processing_time = 0
+        self.processing_time = 0
         self.bytes_in = 0
         self.bytes_out = 0
         self.flowItem_in = 0
@@ -172,15 +175,17 @@ class ProcessStat:
         self.bytes_in += flowItem.size
         self.flowItem_in += 1
 
-    def get_processing_time(self):
-        return time.time() - self.start_processing_time
+    def compute_processing_time(self):
+        self.processing_time = time.time() - self.start_processing_time
 
     def register_forward(self, flowItem):
         self.bytes_out += flowItem.size
         self.flowItem_out += 1
 
     def __repr__(self):
+        self.compute_processing_time();
         return json.dumps(objToDictionnary(self))
+        # return objToDictionnary(self)
 
     def __str__(self):
         return self.__repr__()

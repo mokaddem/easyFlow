@@ -9,7 +9,7 @@ from process import Process
 class Print_to_console(Process):
     def process_message(self, msg):
         print('Print_to_console [{}]: {}'.format(os.getpid(), msg))
-        self.forward(msg)
+        # self.forward(msg)
 
 if __name__ == '__main__':
     uuid = sys.argv[1]

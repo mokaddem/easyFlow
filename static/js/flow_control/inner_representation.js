@@ -68,13 +68,14 @@ class InnerRepresentation {
         var update_array = [];
         try {
             for (var node of processes) {
+                var jStats = node['stats'];
                 update_array.push({
                     id: node['puuid'],
                     image: construct_node(
                         node['name'],
-                        node['timestamp'],  // bytes
-                        node['timestamp'], // flowItem
-                        node['timestamp']
+                        jStats['bytes_in']+' / '+jStats['bytes_out'],  // bytes
+                        jStats['flowItem_in']+' / '+jStats['flowItem_out'], // flowItem
+                        jStats['processing_time']
                     )
                 });
             }

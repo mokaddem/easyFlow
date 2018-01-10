@@ -13,7 +13,10 @@ function draw() {
               damping: 1
             },
         },
-        interaction: { multiselect: true},
+        interaction: {
+            multiselect: true,
+            hover: true
+        },
         groups: {
             process: {
             },
@@ -44,10 +47,10 @@ function draw() {
             },
             addEdge: function(edgeData, callback) {
                 if (edgeData.from === edgeData.to) {
-                    var r = confirm("Do you want to connect the node to itself?");
-                    if (r === true) {
-                        callback(edgeData);
-                    }
+                    var r = alert("Process recursion is not yet supported");
+                    // if (r === true) {
+                    //     callback(edgeData);
+                    // }
                 }
                 else {
                     flowControl.add_link(edgeData);
@@ -73,6 +76,36 @@ function draw() {
     };
 
     network = new vis.Network(container, data, options);
+    var options = {
+        offset: {x: 0,y: 0},
+        duration: 1,
+        easingFunction: 'easeInOutQuad'
+    };
+    network.fit({animation:options});
+    function changeCursor(newCursorStyle){
+        $('#mynetwork').find('canvas').css( 'cursor', newCursorStyle );
+    }
+    network.on('hoverNode', function () {
+        changeCursor('grab');
+    });
+    network.on('blurNode', function () {
+        changeCursor('default');
+    });
+    network.on('hoverEdge', function () {
+        changeCursor('grab');
+    });
+    network.on('blurEdge', function () {
+        changeCursor('default');
+    });
+    network.on('dragStart', function () {
+        changeCursor('grabbing');
+    });
+    network.on('dragging', function () {
+        changeCursor('grabbing');
+    });
+    network.on('dragEnd', function () {
+        changeCursor('grab');
+    });
 
     // add event listeners
     network.on("selectNode", function (params) {

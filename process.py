@@ -36,7 +36,7 @@ class Process(metaclass=ABCMeta):
         elif self.type == 'multiplexer_out':
             self._link_manager = Multiple_link_manager(self.projectUUID, self.puuid, self.custom_config, multi_in=False)
         else:
-            self._link_manager = Link_manager(self.projectUUID, self.puuid)
+            self._link_manager = Link_manager(self.projectUUID, self.puuid, self.custom_config)
 
         self.run()
 
@@ -60,7 +60,7 @@ class Process(metaclass=ABCMeta):
 
     def reload(self):
         self.update_config()
-        self._link_manager.update_connections()
+        self._link_manager.update_connections(self.custom_config)
 
     def change_name(self, name):
         self.name = name

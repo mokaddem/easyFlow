@@ -18,8 +18,9 @@ class FlowControl {
         if (this.selected.length > 1) { return; /* do not edit if multiple nodes are selected */ }
         var uuid = this.selected[0];
         if (innerRepresentation.nodeType(uuid) == 'process') {
-            this.query_config_and_fill_form(uuid, 'AddProcess', {type: 'process', uuid: uuid}, function() {
-                var modalType = 'AddProcess';
+            var processType = innerRepresentation.processObj[uuid].type;
+            var modalType = getModalTypeFromProcessType(processType);
+            this.query_config_and_fill_form(uuid, modalType, {type: 'process', uuid: uuid}, function() {
                 var modalID = 'modal'+modalType;
                 $('#'+modalID).modal('show');
                 self.handleModalConfirm(modalType, {puuid: uuid, update: true}, function(modalData) {
@@ -49,16 +50,31 @@ class FlowControl {
 
     add_link(linkData) {
         // check only one link per process
-        var destProcType = innerRepresentation.processObj[linkData.to].type;
-        var destConnectionNum = network.getConnectedNodes(linkData.to);
-        var srcProcType = innerRepresentation.processObj[linkData.from].type;
-        var srcConnectionNum = network.getConnectedNodes(linkData.from);
+        try {
+            var destProcType = innerRepresentation.processObj[linkData.to].type;
+            var srcProcType = innerRepresentation.processObj[linkData.from].type;
+        } catch(err) {
+            /* buffer my have been selected */
+            notify('Error:', 'Only <strong>Processes</strong> are allowed to have buffer', 'danger');
+            return;
+        }
+        var srcConnectedEdges = network.getConnectedEdges(linkData.from)
+        var srcEgressCount = srcConnectedEdges.reduce(function(acc, edgeID) {
+            var edge = innerRepresentation.edges.get(edgeID);
+            return edge.from == linkData.from ? acc+1 : 0; // sum outgoing edges
+        }, 0);
+        var dstConnectedEdges = network.getConnectedEdges(linkData.to)
+        var dstIngressCount = dstConnectedEdges.reduce(function(acc, edgeID) {
+            var edge = innerRepresentation.edges.get(edgeID);
+            return edge.to == linkData.to ? acc+1 : 0; // sum outgoing edges
+        }, 0);
+
         // validate link creation
-        if (destConnectionNum.length == 1 && destProcType != 'multiplexer_in') {
+        if (dstIngressCount == 1 && destProcType != 'multiplexer_in') {
             notify('Error:', 'Only <strong>multiplexer_in</strong> are allowed to have multiple ingress connections', 'danger');
             return;
         }
-        if (srcConnectionNum.length == 1 && srcProcType != 'multiplexer_out') {
+        if (srcEgressCount == 1 && srcProcType != 'multiplexer_out') {
             notify('Error:', 'Only <strong>multiplexer_out</strong> are allowed to have multiple egress connections', 'danger');
             return;
         }
@@ -162,8 +178,10 @@ class FlowControl {
         // set correct button text
         if (dropData.update) {
             confirmBtn.text('Update');
+            $('#'+modalID).find('.modal-title').text('Update: '+innerRepresentation.processObj[dropData.puuid].name);
         } else {
             confirmBtn.text('Create');
+            $('#'+modalID).find('.modal-title').text('Create');
         }
         // main logic
         confirmBtn.one('click', function(event) {

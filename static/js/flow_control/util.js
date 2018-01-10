@@ -104,6 +104,17 @@ function mergeInto(obj1, obj2) {
     return to_ret;
 }
 
+function getModalTypeFromProcessType(processType) {
+    switch(processType){
+        case 'multiplexer_in':
+            return 'AddMultInput';
+        case 'multiplexer_out':
+            return 'AddMultOutput';
+        default:
+            return 'AddProcess';
+    }
+}
+
 // function validateForm(btn) {
 function validateForm(formID) {
     var form = document.getElementById(formID);
@@ -130,7 +141,6 @@ function getFormData(formID) {
 }
 
 function fillForm(formID, formIDCustom, formData) {
-    // var pSelector = $('#'+modalID).find('[name="type"]');
     for(key in formData) {
         if(formData.hasOwnProperty(key)){
             // standard input
@@ -141,7 +151,7 @@ function fillForm(formID, formIDCustom, formData) {
     }
     // empty form and create input for custom config
     $('#'+formIDCustom).empty();
-    add_html_based_on_json($('#processTypeSelector').val(), $('#'+formIDCustom));
+    add_html_based_on_json($('#'+formID).find('[name="type"]').val(), $('#'+formIDCustom));
     // add data for custom config
     var form_custom_config = formData.custom_config;
     for(key in form_custom_config) {

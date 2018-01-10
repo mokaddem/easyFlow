@@ -217,6 +217,7 @@ class InnerRepresentation {
         if(selectedNodes.length > 1) { // multiple node selected
             var selectedNodesText = "";
             var selectedNodeType;
+            var selectedObjType;
             var selectedProcUuid = [];
             selectedNodes.map(function(value, index, arr) {
                 if (index == 0) {  // check if same node type
@@ -226,12 +227,25 @@ class InnerRepresentation {
                 if (innerRepresentation.nodeType(value) != selectedNodeType) { // not same type of node
                     return false; // skip
                 }
-                selectedProcUuid.push(innerRepresentation.processObj[value].puuid)
-                if (index < arr.length-1) { // prevent adding ',' in the end
-                    selectedNodesText += innerRepresentation.processObj[value].name+', ';
+
+                if (selectedNodeType == 'process') {
+                    selectedProcUuid.push(innerRepresentation.processObj[value].puuid)
+                    if (index < arr.length-1) { // prevent adding ',' in the end
+                        selectedNodesText += innerRepresentation.processObj[value].name+', ';
+                    } else {
+                        selectedNodesText += innerRepresentation.processObj[value].name;
+                    }
+                } else if (selectedNodeType == 'buffer') {
+                    if (index < arr.length-1) { // prevent adding ',' in the end
+                        selectedNodesText += innerRepresentation.bufferObj[value].name+', ';
+                    } else {
+                        selectedNodesText += innerRepresentation.bufferObj[value].name;
+                    }
                 } else {
-                    selectedNodesText += innerRepresentation.processObj[value].name;
+                    console.log('unknown selectedNodeType');
                 }
+
+
             });
             $('#selectedNodeName').text(selectedNodesText);
             if (selectedNodeType == 'process') { // is process

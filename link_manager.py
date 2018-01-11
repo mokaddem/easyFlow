@@ -9,7 +9,7 @@ import redis, json
 
 from util import genUUID, objToDictionnary
 from alerts_manager import Alert_manager
-from process_metadata_interface import Process_metadata_interface
+from process_metadata_interface import Process_metadata_interface, Buffer_metadata_interface
 
 class Link_manager:
     def __init__(self, projectUUID, puuid, custom_config):
@@ -23,6 +23,8 @@ class Link_manager:
         self.egress = None
         self.update_connections(custom_config)
         self.partOfTheFlow = False
+
+        self._buffer_metadata_interface = Buffer_metadata_interface()
 
     def update_connections(self, custom_config):
         self.ingress = None
@@ -46,13 +48,16 @@ class Link_manager:
             if flowItem_raw is None:
                 return None
             else:
-                return FlowItem(flowItem_raw, raw=True)
+                flowItem = FlowItem(flowItem_raw, raw=True)
+                self._buffer_metadata_interface.push_info(self.ingress, -flowItem.size) # decrease buffer size
+                return flowItem
         else:
             # Either return None or wait until part of the flow
             return None
 
     def push_flowItem(self, flowItem):
         if self.egress is not None:
+            self._buffer_metadata_interface.push_info(self.egress, flowItem.size) # increase buffer size
             self._serv.lpush(self.egress, flowItem)
 
     def get_config(self):
@@ -113,31 +118,39 @@ class Multiple_link_manager(Link_manager):
                 if flowItem_raw is None:
                     return None
                 else:
-                    return FlowItem(flowItem_raw, raw=True)
+                    flowItem = FlowItem(flowItem_raw, raw=True)
+                    self._buffer_metadata_interface.push_info(self.ingress[self.interleave_index], -flowItem.size) # decrease buffer size
+                    return flowItem
 
             else: # same as simple link manager
                 flowItem_raw = self._serv.rpop(self.ingress[0])
                 if flowItem_raw is None:
                     return None
                 else:
-                    return FlowItem(flowItem_raw, raw=True)
+                    flowItem = FlowItem(flowItem_raw, raw=True)
+                    self._buffer_metadata_interface.push_info(self.ingress[0], -flowItem.size) # decrease buffer size
+                    return flowItem
 
     def push_flowItem(self, flowItem):
         if len(self.egress) > 0: # check that has at least 1 egress connection
             if self.multi_out: # custom logic: copy, dispatch
                 if self.custom_config['multiplex_logic'] == 'Interleave':
+                    self._buffer_metadata_interface.push_info(self.egress[self.interleave_index], flowItem.size) # increase buffer size
                     self._serv.lpush(self.egress[self.interleave_index], flowItem)
                     self.inc_interleave_index()
                 elif self.custom_config['multiplex_logic'] == 'Priority':
                     print('igoring priority for the moment')
+                    self._buffer_metadata_interface.push_info(self.egress[self.interleave_index], flowItem.size) # increase buffer size
                     self._serv.lpush(self.egress[self.interleave_index], flowItem)
                     self.inc_interleave_index()
                 elif self.custom_config['multiplex_logic'] == 'Duplicate':
                     for key in self.egress:
+                        self._buffer_metadata_interface.push_info(key, flowItem.size) # increase buffer size
                         self._serv.lpush(key, flowItem)
                 else:
                     print('Unkown multiplexer logic')
             else: # same as simple link manager
+                self._buffer_metadata_interface.push_info(self.egress[0], flowItem.size) # increase buffer size
                 self._serv.lpush(self.egress[0], flowItem)
 
 class FlowItem:

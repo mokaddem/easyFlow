@@ -32,18 +32,13 @@ class Buffer_metadata_interface:
 
     def get_info(self, buuid):
         bMetadata = {
-            'bytes_in': self._serv.get(buuid+'_bytes_in'),
-            'bytes_out': self._serv.get(buuid+'_bytes_out'),
-            'flowItem_in': self._serv.get(buuid+'_flowItem_in'),
-            'flowItem_out': self._serv.get(buuid+'_flowItem_out'),
+            'buffered_bytes': self._serv.get(buuid+'_buffered_bytes'),
+            'buffered_flowItems': self._serv.llen(buuid)
         }
         return bMetadata
 
-    def push_info(self, bytes_in, bytes_out, flowItem_in, flowItem_out):
-        self._serv.incrby(buuid+'_bytes_in', bytes_in)
-        self._serv.incrby(buuid+'_bytes_out', bytes_out)
-        self._serv.incrby(buuid+'_flowItem_in', flowItem_in)
-        self._serv.incrby(buuid+'_flowItem_out', flowItem_out)
+    def push_info(self, buuid, the_bytes):
+        self._serv.incrby(buuid+'_buffered_bytes', the_bytes)
 
 class Process_representation:
     def __init__(self, data):

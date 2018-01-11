@@ -60,12 +60,13 @@ class InnerRepresentation {
 
     get_processes_info() {
         $.getJSON( url_get_processes_info, {}, function( data ) {
-            innerRepresentation.update_nodes(data.processes);
+            innerRepresentation.update_nodes(data.processes, data.buffers);
         });
     }
 
-    update_nodes(processes) {
+    update_nodes(processes, buffers) {
         var update_array = [];
+        /* Processes */
         console.log(processes);
         try {
             for (var node of processes) {
@@ -82,6 +83,24 @@ class InnerRepresentation {
             }
             this.nodes.update(update_array);
         } catch(err) { /* processes is empty */ }
+
+        /* Buffers */
+        console.log(buffers);
+        try {
+            for (var node of buffers) {
+                // var jStats = node['stats'];
+                // update_array.push({
+                //     id: node['puuid'],
+                //     image: construct_node(
+                //         node['name'],
+                //         jStats['bytes_in']+' / '+jStats['bytes_out'],  // bytes
+                //         jStats['flowItem_in']+' / '+jStats['flowItem_out'], // flowItem
+                //         jStats['processing_time']
+                //     )
+                // });
+            }
+        } catch(err) { /* processes is empty */ }
+        this.nodes.update(update_array);
     }
 
     nodeType(nodeID) {

@@ -8,7 +8,7 @@ import psutil, signal
 from util import genUUID, objToDictionnary
 from alerts_manager import Alert_manager
 from process_print_to_console import Print_to_console
-from process_metadata_interface import Process_metadata_interface, Process_representation, Link_representation
+from process_metadata_interface import Process_metadata_interface, Process_representation, Link_representation, Buffer_metadata_interface
 
 host='localhost'
 port=6780
@@ -21,34 +21,48 @@ class Process_manager:
         # self._serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
         self._serv = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
         self._metadata_interface = Process_metadata_interface()
-        # self._buffer_metadata_interface = Buffer_metadata_interface()
+        self._buffer_metadata_interface = Buffer_metadata_interface()
         self._alert_manager = Alert_manager()
         self.processes = {}
         self.processes_uuid = []
         self.processes_uuid_with_signal = []
+        self.buffers = {}
+        self.buffers_uuid = []
         self.projectUUID = projectUUID
 
         # self.start_processes(processes_to_start)
 
-    def start_processes(self, processes_to_start):
+    def start_processes(self, processes_to_start, buffers_to_register):
         l = len(processes_to_start)
         if l>0:
             self.push_starting_all_processes(l);
+            # start processes
             for puuid, procData in processes_to_start.items():
                 time.sleep(0.1)
                 self.create_process(procData, puuid)
+
+            # register buffers
+            for buuid, bufData in buffers_to_register.items():
+                buffer_config = Link_representation(bufData)
+                self.buffers[buuid] = buffer_config
+                self.buffers_uuid.append(buuid)
 
     def get_processes_info(self):
         info = []
         for puuid in self.processes_uuid:
             pinfo = self._metadata_interface.get_info(puuid)
+            print('pinfo')
+            print(type(pinfo))
+            print(pinfo)
             info.append(pinfo)
         return info
 
     def get_buffers_info(self):
         info = []
         for buuid in self.buffers_uuid:
-            binfo = self._buffer_metadata_interface.get_info(buuid)
+            binfo = objToDictionnary(self.buffers[buuid])
+            realtime_binfo = self._buffer_metadata_interface.get_info(buuid) # realtime info
+            binfo['stats'] = realtime_binfo
             info.append(binfo)
         return info
 
@@ -198,6 +212,8 @@ class Process_manager:
         buffer_config = Link_representation(data)
         self._serv.set('config_'+buuid, buffer_config.toJSON())
 
-        # add it to self.buffers ???
-        # add it to self.buffers_uuid ????
+        # add it to self.buffers
+        self.buffers[buuid] = buffer_config
+        # add it to self.buffers_uuid
+        self.buffers_uuid.append(buuid)
         return buffer_config

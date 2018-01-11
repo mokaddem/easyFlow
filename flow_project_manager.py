@@ -87,7 +87,7 @@ class Project:
     def get_whole_project(self):
         p = self.get_project_summary()
         p['processes'] = self._process_manager.get_processes_info()
-        # p['buffers'] = self._process_manager.get_buffers_info()
+        p['buffers'] = self._process_manager.get_buffers_info()
         return p
 
     def get_configuration(self, data):
@@ -219,7 +219,7 @@ class Project:
         elif operation == 'start_all':
             if self._start_command_already_called: # prevent multiple execution
                 return {'status': 'sucess' }
-            self._process_manager.start_processes(self.processes)
+            self._process_manager.start_processes(self.processes, self.buffers)
             self._start_command_already_called = True
             return {'status': 'sucess' }
 

@@ -9,7 +9,7 @@ import redis, json
 
 from util import genUUID, objToDictionnary, SummedTimeSpanningArray
 from alerts_manager import Alert_manager
-from process_metadata_interface import Process_metadata_interface
+from process_metadata_interface import Process_metadata_interface, Buffer_metadata_interface
 from link_manager import Link_manager, Multiple_link_manager, FlowItem
 
 host='localhost'
@@ -28,6 +28,7 @@ class Process(metaclass=ABCMeta):
         self.update_config()
 
         self._metadata_interface = Process_metadata_interface()
+        self._buffer_metadata_interface = Buffer_metadata_interface()
         self.last_refresh = time.time() - self.state_refresh_rate # ensure a refresh
 
         self._processStat = ProcessStat()
@@ -72,7 +73,6 @@ class Process(metaclass=ABCMeta):
 
     def get_representation(self, full=False):
         pInfo = objToDictionnary(self, full=full)
-        # pInfo['stats'] = objToDictionnary(self._processStat)
         pInfo['stats'] = self._processStat.get_dico()
         return pInfo
 

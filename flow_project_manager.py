@@ -87,6 +87,7 @@ class Project:
     def get_whole_project(self):
         p = self.get_project_summary()
         p['processes'] = self._process_manager.get_processes_info()
+        # p['buffers'] = self._process_manager.get_buffers_info()
         return p
 
     def get_configuration(self, data):

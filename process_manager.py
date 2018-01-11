@@ -21,6 +21,7 @@ class Process_manager:
         # self._serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
         self._serv = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
         self._metadata_interface = Process_metadata_interface()
+        # self._buffer_metadata_interface = Buffer_metadata_interface()
         self._alert_manager = Alert_manager()
         self.processes = {}
         self.processes_uuid = []
@@ -42,6 +43,13 @@ class Process_manager:
         for puuid in self.processes_uuid:
             pinfo = self._metadata_interface.get_info(puuid)
             info.append(pinfo)
+        return info
+
+    def get_buffers_info(self):
+        info = []
+        for buuid in self.buffers_uuid:
+            binfo = self._buffer_metadata_interface.get_info(buuid)
+            info.append(binfo)
         return info
 
     # A process terminate its setup when its config key is deleted

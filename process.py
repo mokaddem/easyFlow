@@ -7,7 +7,7 @@ from time import sleep
 import os, time, sys
 import redis, json
 
-from util import genUUID, objToDictionnary
+from util import genUUID, objToDictionnary, SummedTimeSpanningArray
 from alerts_manager import Alert_manager
 from process_metadata_interface import Process_metadata_interface
 from link_manager import Link_manager, Multiple_link_manager, FlowItem
@@ -72,7 +72,8 @@ class Process(metaclass=ABCMeta):
 
     def get_representation(self, full=False):
         pInfo = objToDictionnary(self, full=full)
-        pInfo['stats'] = objToDictionnary(self._processStat)
+        # pInfo['stats'] = objToDictionnary(self._processStat)
+        pInfo['stats'] = self._processStat.get_dico()
         return pInfo
 
     # push current process info to redis depending on the refresh value.
@@ -81,6 +82,7 @@ class Process(metaclass=ABCMeta):
         if now - self.last_refresh > self.state_refresh_rate:
             self.timestamp = now
             self._metadata_interface.push_info(self.get_representation())
+            # self._buffer_metadata_interface.push_info(bytes_in, bytes_out, flowItem_in, flowItem_out)
 
     def push_process_start(self):
         self._alert_manager.send_alert(
@@ -125,7 +127,7 @@ class Process(metaclass=ABCMeta):
                 self.process_message(flowItem.message())
             else:
                 # time.sleep(0.3)
-                time.sleep(0.01)
+                time.sleep(0.1)
             # print('process {} [{}]: sleeping'.format(self.puuid, self.pid))
 
 
@@ -164,28 +166,38 @@ class Process(metaclass=ABCMeta):
 class ProcessStat:
     def __init__(self):
         self._start_processing_time = 0
+        self.timeSpannedByArray = 60*5 # seconds
         self.processing_time = 0
-        self.bytes_in = 0
-        self.bytes_out = 0
-        self.flowItem_in = 0
-        self.flowItem_out = 0
+        self._bytes_in = SummedTimeSpanningArray(self.timeSpannedByArray)
+        self._bytes_out = SummedTimeSpanningArray(self.timeSpannedByArray)
+        self._flowItem_in = SummedTimeSpanningArray(self.timeSpannedByArray)
+        self._flowItem_out = SummedTimeSpanningArray(self.timeSpannedByArray)
 
     def register_processing(self, flowItem):
-        self.start_processing_time = time.time()
-        self.bytes_in += flowItem.size
-        self.flowItem_in += 1
+        self._start_processing_time = time.time()
+        self._bytes_in.add(flowItem.size)
+        self._flowItem_in.add(1)
 
     def compute_processing_time(self):
-        self.processing_time = time.time() - self.start_processing_time
+        self.processing_time = time.time() - self._start_processing_time
 
     def register_forward(self, flowItem):
-        self.bytes_out += flowItem.size
-        self.flowItem_out += 1
+        self._bytes_out.add(flowItem.size)
+        self._flowItem_out.add(1)
+
 
     def __repr__(self):
+        return json.dumps(self.get_dico())
+
+    def get_dico(self):
         self.compute_processing_time();
-        return json.dumps(objToDictionnary(self))
-        # return objToDictionnary(self)
+        to_ret = objToDictionnary(self)
+
+        to_ret['bytes_in'] = self._bytes_in.get_sum()
+        to_ret['bytes_out'] = self._bytes_out.get_sum()
+        to_ret['flowItem_in'] = self._flowItem_in.get_sum()
+        to_ret['flowItem_out'] = self._flowItem_out.get_sum()
+        return to_ret
 
     def __str__(self):
         return self.__repr__()

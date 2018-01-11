@@ -25,6 +25,25 @@ class Process_metadata_interface:
         puuid = pMetadata['puuid']
         self._serv.set(puuid, jMetadata)
 
+# Do not use JSON as a buffer is updated by the pushing process and the poping process
+class Buffer_metadata_interface:
+    def __init__(self):
+        self._serv = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
+
+    def get_info(self, buuid):
+        bMetadata = {
+            'bytes_in': self._serv.get(buuid+'_bytes_in'),
+            'bytes_out': self._serv.get(buuid+'_bytes_out'),
+            'flowItem_in': self._serv.get(buuid+'_flowItem_in'),
+            'flowItem_out': self._serv.get(buuid+'_flowItem_out'),
+        }
+        return bMetadata
+
+    def push_info(self, bytes_in, bytes_out, flowItem_in, flowItem_out):
+        self._serv.incrby(buuid+'_bytes_in', bytes_in)
+        self._serv.incrby(buuid+'_bytes_out', bytes_out)
+        self._serv.incrby(buuid+'_flowItem_in', flowItem_in)
+        self._serv.incrby(buuid+'_flowItem_out', flowItem_out)
 
 class Process_representation:
     def __init__(self, data):

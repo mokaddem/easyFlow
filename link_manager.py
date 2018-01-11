@@ -3,20 +3,38 @@
 
 from abc import ABCMeta, abstractmethod
 from time import sleep
-# import link
 import os, time, sys
 import redis, json
 
-from util import genUUID, objToDictionnary
+from util import genUUID, objToDictionnary, Config_parser
 from alerts_manager import Alert_manager
 from process_metadata_interface import Process_metadata_interface, Buffer_metadata_interface
 
 class Link_manager:
     def __init__(self, projectUUID, puuid, custom_config):
+        self.config = Config_parser('config/easyFlow_conf.json', projectUUID).get_config()
         # from puuid, get buuid
         self.projectUUID = projectUUID
         self.puuid = puuid
-        self._serv = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
+        try:
+            self._serv_config = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
+        except: # fallback using TCP instead of unix_socket
+            self._serv_config = redis.StrictRedis(
+                self.config.redis.project.host,
+                self.config.redis.project.port,
+                self.config.redis.project.db,
+                charset="utf-8", decode_responses=True)
+
+        try:
+            self._serv_buffers = redis.Redis(unix_socket_path=self.config.redis.buffers.unix_socket_path, decode_responses=True)
+        except: # fallback using TCP instead of unix_socket
+            self._serv_buffers = redis.StrictRedis(
+                self.config.redis.project.host,
+                self.config.redis.project.port,
+                self.config.redis.project.db,
+                charset="utf-8", decode_responses=True)
+
+
         self.custom_config = custom_config
         # ONLY 1 ingress and 1 egress
         self.ingress = None
@@ -44,7 +62,7 @@ class Link_manager:
 
     def get_flowItem(self):
         if self.ingress is not None:
-            flowItem_raw = self._serv.rpop(self.ingress)
+            flowItem_raw = self._serv_buffers.rpop(self.ingress)
             if flowItem_raw is None:
                 return None
             else:
@@ -58,14 +76,16 @@ class Link_manager:
     def push_flowItem(self, flowItem):
         if self.egress is not None:
             self._buffer_metadata_interface.push_info(self.egress, flowItem.size) # increase buffer size
-            self._serv.lpush(self.egress, flowItem)
+            self._serv_buffers.lpush(self.egress, flowItem)
+            return True
+        else:
+            return False
 
     def get_config(self):
-        return json.loads(self._serv.get(self.projectUUID))['buffers']
+        return json.loads(self._serv_config.get(self.projectUUID))['buffers']
 
     def show_connections(self):
         print('{} -> {} -> {}'.format(self.ingress, self.puuid, self.egress))
-
 
 
 class Multiple_link_manager(Link_manager):
@@ -105,12 +125,11 @@ class Multiple_link_manager(Link_manager):
         if len(self.ingress) > 0: # check that has at least 1 ingess connection
             if self.multi_in: # custom logic: interleaving, priority
                 if self.custom_config['multiplex_logic'] == 'Interleave':
-                    # print('popping from '+self.ingress[self.interleave_index])
-                    flowItem_raw = self._serv.rpop(self.ingress[self.interleave_index])
+                    flowItem_raw = self._serv_buffers.rpop(self.ingress[self.interleave_index])
                     self.inc_interleave_index()
                 elif self.custom_config['multiplex_logic'] == 'Priority':
                     print('ingoring priority for the moment')
-                    flowItem_raw = self._serv.rpop(self.ingress[self.interleave_index])
+                    flowItem_raw = self._serv_buffers.rpop(self.ingress[self.interleave_index])
                     self.inc_interleave_index()
                 else:
                     print('Unkown multiplexer logic')
@@ -123,7 +142,7 @@ class Multiple_link_manager(Link_manager):
                     return flowItem
 
             else: # same as simple link manager
-                flowItem_raw = self._serv.rpop(self.ingress[0])
+                flowItem_raw = self._serv_buffers.rpop(self.ingress[0])
                 if flowItem_raw is None:
                     return None
                 else:
@@ -136,22 +155,25 @@ class Multiple_link_manager(Link_manager):
             if self.multi_out: # custom logic: copy, dispatch
                 if self.custom_config['multiplex_logic'] == 'Interleave':
                     self._buffer_metadata_interface.push_info(self.egress[self.interleave_index], flowItem.size) # increase buffer size
-                    self._serv.lpush(self.egress[self.interleave_index], flowItem)
+                    self._serv_buffers.lpush(self.egress[self.interleave_index], flowItem)
                     self.inc_interleave_index()
                 elif self.custom_config['multiplex_logic'] == 'Priority':
                     print('igoring priority for the moment')
                     self._buffer_metadata_interface.push_info(self.egress[self.interleave_index], flowItem.size) # increase buffer size
-                    self._serv.lpush(self.egress[self.interleave_index], flowItem)
+                    self._serv_buffers.lpush(self.egress[self.interleave_index], flowItem)
                     self.inc_interleave_index()
                 elif self.custom_config['multiplex_logic'] == 'Duplicate':
                     for key in self.egress:
                         self._buffer_metadata_interface.push_info(key, flowItem.size) # increase buffer size
-                        self._serv.lpush(key, flowItem)
+                        self._serv_buffers.lpush(key, flowItem)
                 else:
                     print('Unkown multiplexer logic')
             else: # same as simple link manager
                 self._buffer_metadata_interface.push_info(self.egress[0], flowItem.size) # increase buffer size
-                self._serv.lpush(self.egress[0], flowItem)
+                self._serv_buffers.lpush(self.egress[0], flowItem)
+            return True
+        else:
+            return False
 
 class FlowItem:
     def __init__(self, content, origin=None, raw=False):

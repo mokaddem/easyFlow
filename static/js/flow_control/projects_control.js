@@ -27,9 +27,8 @@ function execute_operation(operation, data) {
         data: JSON.stringify(data),
         contentType: 'application/json; charset=utf-8',
         beforeSend: function() { toggle_loading(true); },
-        complete: function() { toggle_loading(false); }
+        complete: function() { toggle_loading(false); list_projects(); }
     });
-    list_projects();
 }
 
 function send_file(formID, url, callback) {
@@ -157,6 +156,9 @@ function editProject(rowID) {
 function deleteProject(rowID) {
     var rowData = projectListDatatable.row(rowID).data();
     if(confirm('Delete project \"'+rowData.projectName+'\"')) {
+        if(innerRepresentation.project.projectUUID == rowData.projectUUID) {
+            closeProject();
+        }
         execute_operation('delete', rowData);
     }
 }

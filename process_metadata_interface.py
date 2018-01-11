@@ -2,17 +2,20 @@
 
 import json
 import redis
-from util import genUUID, objToDictionnary
-
-host='localhost'
-port=6780
-db=0
+from util import genUUID, objToDictionnary, Config_parser
 
 ''' for now, raw json in redis '''
 class Process_metadata_interface:
     def __init__(self):
-        # self._serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
-        self._serv = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
+        self.config = Config_parser('config/easyFlow_conf.json').get_config()
+        try:
+            self._serv = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
+        except: # fallback using TCP instead of unix_socket
+            self._serv = redis.StrictRedis(
+                self.config.redis.project.host,
+                self.config.redis.project.port,
+                self.config.redis.project.db,
+                charset="utf-8", decode_responses=True)
 
 
     def get_info(self, puuid):
@@ -28,7 +31,15 @@ class Process_metadata_interface:
 # Do not use JSON as a buffer is updated by the pushing process and the poping process
 class Buffer_metadata_interface:
     def __init__(self):
-        self._serv = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
+        self.config = Config_parser('config/easyFlow_conf.json').get_config()
+        try:
+            self._serv = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
+        except: # fallback using TCP instead of unix_socket
+            self._serv = redis.StrictRedis(
+                self.config.redis.project.host,
+                self.config.redis.project.port,
+                self.config.redis.project.db,
+                charset="utf-8", decode_responses=True)
 
     def get_info(self, buuid):
         bMetadata = {
@@ -52,6 +63,7 @@ class Process_representation:
         self.custom_config = data.get('custom_config', {})
         self._subprocessObj = data.get('subprocessObj', None) # /!\ may be a subprocess or psutil object
         self.projectUUID = data['projectUUID']
+        self.is_multiplexer = self.type in ["multiplexer_out", "multiplexer_in"]
 
     def update(self, data):
         self.name = data['name']
@@ -73,7 +85,6 @@ class Process_representation:
         return self.__repr__()
 
     def toJSON(self):
-        # return json.dumps(self, default=lambda o: o.__dict__)
         return self.__repr__()
 
     def get_dico(self):
@@ -101,7 +112,6 @@ class Link_representation:
         return self.__repr__()
 
     def toJSON(self):
-        # return json.dumps(self, default=lambda o: o.__dict__)
         return self.__repr__()
 
     def get_dico(self):

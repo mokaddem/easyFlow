@@ -6,10 +6,11 @@ sys.path.append(os.path.join(curdir, '..'))
 
 import time
 import signal
+
 from abc import ABCMeta, abstractmethod
+from util import Config_parser
 from process import Process
 from link_manager import FlowItem
-
 
 class Process_no_input(Process, metaclass=ABCMeta):
     def __init__(self, *args, **kwargs):
@@ -31,14 +32,15 @@ class Process_no_input(Process, metaclass=ABCMeta):
         while True:
             # No commands in generators modules
             self.push_p_info()
+            self._processStat.register_processing(FlowItem(""))
             self.generate_data()
+            self._processStat.register_processed()
 
-            time.sleep(0.1)
-            # print('process {} [{}]: sleeping'.format(self.puuid, self.pid))
+            time.sleep(self.config.default_project.process.pooling_time_interval_get_message)
 
     # forward is called from generate_data().
     def forward(self, msg):
         self.push_p_info()
         flowItem = FlowItem(msg)
-        self._processStat.register_forward(flowItem)
-        self._link_manager.push_flowItem(flowItem)
+        if self._link_manager.push_flowItem(flowItem):
+            self._processStat.register_forward(flowItem)

@@ -2,17 +2,20 @@
 import json
 import redis
 import time
-from util import genUUID, objToDictionnary
-
-host='localhost'
-port=6780
-db=0
+from util import genUUID, objToDictionnary, Config_parser
 
 ''' for now, raw json in redis '''
 class Alert_manager:
     def __init__(self):
-        # self._serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
-        self._serv = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
+        self.config = Config_parser('config/easyFlow_conf.json').get_config()
+        try:
+            self._serv = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
+        except: # fallback using TCP instead of unix_socket
+            self._serv = redis.StrictRedis(
+                self.config.redis.project.host,
+                self.config.redis.project.port,
+                self.config.redis.project.db,
+                charset="utf-8", decode_responses=True)
 
     def subscribe(self):
         self.pmanager_pubsub = self._serv.pubsub(ignore_subscribe_messages=True)

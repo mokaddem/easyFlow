@@ -1,8 +1,42 @@
 #!/usr/bin/env python3.5
 
 import uuid
-import time
-import collections
+import time, json
+from collections import deque, namedtuple
+
+class Config_parser:
+    def __init__(self, filename, projectUUID=None):
+        import redis
+
+        self.filename = filename
+        with open(filename, 'r') as f:
+            raw_config = f.read()
+            self.config_json = json.loads(raw_config)
+
+            if projectUUID is not None:
+                try:
+                    serv = redis.Redis(unix_socket_path=self.config_json['redis']['project']['unix_socket_path'], decode_responses=True)
+                except: # fallback using TCP instead of unix_socket
+                    serv = redis.StrictRedis(
+                        self.config_json['redis']['project']['host'],
+                        self.config_json['redis']['project']['port'],
+                        self.config_json['redis']['project']['db'],
+                        charset="utf-8", decode_responses=True)
+                rawJSONProject = serv.get(projectUUID)
+                jProject = json.loads(rawJSONProject)
+                project_config = jProject.get('project_config', None)
+                # replace "default_project" if defined in the project itself
+                if project_config is not None:
+                    self.config_json['default_project'] = jProject['project_config']
+
+            # self.config = json.loads(self.config_json, object_hook=lambda d: namedtuple('config', d.keys())(*d.values()))
+            self.config = json.loads(json.dumps(self.config_json), object_hook=lambda d: namedtuple('config', d.keys())(*d.values()))
+
+    def get_config(self):
+        return self.config
+
+    def __str__(self):
+        return self.config_json
 
 def genUUID():
     return str(uuid.uuid4())
@@ -38,7 +72,7 @@ def dicoToList(dic):
 class TimeSpanningArray:
     def __init__(self, lifetime):
         self.lifetime = lifetime
-        self.timedArray = collections.deque() # used as we will pop fom the begining -> O(1) instead of O(n)
+        self.timedArray = deque() # used as we will pop fom the begining -> O(1) instead of O(n)
 
     def add(self, element):
         now = time.time()

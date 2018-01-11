@@ -3,23 +3,26 @@
 
 from abc import ABCMeta, abstractmethod
 from time import sleep
-# import link
 import os, time, sys
 import redis, json
 
-from util import genUUID, objToDictionnary, SummedTimeSpanningArray
+from util import genUUID, objToDictionnary, SummedTimeSpanningArray, Config_parser
 from alerts_manager import Alert_manager
 from process_metadata_interface import Process_metadata_interface, Buffer_metadata_interface
 from link_manager import Link_manager, Multiple_link_manager, FlowItem
 
-host='localhost'
-port=6780
-db=0
-
 class Process(metaclass=ABCMeta):
     def __init__(self, puuid):
-        # get config from redis
-        self._serv_config = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
+        self.config = Config_parser('config/easyFlow_conf.json').get_config()
+        try:
+            self._serv_config = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
+        except: # fallback using TCP instead of unix_socket
+            self._serv_config = redis.StrictRedis(
+                self.config.redis.project.host,
+                self.config.redis.project.port,
+                self.config.redis.project.db,
+                charset="utf-8", decode_responses=True)
+
         self._alert_manager = Alert_manager()
         self.puuid = puuid
         self.pid = os.getpid()
@@ -31,7 +34,7 @@ class Process(metaclass=ABCMeta):
         self._buffer_metadata_interface = Buffer_metadata_interface()
         self.last_refresh = time.time() - self.state_refresh_rate # ensure a refresh
 
-        self._processStat = ProcessStat()
+        self._processStat = ProcessStat(self.config.default_project.process.buffer_time_spanned_in_min)
         self.push_p_info()
 
         if self.type == 'multiplexer_in':
@@ -51,7 +54,7 @@ class Process(metaclass=ABCMeta):
         self.custom_config = configData['custom_config']
         self._serv_config.delete('config_'+self.puuid)
 
-        self.state_refresh_rate = 1
+        self.state_refresh_rate = self.config.web.refresh_metadata_interval_in_sec
 
         self.projectUUID = configData.get('projectUUID', 'No projectUUID')
         self.name = configData.get('name', 'No name')
@@ -60,6 +63,7 @@ class Process(metaclass=ABCMeta):
         self.bulletin_level = configData.get('bulletin_level', 'WARNING')
         self.x = configData.get('x', 0)
         self.y = configData.get('y', 0)
+        self.config = Config_parser('config/easyFlow_conf.json', self.projectUUID).get_config()
 
     def reload(self):
         self.update_config()
@@ -82,7 +86,6 @@ class Process(metaclass=ABCMeta):
         if now - self.last_refresh > self.state_refresh_rate:
             self.timestamp = now
             self._metadata_interface.push_info(self.get_representation())
-            # self._buffer_metadata_interface.push_info(bytes_in, bytes_out, flowItem_in, flowItem_out)
 
     def push_process_start(self):
         self._alert_manager.send_alert(
@@ -125,16 +128,15 @@ class Process(metaclass=ABCMeta):
             if flowItem is not None: # if not part of the flow yet
                 self._processStat.register_processing(flowItem)
                 self.process_message(flowItem.message())
+                self._processStat.register_processed()
             else:
-                # time.sleep(0.3)
-                time.sleep(0.1)
-            # print('process {} [{}]: sleeping'.format(self.puuid, self.pid))
+                time.sleep(self.config.default_project.process.pooling_time_interval_get_message)
 
 
     def forward(self, msg):
         flowItem = FlowItem(msg)
-        self._processStat.register_forward(flowItem)
-        self._link_manager.push_flowItem(flowItem)
+        if self._link_manager.push_flowItem(flowItem):
+            self._processStat.register_forward(flowItem)
 
     def apply_operation(self, operation, data):
         if operation == 'reload':
@@ -164,9 +166,9 @@ class Process(metaclass=ABCMeta):
         pass
 
 class ProcessStat:
-    def __init__(self):
+    def __init__(self, buffer_time_spanned_in_min):
         self._start_processing_time = 0
-        self.timeSpannedByArray = 60*5 # seconds
+        self.timeSpannedByArray = buffer_time_spanned_in_min*60 # seconds
         self.processing_time = 0
         self._bytes_in = SummedTimeSpanningArray(self.timeSpannedByArray)
         self._bytes_out = SummedTimeSpanningArray(self.timeSpannedByArray)
@@ -178,8 +180,14 @@ class ProcessStat:
         self._bytes_in.add(flowItem.size)
         self._flowItem_in.add(1)
 
+    def register_processed(self):
+        self._start_processing_time = 0
+
     def compute_processing_time(self):
-        self.processing_time = time.time() - self._start_processing_time
+        if self._start_processing_time == 0: # currently not processing
+            self.processing_time = 0
+        else:
+            self.processing_time = time.time() - self._start_processing_time
 
     def register_forward(self, flowItem):
         self._bytes_out.add(flowItem.size)

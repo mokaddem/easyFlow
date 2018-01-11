@@ -6,31 +6,27 @@ import time
 import re
 import redis
 
-from util import genUUID, objToDictionnary, dicoToList
+from util import genUUID, objToDictionnary, dicoToList, Config_parser
 from alerts_manager import Alert_manager
 from process_metadata_interface import Process_metadata_interface
 from process_manager import Process_manager
-
-from process_print_to_console import Print_to_console
-
-DEFAULT_TEMP_PROJECT_UUID = '36bcefc6-4a7d-4605-96f6-94a133d0e82d'
-DEFAULT_TEMP_PROJECT_NAME = 'Temporary project'
-DEFAULT_TEMP_PROJECT_INFO = 'To do some tests'
-
-host='localhost'
-port=6780
-db=0
-KEYALLPROJECT = 'AllProject'
 
 class ProjectNotFound(Exception):
     pass
 
 class Project:
-    required_fields = ['projectName', 'projectInfo', 'creationTimestamp', 'processNum', 'processes']
-    def __init__(self, projectUUID, projectName=DEFAULT_TEMP_PROJECT_NAME, projectInfo=DEFAULT_TEMP_PROJECT_INFO):
+    def __init__(self, projectUUID):
+            self.config = Config_parser('config/easyFlow_conf.json', projectUUID).get_config()
+            try:
+                self._serv = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
+            except: # fallback using TCP instead of unix_socket
+                self._serv = redis.StrictRedis(
+                    self.config.redis.project.host,
+                    self.config.redis.project.port,
+                    self.config.redis.project.db,
+                    charset="utf-8", decode_responses=True)
+
             # get project from redis
-            # self._serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
-            self._serv = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
             rawJSONProject = self._serv.get(projectUUID)
             jProject = json.loads(rawJSONProject)
             self.jProject = jProject
@@ -65,6 +61,7 @@ class Project:
             totalCount=0
         )
 
+    # keep fields to be saved in the project
     def filter_correct_init_fields(self, proc):
         init_fields = ['bulletin_level', 'custom_config', 'description', 'name', 'puuid', 'type', 'x', 'y']
         dico = {}
@@ -112,8 +109,18 @@ class Project:
         self._serv.set(self.projectUUID, jProject)
 
     def delete_project(self):
+        # delete processes and buffers info in redis
+        for puuid in self.processes.keys():
+            keys = self._serv.keys('*{}*'.format(puuid))
+            for k in keys:
+                self._serv.delete(k)
+        for buuid in self.buffers.keys():
+            keys = self._serv.keys('*{}*'.format(buuid))
+            for k in keys:
+                self._serv.delete(k)
+        # delete project info in redis
         self._serv.delete(self.projectUUID)
-        self._serv.srem(KEYALLPROJECT, self.projectUUID)
+        self._serv.srem(self.config.redis.project.redis_key_all_projects, self.projectUUID)
 
     def close_project(self):
         self._process_manager._alert_manager.send_alert(
@@ -154,8 +161,11 @@ class Project:
             if puuid == 0:
                 return {'status': 'error'}
             self.processes[puuid] = self.filter_correct_init_fields(process_config.get_dico())
+            self.processNum += 1
         elif operation == 'delete_process':
             for puuid in data.get('puuid', []): # may contain multiple processes
+                if not self._process_manager.is_multiplexer(puuid): # multiplexers do not count as process
+                    self.processNum -= 1
                 self._process_manager.delete_process(puuid)
                 # delete every links of this process
                 self.delete_links_of_process(puuid)
@@ -176,6 +186,7 @@ class Project:
             concerned_processes = [link_config.fromUUID, link_config.toUUID]
         elif operation == 'delete_link':
             for buuid in data.get('buuid', []):
+                self._process_manager.delete_link(buuid)
                 link_config = self.buffers[buuid] # get old processes
                 concerned_processes = [link_config['fromUUID'], link_config['toUUID']]
                 del self.buffers[buuid] # effectively delete
@@ -233,13 +244,20 @@ class Project:
 class Flow_project_manager:
     def __init__(self):
         self.selected_project = None
-        self.serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
+        self.config = Config_parser('config/easyFlow_conf.json').get_config()
+        try:
+            self.serv = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
+        except: # fallback using TCP instead of unix_socket
+            self.serv = redis.StrictRedis(
+                self.config.redis.host,
+                self.config.redis.port,
+                self.config.redis.db,
+                charset="utf-8", decode_responses=True)
 
     @staticmethod
-    def list_process_type():
+    def list_process_type(allowed_script):
         mypath = './processes/'
-        ALLOWED_PROCESS_TYPE = set(['print_to_console.py', 'print_current_time.py', 'generate_lorem_ipsum.py'])
-        onlyfiles = [f.replace('.py', '') for f in listdir(mypath) if (isfile(join(mypath, f)) and f.endswith('.py') and f in ALLOWED_PROCESS_TYPE)]
+        onlyfiles = [f.replace('.py', '') for f in listdir(mypath) if (isfile(join(mypath, f)) and f.endswith('.py') and f in allowed_script)]
         return onlyfiles
 
     @staticmethod
@@ -259,13 +277,12 @@ class Flow_project_manager:
         return ['multiplexer_out']
 
     @staticmethod
-    def list_buffer_type():
-        ALLOWED_BUFFER_TYPE = set(['FIFO', 'LIFO'])
-        return list(ALLOWED_BUFFER_TYPE)
+    def list_buffer_type(allowed_buffer_type): # may be usefull later on...
+        return allowed_buffer_type
 
     def get_project_list(self):
         ret = []
-        projectUUIDs = self.serv.smembers(KEYALLPROJECT)
+        projectUUIDs = self.serv.smembers(self.config.redis.project.redis_key_all_projects)
         projectUUIDs = projectUUIDs if projectUUIDs is not None else []
         for projectUUID in projectUUIDs:
             p = Project(projectUUID)
@@ -274,14 +291,15 @@ class Flow_project_manager:
 
 
     def select_project(self, projectUUID):
-        print('selecting', projectUUID)
         if self.is_project_open():
             self.close_project()
         self.selected_project = Project(projectUUID)
+        self.config = Config_parser('config/easyFlow_conf.json', projectUUID).get_config()
         self.selected_project.setup_project_manager()
         return self.selected_project.get_project_summary()
 
     def import_project(self, rawJSONProject):
+        required_fields = ['projectName', 'projectInfo', 'creationTimestamp', 'processNum', 'processes']
         try:
             jProject = json.loads(rawJSONProject)
             # validate project: all requiered fields are present
@@ -289,7 +307,7 @@ class Flow_project_manager:
                 newUUID = genUUID()
                 keyP = 'project_{}'.format(newUUID)
                 self.serv.set(keyP, json.dumps(jProject))
-                self.serv.sadd(KEYALLPROJECT, keyP)
+                self.serv.sadd(self.config.redis.project.redis_key_all_projects, keyP)
                 return {'status': True }
             else:
                 return {'status': False, 'message': 'Project does not contain all required fields'}
@@ -297,8 +315,8 @@ class Flow_project_manager:
         except json.decoder.JSONDecodeError as e:
             return {'status': False, 'message': 'Project not valid'}
 
-    def projectToJSON(self, projectUUID):
-        return json.dumps(Project(projectUUID).get_project_summary())
+    def projectToDico(self, projectUUID):
+        return Project(projectUUID).get_project_summary()
 
     def set_cookies(self, resp, req):
         # project is open and the same in both server-side and client-side
@@ -315,7 +333,8 @@ class Flow_project_manager:
     def close_project(self, resp=None):
         self.selected_project.close_project()
         self.selected_project = None
-        if resp is None:
+        self.config = Config_parser('config/easyFlow_conf.json').get_config()
+        if resp is not None:
             self.reset_cookies(resp) # set cookies to 'null'
 
     def is_project_open(self):
@@ -333,7 +352,7 @@ class Flow_project_manager:
             newUUID = genUUID()
             keyP = 'project_{}'.format(newUUID)
             self.serv.set(keyP, jProject)
-            self.serv.sadd(KEYALLPROJECT, keyP)
+            self.serv.sadd(self.config.redis.project.redis_key_all_projects, keyP)
             return [True, "OK"]
         elif operation == 'rename':
             p = Project(data['projectUUID'])
@@ -341,10 +360,12 @@ class Flow_project_manager:
             return [True, "OK"]
         elif operation == 'delete':
             #Close project if already running
-            if self.is_project_open() and data['projectUUID'] == self.selected_project.projectUUID:
-                self.selected_project.close_project()
             p = Project(data['projectUUID'])
             p.delete_project()
+            if self.is_project_open() and data['projectUUID'] == self.selected_project.projectUUID:
+                # self.selected_project.close_project()
+                self.close_project()
+            print('deleted', data['projectUUID'])
             return [True, "OK"]
         else:
             return [False, "unknown operation"]

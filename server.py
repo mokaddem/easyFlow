@@ -12,31 +12,32 @@ from time import sleep, strftime
 import datetime
 import os
 
-from util import genUUID, objToDictionnary
+from util import genUUID, objToDictionnary, Config_parser
 from alerts_manager import Alert_manager
 from flow_project_manager import ProjectNotFound, Flow_project_manager
 
+config = Config_parser('config/easyFlow_conf.json').get_config()
+
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-UPLOAD_FOLDER = 'projects/'
+app.config['SECRET_KEY'] = config.server.SECRET_KEY
+app.config['UPLOAD_FOLDER'] = config.server.upload_folder
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-# socketio = SocketIO(app)
 flow_project_manager = Flow_project_manager()
-host='localhost'
-port=6780
-db=0
-# redis_pmanager = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
-redis_pmanager = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
+try:
+    redis_pmanager = redis.Redis(unix_socket_path=config.redis.project.unix_socket_path, decode_responses=True)
+except: # fallback using TCP instead of unix_socket
+    redis_pmanager = redis.StrictRedis(
+        config.redis.project.host,
+        config.redis.project.port,
+        config.redis.project.db,
+        charset="utf-8", decode_responses=True)
+
 alert_manager = Alert_manager()
 alert_manager.subscribe()
 
-ALLOWED_EXTENSIONS = set(['json'])
-
 def allowed_file(filename):
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+           filename.rsplit('.', 1)[1].lower() in config.server.allowed_file_extension
 
 def read_module_svg_template(filename):
     with open('static/css/img/{}.svg'.format(filename), 'r') as f:
@@ -47,14 +48,14 @@ def read_module_svg_template(filename):
 
 @app.route("/")
 def index():
-    raw_module_svg = read_module_svg_template('module_templatev5')
-    raw_buffer_svg = read_module_svg_template('buffer_template')
-    all_process_type = Flow_project_manager.list_process_type()
+    raw_module_svg = read_module_svg_template(config.web.process_svg_template_name)
+    raw_buffer_svg = read_module_svg_template(config.web.buffer_svg_template_name)
+    all_process_type = Flow_project_manager.list_process_type(config.processes.allowed_script)
     all_multiplexer_in = Flow_project_manager.list_all_multiplexer_in()
     all_multiplexer_out = Flow_project_manager.list_all_multiplexer_out()
     all_process = all_process_type + all_multiplexer_in + all_multiplexer_out
     custom_config_json = Flow_project_manager.get_processes_config(all_process)
-    all_buffer_type = Flow_project_manager.list_buffer_type()
+    all_buffer_type = Flow_project_manager.list_buffer_type(config.buffers.allowed_buffer_type)
 
     resp = make_response(render_template('index.html',
             raw_module_svg=raw_module_svg,
@@ -67,7 +68,6 @@ def index():
     ))
 
     if not flow_project_manager.is_project_open():
-        print('reseting cookies')
         flow_project_manager.reset_cookies(resp)
     else: # a project is open
         flow_project_manager.set_cookies(resp, request)
@@ -83,13 +83,11 @@ def upload_file():
     if request.method == 'POST':
         # check if the post request has the file part
         if 'file' not in request.files:
-            flash('No file part')
             print('No file part')
         file = request.files['file']
         # if user does not select file, browser also
-        # submit a empty part without filename
+        # submit an empty part without filename
         if file.filename == '':
-            flash('No selected file')
             print('No selected file')
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
@@ -105,10 +103,11 @@ def download_file():
         print('error: no project uuid provided')
         return 'KO'
 
-    JSONProject = flow_project_manager.projectToJSON(projectUUID).encode('utf-8')
-    print('sending')
+    JSONProject = flow_project_manager.projectToDico(projectUUID)
+    projectName = JSONProject['projectName']
+    JSONProject = JSONProject.encode('utf-8')
     resp = make_response(send_file(BytesIO(JSONProject),
-             attachment_filename="projectUUID.json",
+             attachment_filename="{}.json".format(projectName),
              as_attachment=True))
     resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0'
     return resp
@@ -157,14 +156,7 @@ def flow_operation():
     status = flow_project_manager.selected_project.flowOperation(operation, data)
     return jsonify(status)
 
-''' SOCKET.IO '''
-'''
-@socketio.on('updateRequest', namespace='/update')
-def test_message(message):
-    print(message)
-    state = flow_realtime_db.get_state()
-    emit('update', {'data': state})
-'''
+''' REAL TIME '''
 
 @app.route('/get_pMetadata')
 def get_pMetadata():
@@ -189,9 +181,9 @@ def alert_stream():
 
 
 if __name__ == '__main__':
-    # socketio.run(app, host='127.0.0.1', port=9090,  debug = True)
-    try:
-        app.run(host='127.0.0.1', port=9090,  debug = True, threaded=True, use_reloader=False)
-    except KeyboardInterrupt as e:
-        print("closing processes")
-        flow_project_manager.close_project()
+    # try:
+        # app.run(host=config.server.host, port=config.server.port, debug = config.server.debug, threaded=True, use_reloader=False)
+    app.run(host=config.server.host, port=config.server.port, debug = config.server.debug, threaded=True, use_reloader=False)
+    # except KeyboardInterrupt as e:
+    #     print("closing processes")
+    #     flow_project_manager.close_project()

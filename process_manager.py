@@ -5,21 +5,30 @@ import redis, json, time, os
 import shlex, subprocess
 import psutil, signal
 
-from util import genUUID, objToDictionnary
+from util import genUUID, objToDictionnary, Config_parser
 from alerts_manager import Alert_manager
 from process_print_to_console import Print_to_console
 from process_metadata_interface import Process_metadata_interface, Process_representation, Link_representation, Buffer_metadata_interface
 
-host='localhost'
-port=6780
-db=0
-ALLOWED_PROCESS_TYPE = set(['print_to_console', 'print_current_time', 'multiplexer_in', 'multiplexer_out', 'generate_lorem_ipsum'])
-ALLOWED_BUFFER_TYPE = set(['FIFO', 'LIFO'])
-
 class Process_manager:
     def __init__(self, projectUUID):
-        # self._serv = redis.StrictRedis(host, port, db, charset="utf-8", decode_responses=True)
-        self._serv = redis.Redis(unix_socket_path='/tmp/redis.sock', decode_responses=True)
+        self.config = Config_parser('config/easyFlow_conf.json', projectUUID).get_config()
+        try:
+            self._serv = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
+        except: # fallback using TCP instead of unix_socket
+            self._serv = redis.StrictRedis(
+                self.config.redis.project.host,
+                self.config.redis.project.port,
+                self.config.redis.project.db,
+                charset="utf-8", decode_responses=True)
+        try:
+            self._serv_buffers = redis.Redis(unix_socket_path=self.config.redis.buffers.unix_socket_path, decode_responses=True)
+        except: # fallback using TCP instead of unix_socket
+            self._serv_buffers = redis.StrictRedis(
+                self.config.redis.project.host,
+                self.config.redis.project.port,
+                self.config.redis.project.db,
+                charset="utf-8", decode_responses=True)
         self._metadata_interface = Process_metadata_interface()
         self._buffer_metadata_interface = Buffer_metadata_interface()
         self._alert_manager = Alert_manager()
@@ -30,7 +39,6 @@ class Process_manager:
         self.buffers_uuid = []
         self.projectUUID = projectUUID
 
-        # self.start_processes(processes_to_start)
 
     def start_processes(self, processes_to_start, buffers_to_register):
         l = len(processes_to_start)
@@ -47,13 +55,17 @@ class Process_manager:
                 self.buffers[buuid] = buffer_config
                 self.buffers_uuid.append(buuid)
 
+    def get_connected_buffers(self, puuid):
+        buuids = []
+        for buuid, buf in self.buffers.items():
+            if (puuid in buf.fromUUID) or (puuid in buf.toUUID):
+                buuids.append(buuid)
+        return buuids
+
     def get_processes_info(self):
         info = []
         for puuid in self.processes_uuid:
             pinfo = self._metadata_interface.get_info(puuid)
-            print('pinfo')
-            print(type(pinfo))
-            print(pinfo)
             info.append(pinfo)
         return info
 
@@ -95,12 +107,14 @@ class Process_manager:
             totalCount=count
         )
 
+    def is_multiplexer(self, puuid):
+        return self.processes[puuid].is_multiplexer
+
     def shutdown(self):
         for puuid in self.processes.keys():
             self.kill_process(puuid)
 
     def reload_states(self, process_uuids):
-        # print(process_uuids)
         for puuid in process_uuids:
             self.send_command(puuid, 'reload')
 
@@ -132,7 +146,7 @@ class Process_manager:
             puuid = data.get('puuid', None)
             if puuid is None:
                 # gen process UUID
-                puuid = genUUID()
+                puuid = 'process_'+genUUID()
         data['puuid'] = puuid
         data['projectUUID'] = self.projectUUID
 
@@ -156,8 +170,9 @@ class Process_manager:
 
         else:
             process_type = data['type']
-            if process_type not in ALLOWED_PROCESS_TYPE:
-                print('Unkown process type')
+            allowed_scripts = [ s.rstrip('.py') for s in self.config.processes.allowed_script]
+            if process_type not in allowed_scripts:
+                print('Unkown or not supported process type:', process_type)
                 return 0
             # gen config
             process_config = Process_representation(data)
@@ -185,7 +200,14 @@ class Process_manager:
         except ValueError as e:
             pass
         del self.processes[puuid]
+        # delete residual keys in redis
+        keys = self._serv.keys('*{}*'.format(puuid))
+        for k in keys:
+            self._serv.delete(k)
         # also remove links
+        buuids = self.get_connected_buffers(puuid)
+        for buuid in buuids:
+            self.delete_link(buuid)
 
     def update_process(self, data):
         puuid = data.get('puuid', None)
@@ -200,12 +222,12 @@ class Process_manager:
             buuid = data.get('buuid', None)
             if buuid is None:
                 # gen buffer UUID
-                buuid = genUUID()
+                buuid = 'buffer_'+genUUID()
         data['buuid'] = buuid
         data['projectUUID'] = self.projectUUID
 
         buffer_type = data['type']
-        if buffer_type not in ALLOWED_BUFFER_TYPE:
+        if buffer_type not in self.config.buffers.allowed_buffer_type:
             print('Unkown buffer type')
             return 0
         # gen config
@@ -217,3 +239,14 @@ class Process_manager:
         # add it to self.buffers_uuid
         self.buffers_uuid.append(buuid)
         return buffer_config
+
+    def delete_link(self, buuid):
+        self.buffers_uuid.remove(buuid)
+        del self.buffers[buuid]
+        # delete residual keys in redis
+        keys = self._serv.keys('*{}*'.format(buuid))
+        for k in keys:
+            self._serv.delete(k)
+        keys = self._serv_buffers.keys('*{}*'.format(buuid))
+        for k in keys:
+            self._serv_buffers.delete(k)

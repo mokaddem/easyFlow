@@ -11,6 +11,9 @@ class FlowControl {
             this.execute_operation('delete_link', {buuid: uuids}, false);
         } else {
         }
+        // reset selection
+        this.selected = [];
+        innerRepresentation.clear_selection();
     }
 
     edit_node() {

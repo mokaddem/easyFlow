@@ -40,6 +40,7 @@ class FlowControl {
                 var modalID = 'modal'+modalType;
                 $('#'+modalID).modal('show');
                 self.handleModalConfirm(modalType, {puuid: uuid, update: true}, function(modalData) {
+                    console.log(modalData);
                     self.execute_operation('edit_process', modalData)
                     .done(function(responseData, textStatus, jqXHR) {
                     })
@@ -91,8 +92,10 @@ class FlowControl {
             return;
         }
         if (srcEgressCount == 1 && srcProcType != 'multiplexer_out') {
-            notify('Error:', 'Only <strong>multiplexer_out</strong> are allowed to have multiple egress connections', 'danger');
-            return;
+            if (srcProcType != 'switch') { // switch can have multiple output
+                notify('Error:', 'Only <strong>multiplexer_out</strong> are allowed to have multiple egress connections', 'danger');
+                return;
+            }
         }
 
         var self = this;
@@ -148,20 +151,47 @@ class FlowControl {
 
         } else if (dropData.type == 'remote_input') {
         } else if (dropData.type == 'remote_output') {
+        } else if (dropData.type == 'switch') {
+            self.handleModal('AddSwitch', dropData, function(modalData) {
+                console.log(modalData);
+                self.execute_operation('create_switch', modalData)
+                .done(function(responseData, textStatus, jqXHR) {
+                })
+                .fail(function() {
+                    console.log( "An error occured" );
+                });
+            });
         } else {
             console.log(dropData);
         }
     }
 
     query_config_and_fill_form(uuid, modalType, uuidData, form_callback) {
+        // var url_to_query = modalType == 'AddSwitch' ? url_get_connected_nodes : url_get_node_configuration;
+        var url_to_query = url_get_node_configuration;
         var formID = 'form'+modalType;
         var formIDCustom = 'form'+modalType+'Custom';
+        var data_connection = null;
+        if (modalType == 'AddSwitch') {
+            // get connected nodes names
+            var connectedNodesName = []
+            network.getConnectedEdges(uuid).reduce(function(acc, edgeID) {
+                var edge = innerRepresentation.edges.get(edgeID);
+                var node = innerRepresentation.nodes.get(edge.to);
+                return edge.from == uuid ? connectedNodesName.push({name: node.name, uuid: node.id}) : 0; // sum outgoing edges
+            }, 0);
+            // create corresponding JSON
+            data_connection = create_json_for_switch(connectedNodesName);
+        }
         return $.ajax({
             type: "POST",
-            url: url_get_node_configuration,
+            url: url_to_query,
             data: JSON.stringify(uuidData),
             contentType: 'application/json; charset=utf-8',
         }).done(function( data ) {
+                if (data_connection != null){
+                    data.custom_config = data_connection;
+                }
                 fillForm(formID, formIDCustom, data);
                 form_callback();
             }

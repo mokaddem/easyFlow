@@ -110,6 +110,8 @@ function getModalTypeFromProcessType(processType) {
             return 'AddMultInput';
         case 'multiplexer_out':
             return 'AddMultOutput';
+        case 'switch':
+            return 'AddSwitch';
         default:
             return 'AddProcess';
     }
@@ -151,7 +153,11 @@ function fillForm(formID, formIDCustom, formData) {
     }
     // empty form and create input for custom config
     $('#'+formIDCustom).empty();
-    add_html_based_on_json($('#'+formID).find('[name="type"]').val(), $('#'+formIDCustom));
+    if (formID == "formAddSwitch") {
+        add_html_based_on_json($('#'+formID).find('[name="type"]').val(), $('#'+formIDCustom), formData.custom_config);
+    } else {
+        add_html_based_on_json($('#'+formID).find('[name="type"]').val(), $('#'+formIDCustom), undefined);
+    }
     // add data for custom config
     var form_custom_config = formData.custom_config;
     for(key in form_custom_config) {
@@ -166,6 +172,8 @@ function fillForm(formID, formIDCustom, formData) {
 }
 
 function create_html_from_json(pName, j) {
+    // console.log(pName);
+    // console.log(j);
     var div = document.createElement('div');
     div.classList.add('form-group')
 
@@ -173,7 +181,9 @@ function create_html_from_json(pName, j) {
     var label = document.createElement('label');
     label.innerHTML = j.label;
     var elem = document.createElement(domType);
-    elem.setAttribute("required", "");
+    if (j.required) {
+        elem.setAttribute("required", "");
+    }
     elem.setAttribute("name", pName);
     elem.classList.add('form-control');
 
@@ -190,8 +200,9 @@ function create_html_from_json(pName, j) {
             for (var option of j.options) {
                 var domOption = document.createElement('option');
                 domOption.innerHTML = option;
+                domOption.value = option;
                 if (option == j.default) {
-                    domOption.setAttribute("required", "");
+                    domOption.setAttribute("selected", "");
                 }
                 elem.appendChild(domOption);
             }
@@ -204,12 +215,28 @@ function create_html_from_json(pName, j) {
     return div;
 }
 
-function add_html_based_on_json(pName, jqObject) {
-    var config = custom_config_json[pName];
+function add_html_based_on_json(pName, jqObject, jsonProvided) {
+    var config = jsonProvided === undefined ? custom_config_json[pName] : jsonProvided;
     for (var pName in config) {
         if (config.hasOwnProperty(pName)) {
             var domElement = create_html_from_json(pName, config[pName])
             jqObject.append(domElement)
         }
     }
+}
+
+function create_json_for_switch(connectedNodesName) {
+    var j = {};
+    var numberOfChannel = [];
+    for (var i=1; i<connectedNodesName.length+1; i++) { numberOfChannel.push(String(i)); }
+    for (var buff of connectedNodesName) {
+        j[buff.uuid] = {
+            "label": buff.name + " channel:",
+            "DOM": "select",
+            "options": numberOfChannel,
+            "default": "1",
+            "required": "true"
+        };
+    }
+    return j;
 }

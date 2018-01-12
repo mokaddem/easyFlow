@@ -44,6 +44,7 @@ def read_module_svg_template(filename):
         raw_svg = f.read()
     raw_svg = raw_svg.replace("-inkscape-font-specification:'sans-serif Bold'", '') # removed bad options
     raw_svg = raw_svg.replace("-inkscape-font-specification:'Lato Bold'", '') # removed bad options
+    raw_svg = raw_svg.replace("-inkscape-font-specification:'TeX Gyre Cursor Bold'", '') # removed bad options
     raw_svg = "".join(raw_svg.splitlines())
     return raw_svg
 
@@ -54,11 +55,13 @@ def index():
     raw_multi_out_svg = read_module_svg_template(config.web.mult_output_svg_template_name)
     raw_remote_in_svg = read_module_svg_template(config.web.remote_input_svg_template_name)
     raw_remote_out_svg = read_module_svg_template(config.web.remote_output_svg_template_name)
+    raw_switch_svg = read_module_svg_template(config.web.switch_svg_template_name)
     raw_buffer_svg = read_module_svg_template(config.web.buffer_svg_template_name)
     all_process_type = Flow_project_manager.list_process_type(config.processes.allowed_script)
     all_multiplexer_in = Flow_project_manager.list_all_multiplexer_in()
     all_multiplexer_out = Flow_project_manager.list_all_multiplexer_out()
-    all_process = all_process_type + all_multiplexer_in + all_multiplexer_out
+    all_switch = Flow_project_manager.list_all_switch()
+    all_process = all_process_type + all_multiplexer_in + all_multiplexer_out + all_switch
     custom_config_json = Flow_project_manager.get_processes_config(all_process)
     all_buffer_type = Flow_project_manager.list_buffer_type(config.buffers.allowed_buffer_type)
 
@@ -68,11 +71,13 @@ def index():
             raw_multi_out_svg=raw_multi_out_svg,
             raw_remote_in_svg=raw_remote_in_svg,
             raw_remote_out_svg=raw_remote_out_svg,
+            raw_switch_svg=raw_switch_svg,
             raw_buffer_svg=raw_buffer_svg,
             all_process_type=all_process_type,
             custom_config_json=custom_config_json,
             all_multiplexer_in=all_multiplexer_in,
             all_multiplexer_out=all_multiplexer_out,
+            all_switch=all_switch,
             all_buffer_type=all_buffer_type
     ))
 
@@ -183,6 +188,15 @@ def get_node_configuration():
     else:
         config = {}
     return jsonify(config)
+
+@app.route('/get_connected_nodes', methods=['POST'])
+def get_connected_nodes():
+    data = request.get_json()
+    if flow_project_manager.is_project_open():
+        connected_bufs = flow_project_manager.selected_project._process_manager.get_connected_buffers(data.get('uuid', ''))
+    else:
+        connected_bufs = {}
+    return jsonify(connected_bufs)
 
 @app.route('/alert_stream')
 def alert_stream():

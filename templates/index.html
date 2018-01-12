@@ -48,6 +48,7 @@
         var raw_multi_out_svg = '{{ raw_multi_out_svg|safe }}';
         var raw_remote_in_svg = '{{ raw_remote_in_svg|safe }}';
         var raw_remote_out_svg = '{{ raw_remote_out_svg|safe }}';
+        var raw_switch_svg    = '{{ raw_switch_svg|safe }}';
         var raw_buffer_svg    = '{{ raw_buffer_svg|safe }}';
 
         /* URLS */
@@ -61,6 +62,7 @@
 
         var url_get_processes_info = '{{ url_for("get_pMetadata") }}';
         var url_get_node_configuration = '{{ url_for("get_node_configuration") }}';
+        var url_get_connected_nodes = '{{ url_for("get_connected_nodes") }}';
         var url_alert_stream = '{{ url_for("alert_stream") }}';
         var url_bootstrap_alertHandler = '{{ url_for("alert_stream") }}';
         var url_flow_operation = '{{ url_for("flow_operation") }}';
@@ -192,6 +194,7 @@
         {% include 'modals/addRemoteOutput.html' %}
         {% include 'modals/addMultInput.html' %}
         {% include 'modals/addMultOutput.html' %}
+        {% include 'modals/addSwitch.html' %}
 
 
         <!-- Page Content -->
@@ -202,6 +205,7 @@
             <button type="button" class="btn btn-default toolbarBtn btnDraggable" name="remote_output"><span style="background:url({{ url_for('static', filename='css/img/icons/remote_output.svg') }});"></span></button>
             <button type="button" class="btn btn-default toolbarBtn btnDraggable" name="multiplexer_input"><span style="background:url({{ url_for('static', filename='css/img/icons/mult_input.svg') }});"></span></button>
             <button type="button" class="btn btn-default toolbarBtn btnDraggable" name="multiplexer_output"><span style="background:url({{ url_for('static', filename='css/img/icons/mult_output.svg') }});"></span></button>
+            <button type="button" class="btn btn-default toolbarBtn btnDraggable" name="switch"><span style="background:url({{ url_for('static', filename='css/img/icons/switch.svg') }});"></span></button>
         </div>
 
         <div id="mynetwork"></div>

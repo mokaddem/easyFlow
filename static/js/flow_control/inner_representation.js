@@ -22,6 +22,8 @@ function construct_node(moduleName, moduleType, bytes, flowItem, time, cpu_load,
         default:
             state_formated = '#868e96' // No info
     }
+    cpu_load = cpu_load>0 ? cpu_load : 0;
+    time = time!='?' ? time : 0;
     var mapObj = {
         '\{\{moduleName\}\}':   moduleName,
         '\{\{bytes\}\}':        bytes_formated,
@@ -49,6 +51,9 @@ function construct_node(moduleName, moduleType, bytes, flowItem, time, cpu_load,
                 break;
         case 'remote_output':
             raw_svg = raw_remote_out_svg;
+            break;
+        case 'switch':
+            raw_svg = raw_switch_svg;
             break;
         default:
             raw_svg = raw_process_svg;
@@ -216,7 +221,6 @@ class InnerRepresentation {
 
     addNode(nodeData) {
         this.processObj[nodeData.puuid] = nodeData;
-        var  i = parseInt(nodeData.puuid);
         this.nodes.add({
             id: nodeData.puuid,
             image: construct_node(
@@ -233,6 +237,8 @@ class InnerRepresentation {
             ),
             x: nodeData.x,
             y: nodeData.y,
+            name: nodeData.name,
+            type: nodeData.type,
             shape: 'image',
             physics: false,
             mass: 3,
@@ -272,6 +278,8 @@ class InnerRepresentation {
             ),
             x: edgeData.x,
             y: edgeData.y,
+            name: edgeData.name,
+            type: edgeData.type,
             shape: 'image',
             physics: false,
             mass: 1,

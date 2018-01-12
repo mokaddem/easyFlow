@@ -181,6 +181,10 @@ class Project:
                 self.delete_links_of_process(puuid)
                 del self.processes[puuid]
         elif operation == 'edit_process':
+            ####
+            ####    Either save the custom config for the switch here
+            ####    or create a new function edit_switch <- prefered
+            ####
             process_config = self._process_manager.update_process(data)
             puuid = process_config.puuid
             self.processes[puuid] = self.filter_correct_init_fields(process_config.get_dico())
@@ -219,6 +223,14 @@ class Project:
             if puuid == 0:
                 return {'status': 'error'}
             self.processes[puuid] = self.filter_correct_init_fields(mult_output_config.get_dico())
+
+        # ''' SWITCH '''
+        elif operation == 'create_switch':
+            switch_config = self._process_manager.create_process(data)
+            puuid = switch_config.puuid
+            if puuid == 0:
+                return {'status': 'error'}
+            self.processes[puuid] = self.filter_correct_init_fields(switch_config.get_dico())
 
         # ''' DRAGGING '''
         elif operation == 'node_drag':
@@ -285,6 +297,10 @@ class Flow_project_manager:
     @staticmethod
     def list_all_multiplexer_out():
         return ['multiplexer_out']
+
+    @staticmethod
+    def list_all_switch():
+        return ['switch']
 
     @staticmethod
     def list_buffer_type(allowed_buffer_type): # may be usefull later on...

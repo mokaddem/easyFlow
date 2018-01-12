@@ -24,6 +24,10 @@ class FlowControl {
         var uuids = this.selected;
         this.execute_operation('play_process', {puuid: uuids}, false);
     }
+    restart_node() {
+        var uuids = this.selected;
+        this.execute_operation('restart_process', {puuid: uuids}, false);
+    }
 
     edit_node() {
         var self = this;

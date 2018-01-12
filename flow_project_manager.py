@@ -160,6 +160,9 @@ class Project:
         elif operation == 'play_process':
             for puuid in data.get('puuid', []): # may contain multiple processes
                 self._process_manager.play_process(puuid)
+        elif operation == 'restart_process':
+            for puuid in data.get('puuid', []): # may contain multiple processes
+                self._process_manager.restart_process(puuid)
 
         # ''' PROCESSES '''
         elif operation == 'create_process':

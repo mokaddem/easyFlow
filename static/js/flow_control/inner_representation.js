@@ -11,10 +11,10 @@ function construct_node(moduleName, moduleType, bytes, flowItem, time, cpu_load,
     var state_formated;
     switch (state) {
         case "running":
-            state_formated = '#28a745'
+            state_formated = '#34ce57'
             break;
         case "paused":
-            state_formated = '#ffc107'
+            state_formated = '#ffc721'
             break;
         case "crashed":
             state_formated = '#dc3545'
@@ -361,6 +361,7 @@ class InnerRepresentation {
     setProcessControlButtonData(puuid) {
         $('#pcontrol_play').prop("disabled", false);
         $('#pcontrol_pause').prop("disabled", false);
+        $('#pcontrol_restart').prop("disabled", false);
         $('#pcontrol_logs').prop("disabled", false);
         $('#pcontrol_param').prop("disabled", false);
             $('#pcontrol_delete').prop("disabled", false);
@@ -371,6 +372,7 @@ class InnerRepresentation {
     setBufferControlButtonData(buuid) {
         $('#pcontrol_play').prop("disabled", true);
         $('#pcontrol_pause').prop("disabled", true);
+        $('#pcontrol_restart').prop("disabled", true);
         $('#pcontrol_logs').prop("disabled", false);
         $('#pcontrol_param').prop("disabled", false);
             $('#pcontrol_delete').prop("disabled", false);
@@ -381,6 +383,7 @@ class InnerRepresentation {
     resetControlButtonData() {
         $('#pcontrol_play').prop("disabled", true);
         $('#pcontrol_pause').prop("disabled", true);
+        $('#pcontrol_restart').prop("disabled", true);
         $('#pcontrol_logs').prop("disabled", true);
         $('#pcontrol_param').prop("disabled", true);
             $('#pcontrol_delete').prop("disabled", true);

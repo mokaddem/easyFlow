@@ -123,6 +123,9 @@ function draw() {
     $('#pcontrol_pause').click(function(){
         flowControl.pause_node()
     });
+    $('#pcontrol_restart').click(function(){
+        flowControl.restart_node()
+    });
     $('#pcontrol_logs').click(function(){
 
     });

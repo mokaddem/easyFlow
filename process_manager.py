@@ -32,6 +32,7 @@ class Process_manager:
         self._metadata_interface = Process_metadata_interface()
         self._buffer_metadata_interface = Buffer_metadata_interface()
         self._alert_manager = Alert_manager()
+        self._being_restarted = []
         self.processes = {}
         self.processes_uuid = []
         self.processes_uuid_with_signal = []
@@ -86,7 +87,8 @@ class Process_manager:
             time.sleep(0.1)
 
     def process_started_and_managed(self, puuid):
-        return puuid in self.processes_uuid
+        managed = puuid in self.processes_uuid
+        return managed and (puuid not in self._being_restarted)
 
     def process_started_in_system(self, puuid, killIt=False):
         for p in psutil.process_iter(attrs=['name', 'cmdline']):
@@ -126,8 +128,17 @@ class Process_manager:
         self.send_command(puuid, 'pause')
     def play_process(self, puuid):
         self.send_command(puuid, 'play')
-    def restart(self, puuid):
-        pass
+    def restart_process(self, puuid):
+        pData = self.processes[puuid].get_dico()
+        self._alert_manager.send_alert(
+            title='Processes',
+            content='restarting '+pData['name'],
+            mType='warning'
+        )
+        self._being_restarted.append(puuid)
+        self.kill_process(puuid)
+        self.create_process(pData, puuid)
+        self._being_restarted.remove(puuid)
 
     def send_command(self, puuid, command, data=None):
         jCommand = {}
@@ -179,15 +190,12 @@ class Process_manager:
             process_type = data['type']
             allowed_scripts = [ s.rstrip('.py') for s in self.config.processes.allowed_script]
             if process_type not in allowed_scripts:
-                print('Unkown or not supported process type:', process_type)
                 return 0
             # gen config
             process_config = Process_representation(data)
             self._serv.set('config_'+puuid, process_config.toJSON())
             # start process with Popen
             args = shlex.split('python3.5 {} {}'.format(os.path.join('processes/', process_type+'.py'), puuid))
-            # args = shlex.split('screen -S "easyFlow_processes" -X screen -t "{puuid}" bash -c "python3.5 {scriptName} {puuid}; read x"'.format(scriptName=os.path.join('processes/', process_type+'.py'), puuid=puuid))
-            # proc = subprocess.Popen(args)
             proc = psutil.Popen(args)
             # wait that process start the run() phase, publish info
             # self.wait_for_process_running_state(puuid)

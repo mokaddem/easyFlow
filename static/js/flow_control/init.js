@@ -33,6 +33,12 @@ function draw() {
         },
         nodes: {
             shadow: true,
+            chosen: {
+                node: function(values, id, selected, hovering) {
+                    values.shadowSize ='10px';
+                    values.shadowColor = '#337ab7';
+                }
+            }
         },
         edges: {
             color: {color: 'black'},

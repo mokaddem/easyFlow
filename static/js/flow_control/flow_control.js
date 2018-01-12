@@ -190,7 +190,7 @@ class FlowControl {
             contentType: 'application/json; charset=utf-8',
         }).done(function( data ) {
                 if (data_connection != null){
-                    data.custom_config = data_connection;
+                    data.connections = data_connection;
                 }
                 fillForm(formID, formIDCustom, data);
                 form_callback();

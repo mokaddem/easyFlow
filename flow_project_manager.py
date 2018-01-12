@@ -181,10 +181,6 @@ class Project:
                 self.delete_links_of_process(puuid)
                 del self.processes[puuid]
         elif operation == 'edit_process':
-            ####
-            ####    Either save the custom config for the switch here
-            ####    or create a new function edit_switch <- prefered
-            ####
             process_config = self._process_manager.update_process(data)
             puuid = process_config.puuid
             self.processes[puuid] = self.filter_correct_init_fields(process_config.get_dico())

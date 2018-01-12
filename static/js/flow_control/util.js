@@ -154,7 +154,7 @@ function fillForm(formID, formIDCustom, formData) {
     // empty form and create input for custom config
     $('#'+formIDCustom).empty();
     if (formID == "formAddSwitch") {
-        add_html_based_on_json($('#'+formID).find('[name="type"]').val(), $('#'+formIDCustom), formData.custom_config);
+        add_html_based_on_json($('#'+formID).find('[name="type"]').val(), $('#'+formIDCustom), formData.connections);
     } else {
         add_html_based_on_json($('#'+formID).find('[name="type"]').val(), $('#'+formIDCustom), undefined);
     }

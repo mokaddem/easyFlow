@@ -126,11 +126,9 @@ class Multiple_link_manager(Link_manager):
             if self.multi_in: # custom logic: interleaving, priority
                 if self.custom_config['multiplex_logic'] == 'Interleave':
                     flowItem_raw = self._serv_buffers.rpop(self.ingress[self.interleave_index])
-                    self.inc_interleave_index()
                 elif self.custom_config['multiplex_logic'] == 'Priority':
                     print('ingoring priority for the moment')
                     flowItem_raw = self._serv_buffers.rpop(self.ingress[self.interleave_index])
-                    self.inc_interleave_index()
                 else:
                     print('Unkown multiplexer logic')
 
@@ -139,6 +137,7 @@ class Multiple_link_manager(Link_manager):
                 else:
                     flowItem = FlowItem(flowItem_raw, raw=True)
                     self._buffer_metadata_interface.push_info(self.ingress[self.interleave_index], -flowItem.size) # decrease buffer size
+                    self.inc_interleave_index()
                     return flowItem
 
             else: # same as simple link manager

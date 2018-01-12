@@ -42,13 +42,18 @@ def allowed_file(filename):
 def read_module_svg_template(filename):
     with open('static/css/img/{}.svg'.format(filename), 'r') as f:
         raw_svg = f.read()
-    raw_svg = raw_svg.replace("-inkscape-font-specification:'sans-serif Bold'", '') #removed bad options
+    raw_svg = raw_svg.replace("-inkscape-font-specification:'sans-serif Bold'", '') # removed bad options
+    raw_svg = raw_svg.replace("-inkscape-font-specification:'Lato Bold'", '') # removed bad options
     raw_svg = "".join(raw_svg.splitlines())
     return raw_svg
 
 @app.route("/")
 def index():
-    raw_module_svg = read_module_svg_template(config.web.process_svg_template_name)
+    raw_process_svg = read_module_svg_template(config.web.process_svg_template_name)
+    raw_multi_in_svg = read_module_svg_template(config.web.mult_input_svg_template_name)
+    raw_multi_out_svg = read_module_svg_template(config.web.mult_output_svg_template_name)
+    raw_remote_in_svg = read_module_svg_template(config.web.remote_input_svg_template_name)
+    raw_remote_out_svg = read_module_svg_template(config.web.remote_output_svg_template_name)
     raw_buffer_svg = read_module_svg_template(config.web.buffer_svg_template_name)
     all_process_type = Flow_project_manager.list_process_type(config.processes.allowed_script)
     all_multiplexer_in = Flow_project_manager.list_all_multiplexer_in()
@@ -58,7 +63,11 @@ def index():
     all_buffer_type = Flow_project_manager.list_buffer_type(config.buffers.allowed_buffer_type)
 
     resp = make_response(render_template('index.html',
-            raw_module_svg=raw_module_svg,
+            raw_process_svg=raw_process_svg,
+            raw_multi_in_svg=raw_multi_in_svg,
+            raw_multi_out_svg=raw_multi_out_svg,
+            raw_remote_in_svg=raw_remote_in_svg,
+            raw_remote_out_svg=raw_remote_out_svg,
             raw_buffer_svg=raw_buffer_svg,
             all_process_type=all_process_type,
             custom_config_json=custom_config_json,

@@ -1,13 +1,46 @@
-function construct_node(moduleName, bytes, flowItem, time) {
+function construct_node(moduleName, moduleType, bytes, flowItem, time) {
+    var bytes_formated_in = bytes.bytes_in > 0 ? String((parseFloat(bytes.bytes_in)/1000000.0).toFixed(2)) : String(0);
+    var bytes_formated_out = bytes.bytes_out > 0 ? String((parseFloat(bytes.bytes_out)/1000000.0).toFixed(2)) : String(0);
+    var bytes_formated = bytes_formated_in + ' / ' + bytes_formated_out + ' MB';
+
+    var flowItem_formated_in = flowItem.flowItem_in > 0 ? String(flowItem.flowItem_in) : String(0);
+    var flowItem_formated_out = flowItem.flowItem_out > 0 ? String(flowItem.flowItem_out) : String(0);
+    var flowItem_formated = flowItem_formated_in + ' / ' + flowItem_formated_out + ' FlowItems';
+
     var mapObj = {
         '\{\{moduleName\}\}':   moduleName,
-        '\{\{bytes\}\}':        bytes,
-        '\{\{flowItem\}\}':     flowItem,
-        '\{\{time\}\}':         time
+        '\{\{bytes\}\}':        bytes_formated,
+        '\{\{flowItem\}\}':     flowItem_formated,
+        '\{\{time\}\}':         String(parseFloat(time).toFixed(2))+'sec',
+        '\{\{cpuload\}\}':      17+'%',
+        '\{\{memload\}\}':      13+'%',
+        '\{\{pid\}\}':          1234,
+        '\{\{state\}\}':        '#5cb85c',
+        '\{\{customMessage\}\}':'A custom message'
     };
+    var raw_svg
+    switch (moduleType) {
+        case 'process':
+            raw_svg = raw_process_svg;
+            break;
+        case 'multiplexer_in':
+            raw_svg = raw_multi_in_svg;
+            break;
+        case 'multiplexer_out':
+            raw_svg = raw_multi_out_svg;
+            break;
+        case 'remote_input':
+            raw_svg = raw_remote_in_svg;
+                break;
+        case 'remote_output':
+            raw_svg = raw_remote_out_svg;
+            break;
+        default:
+            raw_svg = raw_process_svg;
 
+    }
     var re = new RegExp(Object.keys(mapObj).join("|"),"gi");
-    var replaced_svg = raw_module_svg.replace(re, function(matched){
+    var replaced_svg = raw_svg.replace(re, function(matched){
       return mapObj[matched];
     });
     var url = "data:image/svg+xml;charset=utf-8,"+ encodeURIComponent(replaced_svg);
@@ -74,10 +107,12 @@ class InnerRepresentation {
                     id: node['puuid'],
                     image: construct_node(
                         node['name'],
-                        jStats['bytes_in']+' / '+jStats['bytes_out'],  // bytes
-                        jStats['flowItem_in']+' / '+jStats['flowItem_out'], // flowItem
+                        node['type'],
+                        { bytes_in: jStats['bytes_in'], bytes_out: jStats['bytes_out'] },  // bytes
+                        { flowItem_in: jStats['flowItem_in'], flowItem_out: jStats['flowItem_out'] }, // flowItem
                         jStats['processing_time']
-                    )
+                    ),
+                    size: 75
                 });
             }
             this.nodes.update(update_array);
@@ -93,7 +128,8 @@ class InnerRepresentation {
                         node['name'],
                         jStats['buffered_bytes'],  // bytes
                         jStats['buffered_flowItems']
-                    )
+                    ),
+                    size: 30
                 });
             }
         } catch(err) { /* processes is empty */ }
@@ -163,6 +199,7 @@ class InnerRepresentation {
             id: nodeData.puuid,
             image: construct_node(
                 nodeData.name,
+                nodeData.type,
                 '?',
                 '?',
                 '?',
@@ -171,7 +208,8 @@ class InnerRepresentation {
             y: nodeData.y,
             shape: 'image',
             physics: false,
-            mass: 3
+            mass: 3,
+            size: 75
         });
     }
 
@@ -210,7 +248,7 @@ class InnerRepresentation {
             shape: 'image',
             physics: false,
             mass: 1,
-            size: 15
+            size: 30
         });
         this.edges.add({ // link nodes to buffer
             from: edgeData.from,

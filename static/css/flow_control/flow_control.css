@@ -2,6 +2,11 @@ body, select {
     height: 100%;
 }
 
+div.vis-network {
+  /*background: #444;*/
+  background: #00000013;
+}
+
 #navBarTop {
     display: flex;
     align-items: center;

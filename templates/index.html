@@ -43,8 +43,12 @@
     <link type="text/css" href="{{ url_for('static', filename='css/flow_control/flow_control.css') }}" rel="stylesheet"/>
     <script type="text/javascript">
         /* VARS FROM FLASK*/
-        var raw_module_svg = '{{ raw_module_svg|safe }}';
-        var raw_buffer_svg = '{{ raw_buffer_svg|safe }}';
+        var raw_process_svg   = '{{ raw_process_svg|safe }}';
+        var raw_multi_in_svg  = '{{ raw_multi_in_svg|safe }}';
+        var raw_multi_out_svg = '{{ raw_multi_out_svg|safe }}';
+        var raw_remote_in_svg = '{{ raw_remote_in_svg|safe }}';
+        var raw_remote_out_svg = '{{ raw_remote_out_svg|safe }}';
+        var raw_buffer_svg    = '{{ raw_buffer_svg|safe }}';
 
         /* URLS */
         var url_save_network = '{{ url_for("save_network") }}';

@@ -9,6 +9,7 @@ from process import Process
 class Print_to_console(Process):
     def process_message(self, msg):
         print('Print_to_console [{}]: {}'.format(os.getpid(), msg))
+        self.custom_message = 'last printed: '+msg[0:20]
         # self.forward(msg)
 
 if __name__ == '__main__':

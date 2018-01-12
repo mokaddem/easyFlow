@@ -40,11 +40,19 @@ class Buffer_metadata_interface:
                 self.config.redis.project.port,
                 self.config.redis.project.db,
                 charset="utf-8", decode_responses=True)
+        try:
+            self._serv_buffers = redis.Redis(unix_socket_path=self.config.redis.buffers.unix_socket_path, decode_responses=True)
+        except: # fallback using TCP instead of unix_socket
+            self._serv_buffers = redis.StrictRedis(
+                self.config.redis.project.host,
+                self.config.redis.project.port,
+                self.config.redis.project.db,
+                charset="utf-8", decode_responses=True)
 
     def get_info(self, buuid):
         bMetadata = {
             'buffered_bytes': self._serv.get(buuid+'_buffered_bytes'),
-            'buffered_flowItems': self._serv.llen(buuid)
+            'buffered_flowItems': self._serv_buffers.llen(buuid)
         }
         return bMetadata
 

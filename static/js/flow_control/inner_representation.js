@@ -1,4 +1,4 @@
-function construct_node(moduleName, moduleType, bytes, flowItem, time) {
+function construct_node(moduleName, moduleType, bytes, flowItem, time, cpu_load, memory_load, pid, state, message) {
     var bytes_formated_in = bytes.bytes_in > 0 ? String((parseFloat(bytes.bytes_in)/1000000.0).toFixed(2)) : String(0);
     var bytes_formated_out = bytes.bytes_out > 0 ? String((parseFloat(bytes.bytes_out)/1000000.0).toFixed(2)) : String(0);
     var bytes_formated = bytes_formated_in + ' / ' + bytes_formated_out + ' MB';
@@ -6,17 +6,32 @@ function construct_node(moduleName, moduleType, bytes, flowItem, time) {
     var flowItem_formated_in = flowItem.flowItem_in > 0 ? String(flowItem.flowItem_in) : String(0);
     var flowItem_formated_out = flowItem.flowItem_out > 0 ? String(flowItem.flowItem_out) : String(0);
     var flowItem_formated = flowItem_formated_in + ' / ' + flowItem_formated_out + ' FlowItems';
+    var memory_load_formated = (memory_load > 0 ? String((parseFloat(memory_load)/1000000.0).toFixed(2)) : String(0)) + ' MB';
+    var state_formated;
+    switch (state) {
+        case "running":
+            state_formated = '#28a745'
+            break;
+        case "paused":
+            state_formated = '#ffc107'
+            break;
+        case "crashed":
+            state_formated = '#dc3545'
+            break;
+        default:
+            state_formated = '#dc3545'
+    }
 
     var mapObj = {
         '\{\{moduleName\}\}':   moduleName,
         '\{\{bytes\}\}':        bytes_formated,
         '\{\{flowItem\}\}':     flowItem_formated,
         '\{\{time\}\}':         String(parseFloat(time).toFixed(2))+'sec',
-        '\{\{cpuload\}\}':      17+'%',
-        '\{\{memload\}\}':      13+'%',
-        '\{\{pid\}\}':          1234,
-        '\{\{state\}\}':        '#5cb85c',
-        '\{\{customMessage\}\}':'A custom message'
+        '\{\{cpuload\}\}':      cpu_load+'%',
+        '\{\{memload\}\}':      memory_load_formated,
+        '\{\{pid\}\}':          pid,
+        '\{\{state\}\}':        state_formated,
+        '\{\{customMessage\}\}':message
     };
     var raw_svg
     switch (moduleType) {
@@ -48,10 +63,11 @@ function construct_node(moduleName, moduleType, bytes, flowItem, time) {
 }
 
 function construct_buffer(bufferName, bytes, flowItem) {
+    var bytes_formated = (bytes > 0 ? String((parseFloat(bytes)/1000000.0).toFixed(2)) : String(0)) + ' MB';
     var mapObj = {
         '\{\{bufferName\}\}':   bufferName,
-        '\{\{bytes\}\}':        bytes,
-        '\{\{flowItem\}\}':     flowItem
+        '\{\{bytes\}\}':        bytes_formated,
+        '\{\{flowItem\}\}':     flowItem + ' FlowItems'
     };
 
     var re = new RegExp(Object.keys(mapObj).join("|"),"gi");
@@ -110,7 +126,13 @@ class InnerRepresentation {
                         node['type'],
                         { bytes_in: jStats['bytes_in'], bytes_out: jStats['bytes_out'] },  // bytes
                         { flowItem_in: jStats['flowItem_in'], flowItem_out: jStats['flowItem_out'] }, // flowItem
-                        jStats['processing_time']
+                        jStats['processing_time'],
+                        jStats['cpu_load'],
+                        jStats['memory_load'],
+                        jStats['pid'],
+                        jStats['state'],
+                        jStats['custom_message']
+
                     ),
                     size: 75
                 });
@@ -203,6 +225,11 @@ class InnerRepresentation {
                 '?',
                 '?',
                 '?',
+                '?',
+                '?',
+                '?',
+                '?',
+                ''
             ),
             x: nodeData.x,
             y: nodeData.y,

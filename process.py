@@ -4,6 +4,7 @@
 from abc import ABCMeta, abstractmethod
 from time import sleep
 import os, time, sys
+import psutil
 import redis, json
 
 from util import genUUID, objToDictionnary, SummedTimeSpanningArray, Config_parser
@@ -26,7 +27,10 @@ class Process(metaclass=ABCMeta):
         self._alert_manager = Alert_manager()
         self.puuid = puuid
         self.pid = os.getpid()
+        self._p = psutil.Process()
+        self.custom_message = ""
         self._keyCommands = 'command_'+self.puuid
+        self.state = 'running'
 
         self.update_config()
 
@@ -75,9 +79,20 @@ class Process(metaclass=ABCMeta):
     def get_uuid(self):
         return self.puuid
 
+    def get_system_info(self):
+        to_ret = {}
+        to_ret['cpu_load'] = self._p.cpu_percent()
+        to_ret['memory_load'] = self._p.memory_info().rss
+        to_ret['pid'] = self.pid
+        to_ret['state'] = self.state
+        to_ret['custom_message'] = self.custom_message
+        return to_ret
+
     def get_representation(self, full=False):
         pInfo = objToDictionnary(self, full=full)
-        pInfo['stats'] = self._processStat.get_dico()
+        dStat = self._processStat.get_dico()
+        dStat.update(self.get_system_info())
+        pInfo['stats'] = dStat
         return pInfo
 
     # push current process info to redis depending on the refresh value.

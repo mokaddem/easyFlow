@@ -37,9 +37,11 @@ class Generate_lorem_ipsum(Process_no_input):
             if self.custom_config['ipsumType'] == 'text':
                 r = random.randint(0, len(texts)-1)
                 self.forward(texts[r])
+                self.custom_message = 'last generated: '+texts[r][0:20]
             elif self.custom_config['ipsumType'] == 'numbers':
                 num = random.randint(0, 1000)
                 self.forward(str(num))
+                self.custom_message = 'last generated: '+num
             else:
                 print('error type', self.custom_config['ipsumType'])
             time.sleep(self.custom_config['sleepTime'])

@@ -122,6 +122,13 @@ class Process_manager:
             # send signal to the module
             self.processes[puuid]._subprocessObj.send_signal(signal.SIGUSR1)
 
+    def pause_process(self, puuid):
+        self.send_command(puuid, 'pause')
+    def play_process(self, puuid):
+        self.send_command(puuid, 'play')
+    def restart(self, puuid):
+        pass
+
     def send_command(self, puuid, command, data=None):
         jCommand = {}
         jCommand['operation'] = command

@@ -118,10 +118,10 @@ function draw() {
         flowControl.handleNodesDrag(params.nodes);
     });
     $('#pcontrol_play').click(function(){
-
+        flowControl.play_node()
     });
     $('#pcontrol_pause').click(function(){
-
+        flowControl.pause_node()
     });
     $('#pcontrol_logs').click(function(){
 

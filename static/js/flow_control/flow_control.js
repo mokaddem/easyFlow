@@ -16,6 +16,15 @@ class FlowControl {
         innerRepresentation.clear_selection();
     }
 
+    pause_node() {
+        var uuids = this.selected;
+        this.execute_operation('pause_process', {puuid: uuids}, false);
+    }
+    play_node() {
+        var uuids = this.selected;
+        this.execute_operation('play_process', {puuid: uuids}, false);
+    }
+
     edit_node() {
         var self = this;
         if (this.selected.length > 1) { return; /* do not edit if multiple nodes are selected */ }

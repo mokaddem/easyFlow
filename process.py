@@ -138,13 +138,17 @@ class Process(metaclass=ABCMeta):
             # send info about current module state
             self.push_p_info()
 
-            # Process flowItems
-            flowItem = self._link_manager.get_flowItem()
-            if flowItem is not None: # if not part of the flow yet
-                self._processStat.register_processing(flowItem)
-                self.process_message(flowItem.message())
-                self._processStat.register_processed()
-            else:
+            if self.state == 'running':
+                # Process flowItems
+                flowItem = self._link_manager.get_flowItem()
+                if flowItem is not None: # if not part of the flow yet
+                    self._processStat.register_processing(flowItem)
+                    self.process_message(flowItem.message())
+                    self._processStat.register_processed()
+                else:
+                    time.sleep(self.config.default_project.process.pooling_time_interval_get_message)
+
+            else: # process paused
                 time.sleep(self.config.default_project.process.pooling_time_interval_get_message)
 
 
@@ -165,16 +169,16 @@ class Process(metaclass=ABCMeta):
             )
         elif operation == 'pause':
             self.pause()
-        elif operation == 'start':
-            self.start()
+        elif operation == 'play':
+            self.play()
         else:
             pass
 
     def pause(self):
-        pass
+        self.state = 'paused'
 
-    def start(self):
-        pass
+    def play(self):
+        self.state = 'running'
 
     @abstractmethod
     def process_message(self, msg):

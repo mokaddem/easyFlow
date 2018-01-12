@@ -153,9 +153,16 @@ class Project:
 
     def flowOperation(self, operation, data):
         concerned_processes = []
-        print('Flow operation:', operation)
+        # print('Flow operation:', operation)
+        if operation == 'pause_process':
+            for puuid in data.get('puuid', []): # may contain multiple processes
+                self._process_manager.pause_process(puuid)
+        elif operation == 'play_process':
+            for puuid in data.get('puuid', []): # may contain multiple processes
+                self._process_manager.play_process(puuid)
+
         # ''' PROCESSES '''
-        if operation == 'create_process':
+        elif operation == 'create_process':
             process_config = self._process_manager.create_process(data)
             puuid = process_config.puuid
             if puuid == 0:

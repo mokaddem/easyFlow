@@ -7,6 +7,7 @@ function construct_node(moduleName, moduleType, bytes, flowItem, time, cpu_load,
     var flowItem_formated_out = flowItem.flowItem_out > 0 ? String(flowItem.flowItem_out) : String(0);
     var flowItem_formated = flowItem_formated_in + ' / ' + flowItem_formated_out + ' FlowItems';
     var memory_load_formated = (memory_load > 0 ? String((parseFloat(memory_load)/1000000.0).toFixed(2)) : String(0)) + ' MB';
+
     var state_formated;
     switch (state) {
         case "running":
@@ -19,9 +20,8 @@ function construct_node(moduleName, moduleType, bytes, flowItem, time, cpu_load,
             state_formated = '#dc3545'
             break;
         default:
-            state_formated = '#dc3545'
+            state_formated = '#868e96' // No info
     }
-
     var mapObj = {
         '\{\{moduleName\}\}':   moduleName,
         '\{\{bytes\}\}':        bytes_formated,

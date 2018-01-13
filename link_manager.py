@@ -89,7 +89,8 @@ class Link_manager:
 
 
 class Multiple_link_manager(Link_manager):
-    def __init__(self, projectUUID, puuid, custom_config, multi_in=True):
+    def __init__(self, projectUUID, puuid, custom_config, multi_in=True, is_switch=False):
+        self.is_switch = is_switch
         super().__init__(projectUUID, puuid, custom_config)
         self.custom_config = custom_config
         self.multi_in = multi_in
@@ -107,11 +108,10 @@ class Multiple_link_manager(Link_manager):
             self.interleave_index = self.interleave_index+1 if self.interleave_index < len(self.egress)-1 else 0
 
     def update_connections(self, custom_config):
+        self.custom_config = custom_config
+        config = self.get_config()
         self.ingress = []
         self.egress = []
-        config = self.get_config()
-
-        self.custom_config = custom_config
 
         for buuid, bConfig in config.items():
             procTo = bConfig['toUUID']
@@ -121,12 +121,22 @@ class Multiple_link_manager(Link_manager):
             if procFrom == self.puuid:
                 self.egress.append(buuid)
 
+        if self.is_switch: # custom_config contains buffer mapping {buuid: channel, ...}
+            self.egress = {0: []}
+            for buuid, channel in self.custom_config.items():
+                if channel not in self.egress:
+                    self.egress[channel] = []
+                self.egress[channel].append(buuid)
+                self.egress[0].append(buuid)
+
+
     def get_flowItem(self):
         if len(self.ingress) > 0: # check that has at least 1 ingess connection
+            multiplex_logic = self.custom_config.get('multiplex_logic', 'Interleave')
             if self.multi_in: # custom logic: interleaving, priority
-                if self.custom_config['multiplex_logic'] == 'Interleave':
+                if multiplex_logic == 'Interleave':
                     flowItem_raw = self._serv_buffers.rpop(self.ingress[self.interleave_index])
-                elif self.custom_config['multiplex_logic'] == 'Priority':
+                elif multiplex_logic == 'Priority':
                     print('ingoring priority for the moment')
                     flowItem_raw = self._serv_buffers.rpop(self.ingress[self.interleave_index])
                 else:
@@ -151,20 +161,27 @@ class Multiple_link_manager(Link_manager):
 
     def push_flowItem(self, flowItem):
         if len(self.egress) > 0: # check that has at least 1 egress connection
+            multiplex_logic = self.custom_config.get('multiplex_logic', 'Interleave')
+            multiplex_logic = 'Switch' if self.is_switch else multiplex_logic # change multiplex_logic in case of switch
             if self.multi_out: # custom logic: copy, dispatch
-                if self.custom_config['multiplex_logic'] == 'Interleave':
+                if multiplex_logic == 'Interleave':
                     self._buffer_metadata_interface.push_info(self.egress[self.interleave_index], flowItem.size) # increase buffer size
                     self._serv_buffers.lpush(self.egress[self.interleave_index], flowItem)
                     self.inc_interleave_index()
-                elif self.custom_config['multiplex_logic'] == 'Priority':
+                elif multiplex_logic == 'Priority':
                     print('igoring priority for the moment')
                     self._buffer_metadata_interface.push_info(self.egress[self.interleave_index], flowItem.size) # increase buffer size
                     self._serv_buffers.lpush(self.egress[self.interleave_index], flowItem)
                     self.inc_interleave_index()
-                elif self.custom_config['multiplex_logic'] == 'Duplicate':
+                elif multiplex_logic == 'Duplicate':
                     for key in self.egress:
                         self._buffer_metadata_interface.push_info(key, flowItem.size) # increase buffer size
                         self._serv_buffers.lpush(key, flowItem)
+                elif multiplex_logic == 'Switch':
+                    buuids = self.egress[flowItem.channel]
+                    for buuid in buuids:
+                        self._buffer_metadata_interface.push_info(buuid, flowItem.size) # increase buffer size
+                        self._serv_buffers.lpush(buuid, flowItem)
                 else:
                     print('Unkown multiplexer logic')
             else: # same as simple link manager
@@ -175,7 +192,7 @@ class Multiple_link_manager(Link_manager):
             return False
 
 class FlowItem:
-    def __init__(self, content, origin=None, raw=False):
+    def __init__(self, content, origin=None, raw=False, channel=0):
         if raw:
             if content is None:
                 self.content = None
@@ -184,10 +201,13 @@ class FlowItem:
                 self.content = jflowItem['content']
                 self.size = jflowItem['size']
                 self.origin = jflowItem['origin']
+                # self.channel = jflowItem['channel'] ## ignore no channel...
+                self.channel = jflowItem['channel'] ## ignore no channel...
         else:
             self.content = content
             self.size = len(content.encode('utf-8'))
             self.origin = origin
+            self.channel = channel
 
     def message(self):
         return self.content

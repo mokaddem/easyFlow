@@ -41,8 +41,8 @@ class Process_no_input(Process, metaclass=ABCMeta):
                 time.sleep(self.config.default_project.process.pooling_time_interval_get_message)
 
     # forward is called from generate_data().
-    def forward(self, msg):
+    def forward(self, msg, channel=0):
         self.push_p_info()
-        flowItem = FlowItem(msg)
+        flowItem = FlowItem(msg, channel=channel)
         if self._link_manager.push_flowItem(flowItem):
             self._processStat.register_forward(flowItem)

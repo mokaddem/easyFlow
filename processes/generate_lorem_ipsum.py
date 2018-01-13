@@ -40,8 +40,9 @@ class Generate_lorem_ipsum(Process_no_input):
                 self.custom_message = 'last generated: '+texts[r][0:20]
             elif self.custom_config['ipsumType'] == 'numbers':
                 num = random.randint(0, 1000)
-                self.forward(str(num))
-                self.custom_message = 'last generated: '+num
+                channel = 1 if num > 500 else 2
+                self.forward(str(num), channel)
+                self.custom_message = 'last generated: '+str(num)
             else:
                 print('error type', self.custom_config['ipsumType'])
             time.sleep(self.custom_config['sleepTime'])

@@ -7,7 +7,7 @@ sys.path.append(os.path.join(curdir, '..'))
 from process import Process
 
 class Print_to_console(Process):
-    def process_message(self, msg):
+    def process_message(self, msg, channel):
         print('Print_to_console [{}]: {}'.format(os.getpid(), msg))
         self.custom_message = 'last printed: '+msg[0:20]
         # self.forward(msg)

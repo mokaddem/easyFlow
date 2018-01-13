@@ -45,6 +45,8 @@ class Process(metaclass=ABCMeta):
             self._link_manager = Multiple_link_manager(self.projectUUID, self.puuid, self.custom_config, multi_in=True)
         elif self.type == 'multiplexer_out':
             self._link_manager = Multiple_link_manager(self.projectUUID, self.puuid, self.custom_config, multi_in=False)
+        elif self.type == 'switch':
+            self._link_manager = Multiple_link_manager(self.projectUUID, self.puuid, self.custom_config, multi_in=False, is_switch=True)
         else:
             self._link_manager = Link_manager(self.projectUUID, self.puuid, self.custom_config)
 
@@ -143,7 +145,7 @@ class Process(metaclass=ABCMeta):
                 flowItem = self._link_manager.get_flowItem()
                 if flowItem is not None: # if not part of the flow yet
                     self._processStat.register_processing(flowItem)
-                    self.process_message(flowItem.message())
+                    self.process_message(flowItem.message(), flowItem.channel)
                     self._processStat.register_processed()
                 else:
                     time.sleep(self.config.default_project.process.pooling_time_interval_get_message)
@@ -152,8 +154,8 @@ class Process(metaclass=ABCMeta):
                 time.sleep(self.config.default_project.process.pooling_time_interval_get_message)
 
 
-    def forward(self, msg):
-        flowItem = FlowItem(msg)
+    def forward(self, msg, channel=0):
+        flowItem = FlowItem(msg, channel=channel)
         if self._link_manager.push_flowItem(flowItem):
             self._processStat.register_forward(flowItem)
 
@@ -181,7 +183,7 @@ class Process(metaclass=ABCMeta):
         self.state = 'running'
 
     @abstractmethod
-    def process_message(self, msg):
+    def process_message(self, msg, channel):
         pass
 
 class ProcessStat:

@@ -142,7 +142,7 @@ function getFormData(formID) {
     return formData
 }
 
-function fillForm(formID, formIDCustom, formData) {
+function fillForm(formID, formIDCustom, isUpdate, formData) {
     for(key in formData) {
         if(formData.hasOwnProperty(key)){
             // standard input
@@ -152,17 +152,18 @@ function fillForm(formID, formIDCustom, formData) {
             sel.val(formData[key]);
             // disable changing the process type
             if (key == 'type') {
-                sel.prop('disabled', true);
+                // sel.prop('disabled', true);
             }
         }
     }
 
     // empty form and create input for custom config
     $('#'+formIDCustom).empty();
+    var selected_type = $('#'+formID).find('[name="type"]').val()
     if (formID == "formAddSwitch") {
-        add_html_based_on_json($('#'+formID).find('[name="type"]').val(), $('#'+formIDCustom), formData.connections);
+        add_html_based_on_json(selected_type, $('#'+formIDCustom), isUpdate, formData.connections);
     } else {
-        add_html_based_on_json($('#'+formID).find('[name="type"]').val(), $('#'+formIDCustom), undefined);
+        add_html_based_on_json(selected_type, $('#'+formIDCustom), isUpdate, undefined);
     }
     // add data for custom config
     var form_custom_config = formData.custom_config;
@@ -172,6 +173,7 @@ function fillForm(formID, formIDCustom, formData) {
             $('#'+formIDCustom).find('input[name='+key+']').val(form_custom_config[key]);
             // select
             $('#'+formIDCustom).find('select[name='+key+']').val(form_custom_config[key]);
+
             // open tab if needed
             $('#'+key+'_additional_options_'+form_custom_config[key]).collapse('toggle');
         }
@@ -179,7 +181,7 @@ function fillForm(formID, formIDCustom, formData) {
 
 }
 
-function create_html_from_json(pName, j) {
+function create_html_from_json(pName, j, isUpdate) {
     var div = document.createElement('div');
     div.classList.add('form-group')
 
@@ -191,7 +193,7 @@ function create_html_from_json(pName, j) {
     if (j.required) {
         elem.setAttribute("required", "");
     }
-    if (j.dynamic_change === undefined || j.dynamic_change == false) {
+    if (isUpdate && (j.dynamic_change === undefined || j.dynamic_change == false)) {
         elem.setAttribute("disabled", "");
     }
     elem.setAttribute("name", pName);
@@ -245,7 +247,7 @@ function create_html_from_json(pName, j) {
                 // recursive call to generate html
                 for (var fName in j.additional_options[option]) {
                     if (j.additional_options[option].hasOwnProperty(fName)) {
-                        var domElement = create_html_from_json(fName, j.additional_options[option][fName])
+                        var domElement = create_html_from_json(pName+'_'+fName, j.additional_options[option][fName], isUpdate)
                         divBody.appendChild(domElement)
                     }
                 }
@@ -275,11 +277,11 @@ function create_html_from_json(pName, j) {
     return div;
 }
 
-function add_html_based_on_json(pName, jqObject, jsonProvided) {
+function add_html_based_on_json(pName, jqObject, isUpdate, jsonProvided) {
     var config = jsonProvided === undefined ? custom_config_json[pName] : jsonProvided;
     for (var pName in config) {
         if (config.hasOwnProperty(pName)) {
-            var domElement = create_html_from_json(pName, config[pName])
+            var domElement = create_html_from_json(pName, config[pName], isUpdate)
             jqObject.append(domElement)
         }
     }

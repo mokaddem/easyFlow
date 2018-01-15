@@ -200,7 +200,7 @@ class FlowControl {
                 if (data_connection != null){
                     data.connections = data_connection;
                 }
-                fillForm(formID, formIDCustom, data);
+                fillForm(formID, formIDCustom, true, data);
                 form_callback();
             }
         );
@@ -233,10 +233,14 @@ class FlowControl {
         if (dropData.update) {
             confirmBtn.text('Update');
             $('#'+modalID).find('.modal-title').text('Update: '+innerRepresentation.processObj[dropData.puuid].name);
+            // disable type change
+            $('#processTypeSelector').prop('disabled', true);
         } else {
             confirmBtn.text('Create');
             $('#'+modalID).find('.modal-title').text('Create');
+            $('#processTypeSelector').prop('disabled', false);
         }
+
         // main logic
         confirmBtn.one('click', function(event) {
             if (validateForm(formID)) {

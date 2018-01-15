@@ -36,8 +36,10 @@ class Generate_lorem_ipsum(Process_no_input):
         while True:
             if self.custom_config['ipsumType'] == 'text':
                 r = random.randint(0, len(texts)-1)
-                self.forward(texts[r])
-                self.custom_message = 'last generated: '+texts[r][0:20]
+                to_send = texts[r]
+                # if self.custom_config['']
+                self.forward(to_send)
+                self.custom_message = 'last generated: '+to_send[0:20]
             elif self.custom_config['ipsumType'] == 'numbers':
                 num = random.randint(0, 1000)
                 channel = 1 if num > 500 else 2

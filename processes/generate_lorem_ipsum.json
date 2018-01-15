@@ -8,13 +8,40 @@
         "step": 0.02,
         "default": 1,
         "placeholder": "sleepTime",
-        "required": "true"
+        "required": true,
+        "dynamic_change": true
     },
     "ipsumType": {
         "label": "Type of dummy text to generate",
         "DOM": "select",
         "options": ["text", "numbers"],
         "default": "text",
-        "required": "true"
+        "required": true,
+        "dynamic_change": true,
+        "additional_options": {
+            "numbers": {
+                "generation_range": {
+                    "label": "The range for the generation of numbers",
+                    "DOM": "input",
+                    "inputType": "number",
+                    "min": 0,
+                    "max": 1000000000,
+                    "step": 1,
+                    "default": 1000,
+                    "required": true,
+                    "dynamic_change": true
+                }
+            },
+            "text": {
+                "should_be_uppercase": {
+                    "label": "Should the generated text be only in upper case",
+                    "DOM": "input",
+                    "inputType": "checkbox",
+                    "default": false,
+                    "required": true,
+                    "dynamic_change": true
+                }
+            }
+        }
     }
 }

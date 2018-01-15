@@ -148,9 +148,15 @@ function fillForm(formID, formIDCustom, formData) {
             // standard input
             $('#'+formID).find('input[name='+key+']').val(formData[key]);
             // select
-            $('#'+formID).find('select[name='+key+']').val(formData[key]);
+            var sel = $('#'+formID).find('select[name='+key+']');
+            sel.val(formData[key]);
+            // disable changing the process type
+            if (key == 'type') {
+                sel.prop('disabled', true);
+            }
         }
     }
+
     // empty form and create input for custom config
     $('#'+formIDCustom).empty();
     if (formID == "formAddSwitch") {
@@ -166,14 +172,14 @@ function fillForm(formID, formIDCustom, formData) {
             $('#'+formIDCustom).find('input[name='+key+']').val(form_custom_config[key]);
             // select
             $('#'+formIDCustom).find('select[name='+key+']').val(form_custom_config[key]);
+            // open tab if needed
+            $('#'+key+'_additional_options_'+form_custom_config[key]).collapse('toggle');
         }
     }
 
 }
 
 function create_html_from_json(pName, j) {
-    // console.log(pName);
-    // console.log(j);
     var div = document.createElement('div');
     div.classList.add('form-group')
 
@@ -181,8 +187,12 @@ function create_html_from_json(pName, j) {
     var label = document.createElement('label');
     label.innerHTML = j.label;
     var elem = document.createElement(domType);
-    if (j.required == 'true') {
+    // if (j.required == 'true') {
+    if (j.required) {
         elem.setAttribute("required", "");
+    }
+    if (j.dynamic_change === undefined || j.dynamic_change == false) {
+        elem.setAttribute("disabled", "");
     }
     elem.setAttribute("name", pName);
     elem.classList.add('form-control');
@@ -210,8 +220,58 @@ function create_html_from_json(pName, j) {
         default:
             break;
     }
+    // create collapsible pannel for SELECT options
+    var divPG = document.createElement('div');
+    divPG.classList.add('panel-group');
+    divPG.setAttribute("id", pName+'_panelGroup');
+    var divPan = document.createElement('div');
+    divPan.classList.add('panel', 'panel-default', 'border-no-top');
+    if (typeof(j.additional_options) !== undefined) {
+        // iterate over each possible option and create a dedicated pannel.
+        for (var option in j.additional_options) {
+            if (j.additional_options.hasOwnProperty(option)) {
+                var divHead = document.createElement('div');
+                divHead.classList.add('panel-heading');
+                var head4 = document.createElement('h4');
+                head4.classList.add('panel-title');
+                head4.innerHTML = option;
+                divHead.appendChild(head4)
+                var divCollapse = document.createElement('div');
+                divCollapse.classList.add('panel-collapse', 'collapse');
+                divCollapse.setAttribute("id", pName+'_additional_options_'+option);
+                var divBody = document.createElement('div');
+                divBody.classList.add('panel-body');
+
+                // recursive call to generate html
+                for (var fName in j.additional_options[option]) {
+                    if (j.additional_options[option].hasOwnProperty(fName)) {
+                        var domElement = create_html_from_json(fName, j.additional_options[option][fName])
+                        divBody.appendChild(domElement)
+                    }
+                }
+                // append all element to form the collapsible panel
+                divCollapse.appendChild(divBody)
+                // divPan.appendChild(divHead)
+                divPan.appendChild(divCollapse)
+                divPG.appendChild(divPan)
+            }
+        }
+        // add the listener to display the panel
+        elem.addEventListener("change", function() {
+            selected = this.value;
+            // close active pannel
+            var actives = $('#'+pName+'_panelGroup').find('.in, .collapsing');
+            actives.each( function (index, element) {
+                $(element).collapse('hide');
+            })
+            $('#'+pName+'_additional_options_'+selected).collapse('toggle');
+
+        });
+    }
+
     div.appendChild(label);
     div.appendChild(elem);
+    div.appendChild(divPG);
     return div;
 }
 

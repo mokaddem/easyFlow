@@ -20,6 +20,8 @@ class Process_metadata_interface:
 
     def get_info(self, puuid):
         jMetadata = self._serv.get(puuid)
+        if jMetadata is None:
+            return {}
         pMetadata = json.loads(jMetadata)
         return pMetadata
 

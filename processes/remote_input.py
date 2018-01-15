@@ -13,7 +13,7 @@ class Remote_input(Process_no_input):
         remote_protocol = self.custom_config['remote_protocol']
         host = self.custom_config['remote_host']
         port = self.custom_config['remote_port']
-        print('Listening on', '({}, {})'.format(host, port))
+        print('Trying to listen on', '({}, {})'.format(host, port))
 
         if remote_protocol == 'socket':
             sock = None

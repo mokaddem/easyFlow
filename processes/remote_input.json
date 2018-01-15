@@ -8,7 +8,7 @@
         "step": 0.01,
         "default": 1,
         "placeholder": "sleepTime",
-        "required": "true",
+        "required": true,
         "dynamic_change": true
     },
     "remote_host": {
@@ -16,7 +16,7 @@
         "DOM": "input",
         "inputType": "text",
         "default": "127.0.0.1",
-        "required": "true",
+        "required": true,
         "placeholder": "hostname"
     },
     "remote_port": {
@@ -24,7 +24,7 @@
         "DOM": "input",
         "inputType": "number",
         "default": "",
-        "required": "true",
+        "required": true,
         "placeholder": "port number"
     },
     "remote_protocol": {
@@ -40,7 +40,7 @@
                     "DOM": "input",
                     "inputType": "text",
                     "default": "",
-                    "required": "false",
+                    "required": false,
                     "placeholder": "Keep empty to consider all topics"
                 }
             },
@@ -52,7 +52,7 @@
                     "min": 0,
                     "max": 15,
                     "default": 0,
-                    "required": "true",
+                    "required": true,
                     "placeholder": "Database number"
                 },
                 "redis_channel": {
@@ -60,7 +60,7 @@
                     "DOM": "input",
                     "inputType": "text",
                     "default": "",
-                    "required": "true",
+                    "required": false,
                     "placeholder": "Keep empty to consider all topics"
                 }
             }

@@ -6,7 +6,7 @@ from process import Process
 import time
 
 class Print_to_console(Process):
-    def process_message(self, msg):
+    def process_message(self, msg, channel):
         print(time.time())
 
 if __name__ == '__main__':

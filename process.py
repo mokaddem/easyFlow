@@ -183,7 +183,7 @@ class Process(metaclass=ABCMeta):
         self.state = 'running'
 
     @abstractmethod
-    def process_message(self, msg, channel):
+    def process_message(self, msg, channel=0):
         pass
 
 class ProcessStat:

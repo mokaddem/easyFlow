@@ -181,7 +181,7 @@ function create_html_from_json(pName, j) {
     var label = document.createElement('label');
     label.innerHTML = j.label;
     var elem = document.createElement(domType);
-    if (j.required) {
+    if (j.required == 'true') {
         elem.setAttribute("required", "");
     }
     elem.setAttribute("name", pName);

@@ -203,7 +203,7 @@ class InnerRepresentation {
         this.auto_refresh = setInterval( function() {
             innerRepresentation.get_processes_info();
 
-        }, auto_refresh_rate);
+        }, auto_refresh_rate*1000);
     }
 
     resync_representation(callback_resync) {

@@ -150,6 +150,14 @@ class FlowControl {
             });
 
         } else if (dropData.type == 'remote_input') {
+            self.handleModal('AddProcess', dropData, function(modalData) {
+                self.execute_operation('create_process', modalData)
+                .done(function(responseData, textStatus, jqXHR) {
+                })
+                .fail(function() {
+                    console.log( "An error occured" );
+                });
+            });
         } else if (dropData.type == 'remote_output') {
         } else if (dropData.type == 'switch') {
             self.handleModal('AddSwitch', dropData, function(modalData) {

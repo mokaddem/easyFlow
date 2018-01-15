@@ -1,0 +1,62 @@
+{
+    "sleepTime": {
+        "label": "Time to wait between pooling for message",
+        "DOM": "input",
+        "inputType": "number",
+        "min": 0.01,
+        "max": 180,
+        "step": 0.01,
+        "default": 1,
+        "placeholder": "sleepTime",
+        "required": "true"
+    },
+    "remote_protocol": {
+        "label": "Remote protocol",
+        "DOM": "select",
+        "options": ["socket", "ZMQ", "redis_pubsub"],
+        "default": "socket",
+        "required": "true"
+    },
+    "remote_host": {
+        "label": "Hostname",
+        "DOM": "input",
+        "inputType": "text",
+        "default": "127.0.0.1",
+        "required": "true",
+        "placeholder": "hostname"
+    },
+    "remote_port": {
+        "label": "Port",
+        "DOM": "input",
+        "inputType": "number",
+        "default": "",
+        "required": "true",
+        "placeholder": "port number"
+    },
+    "zmq_topic": {
+        "label": "ZMQ topic",
+        "DOM": "input",
+        "inputType": "text",
+        "default": "",
+        "required": "false",
+        "placeholder": "Keep empty to consider all topics"
+    },
+    "redis_db": {
+        "label": "Redis database number",
+        "DOM": "input",
+        "inputType": "number",
+        "min": 0,
+        "max": 15,
+        "default": 0,
+        "required": "true",
+        "placeholder": "Database number"
+    },
+    "redis_channel": {
+        "label": "Redis channel",
+        "DOM": "input",
+        "inputType": "text",
+        "default": "",
+        "required": "true",
+        "placeholder": "Keep empty to consider all topics"
+    }
+}

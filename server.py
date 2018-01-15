@@ -75,6 +75,7 @@ def index():
             raw_buffer_svg=raw_buffer_svg,
             all_process_type=all_process_type,
             custom_config_json=custom_config_json,
+            auto_refresh_rate=config.web.refresh_metadata_interval_in_sec,
             all_multiplexer_in=all_multiplexer_in,
             all_multiplexer_out=all_multiplexer_out,
             all_switch=all_switch,

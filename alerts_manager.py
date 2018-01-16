@@ -1,13 +1,14 @@
 #!/usr/bin/env python3.5
 import json
 import redis
-import time
+import time, os
 from util import genUUID, objToDictionnary, Config_parser
+easyFlow_conf = os.path.join(os.environ['FLOW_CONFIG'], 'easyFlow_conf.json')
 
 ''' for now, raw json in redis '''
 class Alert_manager:
     def __init__(self):
-        self.config = Config_parser('config/easyFlow_conf.json').get_config()
+        self.config = Config_parser(easyFlow_conf).get_config()
         try:
             self._serv = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
         except: # fallback using TCP instead of unix_socket

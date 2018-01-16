@@ -9,10 +9,11 @@ from util import genUUID, objToDictionnary, Config_parser
 from alerts_manager import Alert_manager
 from process_print_to_console import Print_to_console
 from process_metadata_interface import Process_metadata_interface, Process_representation, Link_representation, Buffer_metadata_interface
+easyFlow_conf = os.path.join(os.environ['FLOW_CONFIG'], 'easyFlow_conf.json')
 
 class Process_manager:
     def __init__(self, projectUUID):
-        self.config = Config_parser('config/easyFlow_conf.json', projectUUID).get_config()
+        self.config = Config_parser(easyFlow_conf, projectUUID).get_config()
         try:
             self._serv = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
         except: # fallback using TCP instead of unix_socket
@@ -195,7 +196,7 @@ class Process_manager:
             process_config = Process_representation(data)
             self._serv.set('config_'+puuid, process_config.toJSON())
             # start process with Popen
-            args = shlex.split('python3.5 {} {}'.format(os.path.join('processes/', process_type+'.py'), puuid))
+            args = shlex.split('python3.5 {} {}'.format(os.path.join(os.environ['FLOW_PROC'], process_type+'.py'), puuid))
             proc = psutil.Popen(args)
             # wait that process start the run() phase, publish info
             # self.wait_for_process_running_state(puuid)

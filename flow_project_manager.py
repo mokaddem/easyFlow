@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.5
 from os import listdir, remove
 from os.path import isfile, join
+import os
 import json
 import time
 import re
@@ -10,13 +11,14 @@ from util import genUUID, objToDictionnary, dicoToList, Config_parser
 from alerts_manager import Alert_manager
 from process_metadata_interface import Process_metadata_interface
 from process_manager import Process_manager
+easyFlow_conf = join(os.environ['FLOW_CONFIG'], 'easyFlow_conf.json')
 
 class ProjectNotFound(Exception):
     pass
 
 class Project:
     def __init__(self, projectUUID):
-            self.config = Config_parser('config/easyFlow_conf.json', projectUUID).get_config()
+            self.config = Config_parser(easyFlow_conf, projectUUID).get_config()
             try:
                 self._serv = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
             except: # fallback using TCP instead of unix_socket
@@ -262,7 +264,7 @@ class Project:
 class Flow_project_manager:
     def __init__(self):
         self.selected_project = None
-        self.config = Config_parser('config/easyFlow_conf.json').get_config()
+        self.config = Config_parser(easyFlow_conf).get_config()
         try:
             self.serv = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
         except: # fallback using TCP instead of unix_socket
@@ -274,13 +276,13 @@ class Flow_project_manager:
 
     @staticmethod
     def list_process_type(allowed_script):
-        mypath = './processes/'
+        mypath = os.environ['FLOW_PROC']
         onlyfiles = [f.replace('.py', '') for f in listdir(mypath) if (isfile(join(mypath, f)) and f.endswith('.py') and f in allowed_script)]
         return onlyfiles
 
     @staticmethod
     def get_processes_config(procs):
-        mypath = './processes/'
+        mypath = os.environ['FLOW_PROC']
         to_ret = {}
         for procName in procs:
             with open(join(mypath, procName+'.json')) as f:
@@ -316,7 +318,7 @@ class Flow_project_manager:
         if self.is_project_open():
             self.close_project()
         self.selected_project = Project(projectUUID)
-        self.config = Config_parser('config/easyFlow_conf.json', projectUUID).get_config()
+        self.config = Config_parser(easyFlow_conf, projectUUID).get_config()
         self.selected_project.setup_project_manager()
         return self.selected_project.get_project_summary()
 
@@ -355,7 +357,7 @@ class Flow_project_manager:
     def close_project(self, resp=None):
         self.selected_project.close_project()
         self.selected_project = None
-        self.config = Config_parser('config/easyFlow_conf.json').get_config()
+        self.config = Config_parser(easyFlow_conf).get_config()
         if resp is not None:
             self.reset_cookies(resp) # set cookies to 'null'
 

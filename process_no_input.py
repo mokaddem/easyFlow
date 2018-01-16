@@ -1,8 +1,7 @@
 #!/usr/bin/env python3.5
 # -*-coding:UTF-8 -*
 import sys, os
-curdir = os.path.dirname(os.path.realpath(__file__))
-sys.path.append(os.path.join(curdir, '..'))
+sys.path.append(os.environ['FLOW_HOME'])
 
 import time
 import signal

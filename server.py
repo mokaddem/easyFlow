@@ -15,8 +15,8 @@ import os
 from util import genUUID, objToDictionnary, Config_parser
 from alerts_manager import Alert_manager
 from flow_project_manager import ProjectNotFound, Flow_project_manager
-
-config = Config_parser('config/easyFlow_conf.json').get_config()
+easyFlow_conf = os.path.join(os.environ['FLOW_CONFIG'], 'easyFlow_conf.json')
+config = Config_parser(easyFlow_conf).get_config()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = config.server.SECRET_KEY
@@ -40,7 +40,7 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in config.server.allowed_file_extension
 
 def read_module_svg_template(filename):
-    with open('static/css/img/{}.svg'.format(filename), 'r') as f:
+    with open(os.path.join(os.environ['FLOW_STATIC'], 'css/img/{}.svg').format(filename), 'r') as f:
         raw_svg = f.read()
     raw_svg = raw_svg.replace("-inkscape-font-specification:'sans-serif Bold'", '') # removed bad options
     raw_svg = raw_svg.replace("-inkscape-font-specification:'Lato Bold'", '') # removed bad options

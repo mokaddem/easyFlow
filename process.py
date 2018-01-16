@@ -14,7 +14,7 @@ from link_manager import Link_manager, Multiple_link_manager, FlowItem
 
 class Process(metaclass=ABCMeta):
     def __init__(self, puuid):
-        self.config = Config_parser('config/easyFlow_conf.json').get_config()
+        self.config = Config_parser(os.path.join(os.environ['FLOW_CONFIG'], 'easyFlow_conf.json')).get_config()
         try:
             self._serv_config = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
         except: # fallback using TCP instead of unix_socket

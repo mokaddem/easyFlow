@@ -9,10 +9,11 @@ import redis, json
 from util import genUUID, objToDictionnary, Config_parser
 from alerts_manager import Alert_manager
 from process_metadata_interface import Process_metadata_interface, Buffer_metadata_interface
+easyFlow_conf = os.path.join(os.environ['FLOW_CONFIG'], 'easyFlow_conf.json')
 
 class Link_manager:
     def __init__(self, projectUUID, puuid, custom_config):
-        self.config = Config_parser('config/easyFlow_conf.json', projectUUID).get_config()
+        self.config = Config_parser(easyFlow_conf, projectUUID).get_config()
         # from puuid, get buuid
         self.projectUUID = projectUUID
         self.puuid = puuid

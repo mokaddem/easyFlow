@@ -12,7 +12,9 @@ from process_metadata_interface import Process_metadata_interface, Buffer_metada
 easyFlow_conf = os.path.join(os.environ['FLOW_CONFIG'], 'easyFlow_conf.json')
 
 class Link_manager:
-    def __init__(self, projectUUID, puuid, custom_config):
+    def __init__(self, projectUUID, puuid, custom_config, logger):
+        self.logger = logger
+
         self.config = Config_parser(easyFlow_conf, projectUUID).get_config()
         # from puuid, get buuid
         self.projectUUID = projectUUID
@@ -46,6 +48,7 @@ class Link_manager:
         self._buffer_metadata_interface = Buffer_metadata_interface()
 
     def update_connections(self, custom_config):
+        self.logger.debug('updating connections')
         self.ingress = None
         self.egress = None
         config = self.get_config()
@@ -72,6 +75,7 @@ class Link_manager:
                 return flowItem
         else:
             # Either return None or wait until part of the flow
+            self.logger.warning('Process wanted to get message but no ingress connection is registered')
             return None
 
     def push_flowItem(self, flowItem):
@@ -80,6 +84,7 @@ class Link_manager:
             self._serv_buffers.lpush(self.egress, flowItem)
             return True
         else:
+            self.logger.warning('Process wanted to push message but no egress connection is registered')
             return False
 
     def get_config(self):
@@ -90,9 +95,10 @@ class Link_manager:
 
 
 class Multiple_link_manager(Link_manager):
-    def __init__(self, projectUUID, puuid, custom_config, multi_in=True, is_switch=False):
+    def __init__(self, projectUUID, puuid, custom_config, logger, multi_in=True, is_switch=False):
+        self.logger = logger
         self.is_switch = is_switch
-        super().__init__(projectUUID, puuid, custom_config)
+        super().__init__(projectUUID, puuid, custom_config, logger)
         self.custom_config = custom_config
         self.multi_in = multi_in
         self.multi_out = not multi_in
@@ -109,6 +115,7 @@ class Multiple_link_manager(Link_manager):
             self.interleave_index = self.interleave_index+1 if self.interleave_index < len(self.egress)-1 else 0
 
     def update_connections(self, custom_config):
+        self.logger.debug('updating connections')
         self.custom_config = custom_config
         config = self.get_config()
         self.ingress = []
@@ -138,10 +145,10 @@ class Multiple_link_manager(Link_manager):
                 if multiplex_logic == 'Interleave':
                     flowItem_raw = self._serv_buffers.rpop(self.ingress[self.interleave_index])
                 elif multiplex_logic == 'Priority':
-                    print('ingoring priority for the moment')
+                    self.logger.warning('Ignoring priority for the moment, falling back to "Interleave" multiplex_logic')
                     flowItem_raw = self._serv_buffers.rpop(self.ingress[self.interleave_index])
                 else:
-                    print('Unkown multiplexer logic')
+                    self.logger.warning('Unkown multiplexer logic')
 
                 if flowItem_raw is None:
                     return None
@@ -159,6 +166,8 @@ class Multiple_link_manager(Link_manager):
                     flowItem = FlowItem(flowItem_raw, raw=True)
                     self._buffer_metadata_interface.push_info(self.ingress[0], -flowItem.size) # decrease buffer size
                     return flowItem
+        else:
+            self.logger.warning('Process wanted to get message but no ingress connection(s) are registered')
 
     def push_flowItem(self, flowItem):
         if len(self.egress) > 0: # check that has at least 1 egress connection
@@ -170,7 +179,7 @@ class Multiple_link_manager(Link_manager):
                     self._serv_buffers.lpush(self.egress[self.interleave_index], flowItem)
                     self.inc_interleave_index()
                 elif multiplex_logic == 'Priority':
-                    print('igoring priority for the moment')
+                    self.logger.warning('Ignoring priority for the moment, falling back to "Interleave" multiplex_logic')
                     self._buffer_metadata_interface.push_info(self.egress[self.interleave_index], flowItem.size) # increase buffer size
                     self._serv_buffers.lpush(self.egress[self.interleave_index], flowItem)
                     self.inc_interleave_index()
@@ -184,12 +193,13 @@ class Multiple_link_manager(Link_manager):
                         self._buffer_metadata_interface.push_info(buuid, flowItem.size) # increase buffer size
                         self._serv_buffers.lpush(buuid, flowItem)
                 else:
-                    print('Unkown multiplexer logic')
+                    self.logger.warning('Unkown multiplexer logic')
             else: # same as simple link manager
                 self._buffer_metadata_interface.push_info(self.egress[0], flowItem.size) # increase buffer size
                 self._serv_buffers.lpush(self.egress[0], flowItem)
             return True
         else:
+            self.logger.warning('Process wanted to push message but no egress connection(s) are registered')
             return False
 
 class FlowItem:

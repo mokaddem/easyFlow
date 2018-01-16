@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.5
 
 from flask import Flask, render_template, request, Response, jsonify, flash, redirect, make_response, send_file
+
 from werkzeug.utils import secure_filename
 
 import redis
@@ -167,7 +168,6 @@ def project_operation():
 def flow_operation():
     data = request.get_json()
     operation = data.get('operation', None)
-    sleep(0.3)
     status = flow_project_manager.selected_project.flowOperation(operation, data)
     return jsonify(status)
 

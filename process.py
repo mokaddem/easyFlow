@@ -6,6 +6,7 @@ from time import sleep
 import os, time, sys
 import psutil
 import redis, json
+import logging
 
 from util import genUUID, objToDictionnary, SummedTimeSpanningArray, Config_parser
 from alerts_manager import Alert_manager
@@ -31,8 +32,18 @@ class Process(metaclass=ABCMeta):
         self.custom_message = ""
         self._keyCommands = 'command_'+self.puuid
         self.state = 'running'
+        self.logger = None
 
         self.update_config()
+
+        logging.basicConfig(format='%(levelname)s[%(asctime)s]: %(message)s')
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(levelname)s[%(asctime)s]: %(message)s')
+        self._log_handler = logging.FileHandler(os.path.join(os.environ['FLOW_LOGS'], '{}_{}.log'.format(self.type, self.name)))
+        self._log_handler.setLevel(logging.INFO)
+        self._log_handler.setFormatter(formatter)
+        self.logger.addHandler(self._log_handler)
 
         self._metadata_interface = Process_metadata_interface()
         self._buffer_metadata_interface = Buffer_metadata_interface()
@@ -42,13 +53,16 @@ class Process(metaclass=ABCMeta):
         self.push_p_info()
 
         if self.type == 'multiplexer_in':
-            self._link_manager = Multiple_link_manager(self.projectUUID, self.puuid, self.custom_config, multi_in=True)
+            self.logger.debug('Using multiplexer_in link manager')
+            self._link_manager = Multiple_link_manager(self.projectUUID, self.puuid, self.custom_config, self.logger, multi_in=True)
         elif self.type == 'multiplexer_out':
-            self._link_manager = Multiple_link_manager(self.projectUUID, self.puuid, self.custom_config, multi_in=False)
+            self.logger.debug('Using multiplexer_out link manager')
+            self._link_manager = Multiple_link_manager(self.projectUUID, self.puuid, self.custom_config, self.logger, multi_in=False)
         elif self.type == 'switch':
-            self._link_manager = Multiple_link_manager(self.projectUUID, self.puuid, self.custom_config, multi_in=False, is_switch=True)
+            self.logger.debug('Using switch link manager')
+            self._link_manager = Multiple_link_manager(self.projectUUID, self.puuid, self.custom_config, self.logger, multi_in=False, is_switch=True)
         else:
-            self._link_manager = Link_manager(self.projectUUID, self.puuid, self.custom_config)
+            self._link_manager = Link_manager(self.projectUUID, self.puuid, self.custom_config, self.logger)
 
         self.run()
 
@@ -67,21 +81,38 @@ class Process(metaclass=ABCMeta):
         self.type = configData.get('type', None)
         self.description = configData.get('description', '')
         self.bulletin_level = configData.get('bulletin_level', 'WARNING')
+        if self.logger: # update logging level
+            if self.bulletin_level == 'DEBUG':
+                self.logger.setLevel(logging.DEBUG)
+                self._log_handler.setLevel(logging.DEBUG)
+            elif self.bulletin_level == 'INFO':
+                self.logger.setLevel(logging.INFO)
+                self._log_handler.setLevel(logging.DEBUG)
+            elif self.bulletin_level == 'WARNING':
+                self.logger.setLevel(logging.WARNING)
+                self._log_handler.setLevel(logging.DEBUG)
+            elif self.bulletin_level == 'ERROR':
+                self.logger.setLevel(logging.ERROR)
+                self._log_handler.setLevel(logging.DEBUG)
+
         self.x = configData.get('x', 0)
         self.y = configData.get('y', 0)
         self.config = Config_parser('config/easyFlow_conf.json', self.projectUUID).get_config()
 
     def reload(self):
+        self.logger.debug('Reloading configuration and connections')
         self.update_config()
         self._link_manager.update_connections(self.custom_config)
 
     def change_name(self, name):
+        self.logger.info('Changing process name')
         self.name = name
 
     def get_uuid(self):
         return self.puuid
 
     def get_system_info(self):
+        self.logger.debug('Getting process\'s system info')
         to_ret = {}
         to_ret['cpu_load'] = self._p.cpu_percent()
         to_ret['memory_load'] = self._p.memory_info().rss
@@ -91,7 +122,7 @@ class Process(metaclass=ABCMeta):
         return to_ret
 
     def get_representation(self, full=False):
-        pInfo = objToDictionnary(self, full=full)
+        pInfo = objToDictionnary(self, full=full, to_ignore=['logger'])
         dStat = self._processStat.get_dico()
         dStat.update(self.get_system_info())
         pInfo['stats'] = dStat
@@ -99,12 +130,14 @@ class Process(metaclass=ABCMeta):
 
     # push current process info to redis depending on the refresh value.
     def push_p_info(self):
+        self.logger.debug('Pushing process info to redis')
         now = time.time()
         if now - self.last_refresh > self.state_refresh_rate:
             self.timestamp = now
             self._metadata_interface.push_info(self.get_representation())
 
     def push_process_start(self):
+        self.logger.debug('Sending that process has started')
         self._alert_manager.send_alert(
             title=self.name,
             content='{state}[{pid}] ({now})'.format(
@@ -117,6 +150,7 @@ class Process(metaclass=ABCMeta):
         )
 
     def process_commands(self):
+        self.logger.debug('Processing inbound commands')
         while True:
             rawCommand = self._serv_config.rpop(self._keyCommands)
             if rawCommand is not None: # there is a message
@@ -144,10 +178,12 @@ class Process(metaclass=ABCMeta):
                 # Process flowItems
                 flowItem = self._link_manager.get_flowItem()
                 if flowItem is not None: # if not part of the flow yet
+                    #FIXME SHOULD WE LOG HERE? PERFS ISSUE?
                     self._processStat.register_processing(flowItem)
                     self.process_message(flowItem.message(), flowItem.channel)
                     self._processStat.register_processed()
                 else:
+                    self.logger.debug('No message, sleeping %s sec', self.config.default_project.process.pooling_time_interval_get_message)
                     time.sleep(self.config.default_project.process.pooling_time_interval_get_message)
 
             else: # process paused
@@ -160,6 +196,7 @@ class Process(metaclass=ABCMeta):
             self._processStat.register_forward(flowItem)
 
     def apply_operation(self, operation, data):
+        self.logger.debug('Applying operation: %s', operation)
         if operation == 'reload':
             self.reload()
             self._alert_manager.send_alert(
@@ -177,9 +214,11 @@ class Process(metaclass=ABCMeta):
             pass
 
     def pause(self):
+        self.logger.info('Pausing process')
         self.state = 'paused'
 
     def play(self):
+        self.logger.info('Playing process')
         self.state = 'running'
 
     @abstractmethod

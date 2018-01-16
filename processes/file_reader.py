@@ -11,8 +11,10 @@ class File_reader(Process):
             with open(msg, 'r') as f:
                 content = f.read()
             self.custom_message = 'last file-path received: '+msg
+            self.logger.info('file %s has been read', msg)
             self.forward(content)
         except IOError as e:
+            self.logger.error('IOError', exc_info=True)
             self.custom_message = str(e)
 
 if __name__ == '__main__':

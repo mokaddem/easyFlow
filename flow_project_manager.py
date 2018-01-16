@@ -6,6 +6,7 @@ import json
 import time
 import re
 import redis
+import logging
 
 from util import genUUID, objToDictionnary, dicoToList, Config_parser
 from alerts_manager import Alert_manager
@@ -18,10 +19,20 @@ class ProjectNotFound(Exception):
 
 class Project:
     def __init__(self, projectUUID):
+            logging.basicConfig(format='%(levelname)s[%(asctime)s]: %(message)s')
+            self.logger = logging.getLogger(__name__)
+            self.logger.setLevel(logging.INFO)
+            formatter = logging.Formatter('%(levelname)s[%(asctime)s]: %(message)s')
+            self.log_handler = logging.FileHandler(join(os.environ['FLOW_LOGS'], 'project.log'))
+            self.log_handler.setLevel(logging.INFO)
+            self.log_handler.setFormatter(formatter)
+            self.logger.addHandler(self.log_handler)
+
             self.config = Config_parser(easyFlow_conf, projectUUID).get_config()
             try:
                 self._serv = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
             except: # fallback using TCP instead of unix_socket
+                self.logger.warning('Redis unix_socket not used, falling back to TCP')
                 self._serv = redis.StrictRedis(
                     self.config.redis.project.host,
                     self.config.redis.project.port,
@@ -34,6 +45,7 @@ class Project:
             self.jProject = jProject
             if jProject is None:
                 # throws project not found exception
+                self.logger.error('Project not found', exc_info=True)
                 raise ProjectNotFound("The provided projectUUID does not match any known project")
 
             self.projectUUID = projectUUID
@@ -52,7 +64,8 @@ class Project:
             for buuid, b in self.jProject.get('buffers', {}).items():
                 self.buffers[buuid] = b
 
-    def setup_project_manager(self):
+    def setup_process_manager(self):
+        self.logger.info('Setuping process manager')
         self._metadata_interface = Process_metadata_interface()
         self._process_manager = Process_manager(self.projectUUID)
         self._process_manager._alert_manager.send_alert(
@@ -73,6 +86,7 @@ class Project:
         return dico
 
     def get_project_summary(self):
+        self.logger.debug('Getting project summary')
         p = {}
         p['projectUUID'] = self.projectUUID
         p['projectName'] = self.projectName
@@ -84,12 +98,14 @@ class Project:
         return p
 
     def get_whole_project(self):
+        self.logger.debug('Getting while project')
         p = self.get_project_summary()
         p['processes'] = self._process_manager.get_processes_info()
         p['buffers'] = self._process_manager.get_buffers_info()
         return p
 
     def get_configuration(self, data):
+        self.logger.debug('Getting node configuration')
         node_type = data.get('type', None)
         if node_type == 'process':
             puuid = data.get('uuid', None)
@@ -102,15 +118,18 @@ class Project:
 
 
     def rename_project(self, newName):
+        self.logger.info('Renaming project')
         self.projectName = newName
         self.save_project()
 
     def save_project(self):
+        self.logger.info('Saving project')
         p = self.get_project_summary()
         jProject = json.dumps(p)
         self._serv.set(self.projectUUID, jProject)
 
     def delete_project(self):
+        self.logger.info('Deleting project')
         # delete processes and buffers info in redis
         for puuid in self.processes.keys():
             keys = self._serv.keys('*{}*'.format(puuid))
@@ -125,6 +144,7 @@ class Project:
         self._serv.srem(self.config.redis.project.redis_key_all_projects, self.projectUUID)
 
     def close_project(self):
+        self.logger.info('Closing project')
         self._process_manager._alert_manager.send_alert(
             title='Processes',
             content='Shutting down processes',
@@ -145,6 +165,7 @@ class Project:
         return jProject
 
     def delete_links_of_process(self, puuid):
+        self.logger.info('Deleting links of process %s', puuid)
         temp = {}
         for buuid, buf in self.buffers.items():
             if (puuid in buf['fromUUID']) or (puuid in buf['toUUID']):
@@ -154,6 +175,7 @@ class Project:
         self.buffers = temp
 
     def flowOperation(self, operation, data):
+        self.logger.info('Executing operation %s', operation)
         concerned_processes = []
         # print('Flow operation:', operation)
         if operation == 'pause_process':
@@ -255,6 +277,7 @@ class Project:
             return {'status': 'sucess' }
 
         else:
+            self.logger.warning('Unknown operation: %s', operation)
             return {'status': 'error' }
 
         self.save_project()
@@ -263,11 +286,21 @@ class Project:
 
 class Flow_project_manager:
     def __init__(self):
+        logging.basicConfig(format='%(levelname)s[%(asctime)s]: %(message)s')
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(levelname)s[%(asctime)s]: %(message)s')
+        self.log_handler = logging.FileHandler(join(os.environ['FLOW_LOGS'], 'project.log'))
+        self.log_handler.setLevel(logging.INFO)
+        self.log_handler.setFormatter(formatter)
+        self.logger.addHandler(self.log_handler)
+
         self.selected_project = None
         self.config = Config_parser(easyFlow_conf).get_config()
         try:
             self.serv = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
         except: # fallback using TCP instead of unix_socket
+            self.logger.warning('Redis unix_socket not used, falling back to TCP')
             self.serv = redis.StrictRedis(
                 self.config.redis.host,
                 self.config.redis.port,
@@ -305,6 +338,7 @@ class Flow_project_manager:
         return allowed_buffer_type
 
     def get_project_list(self):
+        self.logger.info('Getting project list')
         ret = []
         projectUUIDs = self.serv.smembers(self.config.redis.project.redis_key_all_projects)
         projectUUIDs = projectUUIDs if projectUUIDs is not None else []
@@ -315,14 +349,16 @@ class Flow_project_manager:
 
 
     def select_project(self, projectUUID):
+        self.logger.info('Selected project %s', projectUUID)
         if self.is_project_open():
             self.close_project()
         self.selected_project = Project(projectUUID)
         self.config = Config_parser(easyFlow_conf, projectUUID).get_config()
-        self.selected_project.setup_project_manager()
+        self.selected_project.setup_process_manager()
         return self.selected_project.get_project_summary()
 
     def import_project(self, rawJSONProject):
+        self.logger.info('Importing project')
         required_fields = ['projectName', 'projectInfo', 'creationTimestamp', 'processNum', 'processes']
         try:
             jProject = json.loads(rawJSONProject)
@@ -347,14 +383,17 @@ class Flow_project_manager:
         if self.is_project_open() and self.selected_project.projectUUID == req.cookies.get('projectUUID'):
             return
         if self.is_project_open():
+            self.logger.info('Setting cookies')
             resp.set_cookie('projectUUID', self.selected_project.projectUUID)
             resp.set_cookie('projectName', self.selected_project.projectName)
 
     def reset_cookies(self, resp):
+        self.logger.info('Resetting cookies')
         resp.set_cookie('projectUUID', '', expires=0)
         resp.set_cookie('projectName', '', expires=0)
 
     def close_project(self, resp=None):
+        self.logger.info('Closing project')
         self.selected_project.close_project()
         self.selected_project = None
         self.config = Config_parser(easyFlow_conf).get_config()
@@ -368,6 +407,7 @@ class Flow_project_manager:
             return True
 
     def applyOperation(self, data, operation):
+        self.logger.info('Applying operation %s', operation)
         if data is None or operation is None:
             return [False, "No data or operation not supplied"]
 
@@ -392,4 +432,5 @@ class Flow_project_manager:
             print('deleted', data['projectUUID'])
             return [True, "OK"]
         else:
+            self.logger.warning('Unknown operation: %s', operation)
             return [False, "unknown operation"]

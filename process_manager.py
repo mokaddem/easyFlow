@@ -4,6 +4,7 @@ from util import genUUID
 import redis, json, time, os
 import shlex, subprocess
 import psutil, signal
+import logging
 
 from util import genUUID, objToDictionnary, Config_parser
 from alerts_manager import Alert_manager
@@ -13,10 +14,20 @@ easyFlow_conf = os.path.join(os.environ['FLOW_CONFIG'], 'easyFlow_conf.json')
 
 class Process_manager:
     def __init__(self, projectUUID):
+        logging.basicConfig(format='%(levelname)s[%(asctime)s]: %(message)s')
+        self.logger = logging.getLogger(__name__)
+        self.logger.setLevel(logging.INFO)
+        formatter = logging.Formatter('%(levelname)s[%(asctime)s]: %(message)s')
+        self.log_handler = logging.FileHandler(os.path.join(os.environ['FLOW_LOGS'], 'project.log'))
+        self.log_handler.setLevel(logging.INFO)
+        self.log_handler.setFormatter(formatter)
+        self.logger.addHandler(self.log_handler)
+
         self.config = Config_parser(easyFlow_conf, projectUUID).get_config()
         try:
             self._serv = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
         except: # fallback using TCP instead of unix_socket
+            self.logger.warning('Redis unix_socket not used for projects, falling back to TCP')
             self._serv = redis.StrictRedis(
                 self.config.redis.project.host,
                 self.config.redis.project.port,
@@ -25,11 +36,13 @@ class Process_manager:
         try:
             self._serv_buffers = redis.Redis(unix_socket_path=self.config.redis.buffers.unix_socket_path, decode_responses=True)
         except: # fallback using TCP instead of unix_socket
+            self.logger.warning('Redis unix_socket not used fo buffering, falling back to TCP')
             self._serv_buffers = redis.StrictRedis(
                 self.config.redis.project.host,
                 self.config.redis.project.port,
                 self.config.redis.project.db,
                 charset="utf-8", decode_responses=True)
+
         self._metadata_interface = Process_metadata_interface()
         self._buffer_metadata_interface = Buffer_metadata_interface()
         self._alert_manager = Alert_manager()
@@ -58,6 +71,7 @@ class Process_manager:
                 self.buffers_uuid.append(buuid)
 
     def get_connected_buffers(self, puuid):
+        self.logger.debug('Getting connected buffers of process "%s" [%s]', self.processes[puuid].name, puuid)
         buuids = []
         for buuid, buf in self.buffers.items():
             if (puuid in buf.fromUUID) or (puuid in buf.toUUID):
@@ -65,6 +79,7 @@ class Process_manager:
         return buuids
 
     def get_processes_info(self):
+        self.logger.debug('Getting processes info')
         info = []
         for puuid in self.processes_uuid:
             pinfo = self._metadata_interface.get_info(puuid)
@@ -72,6 +87,7 @@ class Process_manager:
         return info
 
     def get_buffers_info(self):
+        self.logger.debug('Getting buffers info')
         info = []
         for buuid in self.buffers_uuid:
             binfo = objToDictionnary(self.buffers[buuid])
@@ -82,6 +98,7 @@ class Process_manager:
 
     # A process terminate its setup when its config key is deleted
     def wait_for_process_running_state(self, puuid):
+        self.logger.debug('Waiting for process "%s" [%s] to run', self.processes[puuid].name, puuid)
         while True:
             if not self._serv.exists('config_'+puuid):
                 break
@@ -102,6 +119,7 @@ class Process_manager:
         return [False, 0]
 
     def push_starting_all_processes(self, count):
+        self.logger.info('Starting all processes (%s process(es))', count)
         self._alert_manager.send_alert(
             title='Processes',
             content='starting all processes',
@@ -114,6 +132,7 @@ class Process_manager:
         return self.processes[puuid].is_multiplexer
 
     def shutdown(self):
+        self.logger.info('Shutting down all processes (%s process(es))')
         for puuid in self.processes.keys():
             self.kill_process(puuid)
 
@@ -123,13 +142,17 @@ class Process_manager:
 
         for puuid in [p for p in process_uuids if p in self.processes_uuid_with_signal]:
             # send signal to the module
+            self.logger.debug('Sending signal to %s [%s]', self.processes[puuid].name, puuid)
             self.processes[puuid]._subprocessObj.send_signal(signal.SIGUSR1)
 
     def pause_process(self, puuid):
+        self.logger.info('Pausing process "%s" [%s]', self.processes[puuid].name, puuid)
         self.send_command(puuid, 'pause')
     def play_process(self, puuid):
+        self.logger.info('Playing process "%s" [%s]', self.processes[puuid].name, puuid)
         self.send_command(puuid, 'play')
     def restart_process(self, puuid):
+        self.logger.info('Restarting process "%s" [%s]', self.processes[puuid].name, puuid)
         pData = self.processes[puuid].get_dico()
         self._alert_manager.send_alert(
             title='Processes',
@@ -142,6 +165,7 @@ class Process_manager:
         self._being_restarted.remove(puuid)
 
     def send_command(self, puuid, command, data=None):
+        self.logger.info('Sending command (%s) to process "%s" [%s]', command, self.processes[puuid].name, puuid)
         jCommand = {}
         jCommand['operation'] = command
         jCommand['data'] = data
@@ -157,6 +181,7 @@ class Process_manager:
 
     def kill_process(self, puuid):
         subProcObj = self.processes[puuid]._subprocessObj
+        self.logger.info('Killing process "%s" [%s, pid=%s]', self.processes[puuid].name, puuid, subProcObj.pid)
         subProcObj.terminate()
         self._serv.delete(puuid)
 
@@ -170,12 +195,12 @@ class Process_manager:
         data['projectUUID'] = self.projectUUID
 
         if self.process_started_and_managed(puuid):
-            return "process already started"
+            return ""
 
         # pStarted, pid = self.process_started_in_system(puuid, killIt=True)
         pStarted, pid = self.process_started_in_system(puuid, killIt=False)
         if pStarted:
-            print("process was started in system")
+            self.logger.info('Process "%s" [%s, pid=%s] was already started', self.processes[puuid].name, puuid, pid)
             self._alert_manager.send_alert(title='Process',
                 content='{} was started in system (pid={}). Trying to recover state...'.format(data.get('name', None), pid),
                 mType='warning', group='singleton')
@@ -198,6 +223,7 @@ class Process_manager:
             # start process with Popen
             args = shlex.split('python3.5 {} {}'.format(os.path.join(os.environ['FLOW_PROC'], process_type+'.py'), puuid))
             proc = psutil.Popen(args)
+            self.logger.info('Creating new process "%s" [pid=%s] ', data.get('name', 'NO_NAME'), proc.pid)
             # wait that process start the run() phase, publish info
             # self.wait_for_process_running_state(puuid)
 
@@ -209,6 +235,7 @@ class Process_manager:
             return process_config
 
     def delete_process(self, puuid):
+        self.logger.info('Deleting process %s [%s]', self.processes[puuid].name, puuid)
         self.kill_process(puuid)
         self.processes_uuid.remove(puuid)
         try:
@@ -230,6 +257,7 @@ class Process_manager:
         if puuid is None:
             return {'state': 'error: puuid is None'}
         self.processes[puuid].update(data)
+        self.logger.debug('Updated process "%s" [%s]', self.processes[puuid].name, puuid)
         return self.processes[puuid]
 
 
@@ -244,8 +272,9 @@ class Process_manager:
 
         buffer_type = data['type']
         if buffer_type not in self.config.buffers.allowed_buffer_type:
-            print('Unkown buffer type')
+            self.logger.info('Unknown buffer type: %s', buffer_type)
             return 0
+        self.logger.info('Creating new %s buffer: %s', buffer_type, data.get('name', 'unamed'))
         # gen config
         buffer_config = Link_representation(data)
         self._serv.set('config_'+buuid, buffer_config.toJSON())
@@ -257,6 +286,7 @@ class Process_manager:
         return buffer_config
 
     def delete_link(self, buuid):
+        self.logger.info('Deleting buffer %s', self.buffers[buuid].name)
         self.buffers_uuid.remove(buuid)
         del self.buffers[buuid]
         # delete residual keys in redis

@@ -12,7 +12,7 @@ class Remote_input(Process_no_input):
         remote_protocol = self.custom_config['remote_protocol']
         host = self.custom_config['remote_host']
         port = self.custom_config['remote_port']
-        print('Trying to listen on', '({}, {})'.format(host, port))
+        self.logger.info('Trying to listen on %s', '({}, {})'.format(host, port))
 
         if remote_protocol == 'socket':
             sock = None
@@ -22,6 +22,7 @@ class Remote_input(Process_no_input):
                 try:
                     sock = socket.socket(af, socktype, proto)
                 except OSError as msg:
+                    self.logger.error('Socket creation error', exc_info=True)
                     sock = None
                     continue
                 try:
@@ -29,21 +30,22 @@ class Remote_input(Process_no_input):
                     self.custom_message = 'Listening on {}'.format(sa)
                     sock.listen(1)
                 except OSError as msg:
-                    print('Impossible to bind')
+                    self.logger.error('Socket binding/listening error', exc_info=True)
                     sock.close()
                     sock = None
                     continue
                 break
             if sock is None:
-                print('could not open socket')
+                self.logger.error('Could not open socket')
                 sys.exit(1)
             while True:
                 conn, addr = sock.accept()
                 with conn:
-                    print('Connected by', addr)
+                    self.logger.info('Connected by', addr)
                     while True:
                         data = conn.recv(1024)
                         if not data:
+                            self.logger.info('No data, sleeping %s sec', self.custom_config['sleepTime'])
                             time.sleep(self.custom_config['sleepTime'])
                             break
                         remote_message = data.decode('utf8')
@@ -56,6 +58,7 @@ class Remote_input(Process_no_input):
             sock.connect('tcp://{host}:{port}'.format(host=host, port=port))
             topic = self.custom_config.get('zmq_topic', '')
             sock.setsockopt_string(zmq.SUBSCRIBE, topic)
+            self.logger.info('Listen on topic %s', topic)
 
             while True:
                 data = sock.recv()
@@ -69,12 +72,13 @@ class Remote_input(Process_no_input):
             r_serv = redis.StrictRedis(host, port, db)
             pubsub = r_serv.pubsub(ignore_subscribe_messages=True)
             pubsub.subscribe(channel)
+            self.logger.info('Listen on channel %s', channel)
             for data in pubsub.listen():
                 remote_message = data['data'].decode('utf8')
                 self.forward(remote_message)
 
         else:
-            print('unknown remote protocol', remote_protocol)
+            self.logger.error('Unknown remote protocol %s', remote_protocol)
 
 
 if __name__ == '__main__':

@@ -103,7 +103,6 @@ class InnerRepresentation {
         this.processObj = {};
         this.bufferObj = {};
         this.auto_refresh = null;
-
     }
 
     set_project(project) {
@@ -141,6 +140,23 @@ class InnerRepresentation {
                     ),
                     size: 75
                 });
+
+                // update table in control panel
+                if (flowControl.selected.length > 0 && node['puuid'] == flowControl.selected[0]) {
+                    var formatted_data = format_proc_data(
+                        node['name'],
+                        node['puuid'],
+                        node['type'],
+                        { bytes_in: jStats['bytes_in'], bytes_out: jStats['bytes_out'] },
+                        { flowItem_in: jStats['flowItem_in'], flowItem_out: jStats['flowItem_out'] },
+                        jStats['processing_time'],
+                        jStats['cpu_load'],
+                        jStats['memory_load'],
+                        jStats['pid'],
+                        jStats['state'],
+                        jStats['custom_message'])
+                    this.update_control_table(formatted_data);
+                }
             }
             this.nodes.update(update_array);
         } catch(err) { /* processes is empty */ }
@@ -305,6 +321,21 @@ class InnerRepresentation {
 
     clear_selection() {
         this.handleNodeSelection({nodes: []})
+    }
+
+    update_control_table(data) {
+        console.log(data);
+        $('#selectedType').text(data.type);
+        $('#selectedUUID').text(data.uuid);
+        $('#selectedState').text(data.state);
+        $('#selectedByte').text(data.bytes);
+        $('#selectedFlowItem').text(data.flowItems);
+        $('#selectedTime').text(data.time);
+        $('#selectedCPULoad').text(data.cpuload);
+        $('#selectedMemoryLoad').text(data.memload);
+        $('#selectedPID').text(data.pid);
+        $('#selectedMessage').text(data.customMessage);
+
     }
 
     handleNodeSelection(params) {

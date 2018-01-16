@@ -92,6 +92,34 @@ function notify(title, message, type) {
 });
 }
 
+function format_proc_data(moduleName, puuid, moduleType, bytes, flowItem, time, cpu_load, memory_load, pid, state, message) {
+    var bytes_formated_in = bytes.bytes_in > 0 ? String((parseFloat(bytes.bytes_in)/1048576.0).toFixed(2)) : String(0);
+    var bytes_formated_out = bytes.bytes_out > 0 ? String((parseFloat(bytes.bytes_out)/1048576.0).toFixed(2)) : String(0);
+    var bytes_formated = bytes_formated_in + ' / ' + bytes_formated_out + ' MB';
+
+    var flowItem_formated_in = flowItem.flowItem_in > 0 ? String(flowItem.flowItem_in) : String(0);
+    var flowItem_formated_out = flowItem.flowItem_out > 0 ? String(flowItem.flowItem_out) : String(0);
+    var flowItem_formated = flowItem_formated_in + ' / ' + flowItem_formated_out + ' FlowItems';
+    var memory_load_formated = (memory_load > 0 ? String((parseFloat(memory_load)/1048576.0).toFixed(2)) : String(0)) + ' MB';
+
+    cpu_load = cpu_load>0 ? cpu_load : 0;
+    time = time!='?' ? time : 0;
+    var formatted = {
+        moduleName:   moduleName,
+        type:         moduleType,
+        uuid:         puuid,
+        bytes:        bytes_formated,
+        flowItems:     flowItem_formated,
+        time:         String(parseFloat(time).toFixed(2))+'sec',
+        cpuload:      cpu_load+'%',
+        memload:      memory_load_formated,
+        pid:          pid,
+        state:        state,
+        customMessage:message
+    };
+    return formatted;
+}
+
 function toggle_btn_pipe(display) {
     var btnPipe = $('button[name="pipe"]');
     btnPipe.toggleClass('btn-default', !display);

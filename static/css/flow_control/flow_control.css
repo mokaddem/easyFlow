@@ -23,6 +23,13 @@ div.vis-network {
     margin-left: 10px;
 }
 
+.control-panel-icons {
+    height: auto;
+    width: auto;
+    max-width: 32px;
+    max-height: 32px;
+}
+
 .dropdown-param {
     width: 200px;
 }

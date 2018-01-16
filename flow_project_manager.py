@@ -3,12 +3,12 @@ from os import listdir, remove
 from os.path import isfile, join
 import os
 import json
-import time
+import time, datetime
 import re
 import redis
 import logging
 
-from util import genUUID, objToDictionnary, dicoToList, Config_parser
+from util import genUUID, objToDictionnary, dicoToList, datetimeToTimestamp, Config_parser
 from alerts_manager import Alert_manager
 from process_metadata_interface import Process_metadata_interface
 from process_manager import Process_manager
@@ -115,6 +115,21 @@ class Project:
             return self.buffers[buuid]
         else:
             print('unkown node type')
+
+    def get_process_logs(self, puuid):
+        logpath = os.path.join(os.environ['FLOW_LOGS'], '{}.log'.format(puuid))
+        to_ret = []
+        try:
+            with open(logpath, 'r') as f:
+                log = f.read()
+                for l in log.splitlines():
+                    metadata, message  = l.split(': ', 1)
+                    logLevel, the_time = metadata[:-2].split('[', 1)
+                    the_time = datetimeToTimestamp(datetime.datetime.strptime(the_time, "%Y-%m-%d %H:%M:%S,%f"))
+                    to_ret.append({'time': the_time, 'log_level': logLevel, 'message': message})
+                return to_ret
+        except IOError as e:
+            self.logger.warning('File not found: Log file %s does not exists', logpath)
 
 
     def rename_project(self, newName):

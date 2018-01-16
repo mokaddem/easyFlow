@@ -124,22 +124,22 @@ function draw() {
         flowControl.handleNodesDrag(params.nodes);
     });
     $('#pcontrol_play').click(function(){
-        flowControl.play_node()
+        flowControl.play_node();
     });
     $('#pcontrol_pause').click(function(){
-        flowControl.pause_node()
+        flowControl.pause_node();
     });
     $('#pcontrol_restart').click(function(){
-        flowControl.restart_node()
+        flowControl.restart_node();
     });
     $('#pcontrol_logs').click(function(){
-
+        flowControl.get_logs();
     });
     $('#pcontrol_delete').click(function(){
-        flowControl.delete_node()
+        flowControl.delete_node();
     });
     $('#pcontrol_edit').click(function(){
-        flowControl.edit_node()
+        flowControl.edit_node();
     });
 
     $('button[name="pipe"]').on("click", function (eventObject) {

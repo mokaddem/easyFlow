@@ -24,6 +24,12 @@ class FlowControl {
         var uuids = this.selected;
         this.execute_operation('play_process', {puuid: uuids}, false);
     }
+    get_logs() {
+        if (this.selected.length > 0) {
+            var uuid = this.selected[0];
+            innerRepresentation.show_log(innerRepresentation.nodes.get(uuid).name, uuid);
+        }
+    }
     restart_node() {
         var uuids = this.selected;
         this.execute_operation('restart_process', {puuid: uuids}, false);

@@ -61,6 +61,7 @@
         var url_project_operation = '{{ url_for("project_operation") }}';
 
         var url_get_processes_info = '{{ url_for("get_pMetadata") }}';
+        var url_get_log = '{{ url_for("get_log") }}';
         var url_get_node_configuration = '{{ url_for("get_node_configuration") }}';
         var url_get_connected_nodes = '{{ url_for("get_connected_nodes") }}';
         var url_alert_stream = '{{ url_for("alert_stream") }}';
@@ -77,6 +78,7 @@
         var network = null;
         var flowControl = null;
         var projectListDatatable = null;
+        var logListDatatable = null;
         var alertManager = null;
 
         var auto_refresh_rate = {{ auto_refresh_rate }};
@@ -218,6 +220,7 @@
         {% include 'modals/listProjects.html' %}
         {% include 'modals/createProject.html' %}
         {% include 'modals/importProject.html' %}
+        {% include 'modals/showLog.html' %}
         {% include 'modals/addProcess.html' %}
 
         {% include 'modals/addLink.html' %}

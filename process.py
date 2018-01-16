@@ -40,7 +40,7 @@ class Process(metaclass=ABCMeta):
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
         formatter = logging.Formatter('%(levelname)s[%(asctime)s]: %(message)s')
-        self._log_handler = logging.FileHandler(os.path.join(os.environ['FLOW_LOGS'], '{}_{}.log'.format(self.type, self.name)))
+        self._log_handler = logging.FileHandler(os.path.join(os.environ['FLOW_LOGS'], '{}.log'.format(self.puuid)))
         self._log_handler.setLevel(logging.INFO)
         self._log_handler.setFormatter(formatter)
         self.logger.addHandler(self._log_handler)

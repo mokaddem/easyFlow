@@ -171,6 +171,13 @@ def flow_operation():
     status = flow_project_manager.selected_project.flowOperation(operation, data)
     return jsonify(status)
 
+@app.route("/get_log")
+def get_log():
+    puuid = request.args.get('puuid', None)
+    data = request.get_json()
+    print(puuid)
+    return jsonify(flow_project_manager.selected_project.get_process_logs(puuid))
+
 ''' REAL TIME '''
 
 @app.route('/get_pMetadata')

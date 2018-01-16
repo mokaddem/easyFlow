@@ -41,6 +41,9 @@ class Config_parser:
 def genUUID():
     return str(uuid.uuid4())
 
+def datetimeToTimestamp(datetimeObj):
+    return int(time.mktime(datetimeObj.timetuple()))
+
 def objToDictionnary(obj, full=False, to_ignore=[]):
     ret = {}
     # print(type(obj))

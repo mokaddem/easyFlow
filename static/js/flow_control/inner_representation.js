@@ -324,7 +324,6 @@ class InnerRepresentation {
     }
 
     update_control_table(data) {
-        console.log(data);
         $('#selectedType').text(data.type);
         $('#selectedUUID').text(data.uuid);
         $('#selectedState').text(data.state);
@@ -335,7 +334,6 @@ class InnerRepresentation {
         $('#selectedMemoryLoad').text(data.memload);
         $('#selectedPID').text(data.pid);
         $('#selectedMessage').text(data.customMessage);
-
     }
 
     handleNodeSelection(params) {
@@ -428,6 +426,55 @@ class InnerRepresentation {
             $('#pcontrol_delete').prop("disabled", true);
             $('#pcontrol_edit').prop("disabled", true);
         flowControl.selected = [];
+    }
+
+    show_log(pName, puuid) {
+        $('#modalShowLogTitle').text("Log of: "+pName);
+        $('#'+'modalShowLog').modal('show');
+        if (logListDatatable == null) {
+            logListDatatable = $('#logTable').DataTable( {
+                "order": [[ 1, "desc" ]],
+                "ajax": {
+                    "url": url_get_log+"?puuid="+puuid,
+                    "dataSrc": ""
+                },
+                "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
+                    // Bold the grade for all 'A' grade browsers
+                    switch (aData.log_level) {
+                        case 'DEBUG':
+                            break;
+                        case 'INFO':
+                            nRow.classList.add('info')
+                            break;
+                        case 'WARNING':
+                            nRow.classList.add('warning')
+                            break;
+                        case 'ERROR':
+                            nRow.classList.add('danger')
+                            break;
+                        case 'NONE':
+                            break;
+                        default:
+
+                    }
+                    $('td:eq(4)', nRow).html( '<b>A</b>' );
+                },
+                "columns": [
+                    { data: "log_level" },
+                    {
+                        data: "time",
+                        render: function(data, type, row) {
+                            var d = new Date(parseInt(data)*1000);
+                            return type === "display" || type === "filter" ?
+                                d.toLocaleString() : d;
+                        }
+                    },
+                    { data: "message" },
+                ]
+            });
+        } else {
+            logListDatatable.ajax.reload();
+        }
     }
 
 

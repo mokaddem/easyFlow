@@ -16,7 +16,6 @@ class AlertsManager {
         };
         this.alertsSource.onopen = function (e) {};
         this.alertsSource.onerror = function (e) {};
-
     }
 
     handle_message(message) {

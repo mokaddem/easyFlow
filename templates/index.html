@@ -62,6 +62,7 @@
 
         var url_get_processes_info = '{{ url_for("get_pMetadata") }}';
         var url_get_log = '{{ url_for("get_log") }}';
+        var url_log_stream = '{{ url_for("log_stream") }}';
         var url_get_node_configuration = '{{ url_for("get_node_configuration") }}';
         var url_get_connected_nodes = '{{ url_for("get_connected_nodes") }}';
         var url_alert_stream = '{{ url_for("alert_stream") }}';
@@ -80,6 +81,7 @@
         var projectListDatatable = null;
         var logListDatatable = null;
         var alertManager = null;
+        var realtimeLogs = null;
 
         var auto_refresh_rate = {{ auto_refresh_rate }};
         // var auto_refresh_rate = 50000;
@@ -89,6 +91,7 @@
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/projects_control.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/flow_control.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/alerts_manager.js') }}"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/realtime_logs.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/init.js') }}"></script>
 
 </head>

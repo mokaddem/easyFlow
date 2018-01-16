@@ -293,6 +293,21 @@ class FlowControl {
         });
     }
 
+    simple_execute_operation(operation, data, oncomplete) {
+        data.operation = operation;
+        $.ajax({
+            type: "POST",
+            url: url_flow_operation,
+            data: JSON.stringify(data),
+            contentType: 'application/json; charset=utf-8',
+            complete: function() {
+                if (oncomplete !== undefined) {
+                    oncomplete();
+                }
+            }
+        });
+    }
+
     startAll() {
         var data = {};
         data.operation = 'start_all';

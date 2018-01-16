@@ -202,6 +202,12 @@ class Project:
         elif operation == 'restart_process':
             for puuid in data.get('puuid', []): # may contain multiple processes
                 self._process_manager.restart_process(puuid)
+        elif operation == 'log_to_zmq':
+            puuid = data.get('puuid', None)
+            self._process_manager.send_command(puuid, 'log_to_zmq')
+        elif operation == 'stop_log_to_zmq':
+            puuid = data.get('puuid', None)
+            self._process_manager.send_command(puuid, 'stop_log_to_zmq')
 
         # ''' PROCESSES '''
         elif operation == 'create_process':

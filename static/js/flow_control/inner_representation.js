@@ -431,6 +431,14 @@ class InnerRepresentation {
     show_log(pName, puuid) {
         $('#modalShowLogTitle').text("Log of: "+pName);
         $('#'+'modalShowLog').modal('show');
+        $('#'+'modalShowLog').one('hidden.bs.modal', function (e) {
+            if (realtimeLogs !== null) {
+                // close realtime log
+                realtimeLogs.close_listener();
+                $('#switch_show_realtime_log').prop('checked', false);
+                realtimeLogs = null;
+            }
+        })
         if (logListDatatable == null) {
             logListDatatable = $('#logTable').DataTable( {
                 "order": [[ 1, "desc" ]],

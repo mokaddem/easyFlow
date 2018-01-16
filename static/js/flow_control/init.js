@@ -141,6 +141,19 @@ function draw() {
     $('#pcontrol_edit').click(function(){
         flowControl.edit_node();
     });
+    $('#switch_show_realtime_log').on("change", function(){
+        if ($(this).is(':checked')) {
+            var process_is_selected = flowControl.selected.length > 0;
+            if (process_is_selected) { // switch is checked and process is selected
+                realtimeLogs = new RealtimeLogs(flowControl.selected[0])
+            }
+        } else {
+            if (realtimeLogs !== null) {
+                realtimeLogs.close_listener();
+                realtimeLogs = null;
+            }
+        }
+    });
 
     $('button[name="pipe"]').on("click", function (eventObject) {
         var btnPipe = $(eventObject.currentTarget);

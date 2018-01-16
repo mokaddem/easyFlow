@@ -5,11 +5,13 @@ from flask import Flask, render_template, request, Response, jsonify, flash, red
 from werkzeug.utils import secure_filename
 
 import redis
+import zmq
+from zmq.log.handlers import PUBHandler
 import json
 from io import BytesIO
 import random, math
 import configparser
-from time import sleep, strftime
+from time import sleep, strftime, time
 import datetime
 import os
 
@@ -32,6 +34,10 @@ except: # fallback using TCP instead of unix_socket
         config.redis.project.port,
         config.redis.project.db,
         charset="utf-8", decode_responses=True)
+
+context = zmq.Context()
+socket_log_zmq = context.socket(zmq.SUB)
+socket_log_zmq.bind("tcp://*:{port}".format(port=config.zmq.port))
 
 alert_manager = Alert_manager()
 alert_manager.subscribe()
@@ -174,8 +180,6 @@ def flow_operation():
 @app.route("/get_log")
 def get_log():
     puuid = request.args.get('puuid', None)
-    data = request.get_json()
-    print(puuid)
     return jsonify(flow_project_manager.selected_project.get_process_logs(puuid))
 
 ''' REAL TIME '''
@@ -209,6 +213,31 @@ def get_connected_nodes():
 @app.route('/alert_stream')
 def alert_stream():
     return Response(alert_manager.make_response_stream(), mimetype="text/event-stream")
+
+@app.route('/log_stream')
+def log_stream():
+    puuid = request.args.get('puuid', None)
+    return Response(make_log_response_stream(puuid), mimetype="text/event-stream")
+
+def make_log_response_stream(puuid):
+    # socket_log_zmq.setsockopt_string(zmq.SUBSCRIBE, puuid)
+    socket_log_zmq.setsockopt_string(zmq.SUBSCRIBE, '')
+    while True:
+        sleep(0.1)
+        # string = socket_log_zmq.recv_string()
+        # print(string)
+        # topic, logMsg = string.split()
+        # print('server_sending', logMsg)
+        level, logMsg = socket_log_zmq.recv_multipart()
+        level = level.decode('utf8')
+        level = level.split('.')[-1]
+        logMsg = logMsg.decode('utf8')
+        if logMsg.endswith('\n'):
+            # trim trailing newline, which will get appended again
+            logMsg = logMsg[:-1]
+
+        logDic = {'log_level': level, 'time': int(time()), 'message': logMsg}
+        yield 'data: %s\n\n' % json.dumps(logDic)
 
 
 if __name__ == '__main__':

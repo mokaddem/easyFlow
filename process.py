@@ -7,6 +7,9 @@ import os, time, sys
 import psutil
 import redis, json
 import logging
+from zmq.log.handlers import PUBHandler
+from zmq import Context as zmqContext
+from zmq import XPUB as zmqPUB
 
 from util import genUUID, objToDictionnary, SummedTimeSpanningArray, Config_parser
 from alerts_manager import Alert_manager
@@ -44,6 +47,12 @@ class Process(metaclass=ABCMeta):
         self._log_handler.setLevel(logging.INFO)
         self._log_handler.setFormatter(formatter)
         self.logger.addHandler(self._log_handler)
+        pub = zmqContext().socket(zmqPUB)
+        pub.connect('tcp://{}:{}'.format(self.config.server.host, self.config.zmq.port))
+        self._pubhandler = PUBHandler(pub)
+        self._pubhandler.root_topic = self.puuid
+        self._pubhandler.setLevel(logging.INFO)
+        self.logger.addHandler(self._pubhandler)
 
         self._metadata_interface = Process_metadata_interface()
         self._buffer_metadata_interface = Buffer_metadata_interface()
@@ -63,6 +72,9 @@ class Process(metaclass=ABCMeta):
             self._link_manager = Multiple_link_manager(self.projectUUID, self.puuid, self.custom_config, self.logger, multi_in=False, is_switch=True)
         else:
             self._link_manager = Link_manager(self.projectUUID, self.puuid, self.custom_config, self.logger)
+
+        # do not log to zmq by default
+        self.log_to_zmq(False)
 
         self.run()
 
@@ -85,15 +97,19 @@ class Process(metaclass=ABCMeta):
             if self.bulletin_level == 'DEBUG':
                 self.logger.setLevel(logging.DEBUG)
                 self._log_handler.setLevel(logging.DEBUG)
+                self._pubhandler.setLevel(logging.DEBUG)
             elif self.bulletin_level == 'INFO':
                 self.logger.setLevel(logging.INFO)
-                self._log_handler.setLevel(logging.DEBUG)
+                self._log_handler.setLevel(logging.INFO)
+                self._pubhandler.setLevel(logging.INFO)
             elif self.bulletin_level == 'WARNING':
                 self.logger.setLevel(logging.WARNING)
-                self._log_handler.setLevel(logging.DEBUG)
+                self._pubhandler.setLevel(logging.WARNING)
+                self._log_handler.setLevel(logging.WARNING)
             elif self.bulletin_level == 'ERROR':
                 self.logger.setLevel(logging.ERROR)
-                self._log_handler.setLevel(logging.DEBUG)
+                self._pubhandler.setLevel(logging.ERROR)
+                self._log_handler.setLevel(logging.ERROR)
 
         self.x = configData.get('x', 0)
         self.y = configData.get('y', 0)
@@ -179,6 +195,7 @@ class Process(metaclass=ABCMeta):
                 flowItem = self._link_manager.get_flowItem()
                 if flowItem is not None: # if not part of the flow yet
                     #FIXME SHOULD WE LOG HERE? PERFS ISSUE?
+                    self.logger.debug('Processing: %s', flowItem.message())
                     self._processStat.register_processing(flowItem)
                     self.process_message(flowItem.message(), flowItem.channel)
                     self._processStat.register_processed()
@@ -210,6 +227,10 @@ class Process(metaclass=ABCMeta):
             self.pause()
         elif operation == 'play':
             self.play()
+        elif operation == 'log_to_zmq':
+            self.log_to_zmq(True)
+        elif operation == 'stop_log_to_zmq':
+            self.log_to_zmq(False)
         else:
             pass
 
@@ -220,6 +241,14 @@ class Process(metaclass=ABCMeta):
     def play(self):
         self.logger.info('Playing process')
         self.state = 'running'
+
+    def log_to_zmq(self, should_log):
+        if should_log:
+            self._log_handler.setLevel(self.logger.getEffectiveLevel())
+            self.logger.info('Started logging to ZMQ')
+        else:
+            self._log_handler.setLevel(logging.CRITICAL)
+            self.logger.info('Stopped logging to ZMQ')
 
     @abstractmethod
     def process_message(self, msg, channel=0):

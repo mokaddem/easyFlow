@@ -211,6 +211,18 @@ function draw() {
                 flowControl.handleDrop(nodeData);
             }
     });
+    $('#controlPanel').draggable({
+        // cancel:false,
+        stack: "#mynetwork",
+        revert: false,
+        scroll: false,
+        cursor: "move",
+        zIndex: 5000,
+        // cursorAt: {
+        //     top: 31,
+        //     left: 31
+        // }
+    });
 }
 
 $( document ).ready(function() {

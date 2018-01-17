@@ -98,7 +98,7 @@ class Project:
         return p
 
     def get_whole_project(self):
-        self.logger.debug('Getting while project')
+        self.logger.debug('Getting whole project')
         p = self.get_project_summary()
         p['processes'] = self._process_manager.get_processes_info()
         p['buffers'] = self._process_manager.get_buffers_info()

@@ -11,6 +11,8 @@ from zmq.log.handlers import PUBHandler
 from zmq import Context as zmqContext
 from zmq import XPUB as zmqPUB
 
+import signal
+
 from util import genUUID, objToDictionnary, SummedTimeSpanningArray, Config_parser
 from alerts_manager import Alert_manager
 from process_metadata_interface import Process_metadata_interface, Buffer_metadata_interface
@@ -27,6 +29,8 @@ class Process(metaclass=ABCMeta):
                 self.config.redis.project.port,
                 self.config.redis.project.db,
                 charset="utf-8", decode_responses=True)
+
+        signal.signal(signal.SIGUSR1, self.sig_handler)
 
         self._alert_manager = Alert_manager()
         self.puuid = puuid
@@ -57,6 +61,7 @@ class Process(metaclass=ABCMeta):
         self._metadata_interface = Process_metadata_interface()
         self._buffer_metadata_interface = Buffer_metadata_interface()
         self.last_refresh = time.time() - self.state_refresh_rate # ensure a refresh
+        self.last_reload = time.time() - self.state_refresh_rate # ensure a reload
 
         self._processStat = ProcessStat(self.config.default_project.process.buffer_time_spanned_in_min)
         self.push_p_info()
@@ -115,6 +120,10 @@ class Process(metaclass=ABCMeta):
         self.y = configData.get('y', 0)
         self.config = Config_parser('config/easyFlow_conf.json', self.projectUUID).get_config()
 
+    def sig_handler(self, signum, frame):
+        self.logger.debug('Signal received')
+        self.push_p_info()
+
     def reload(self):
         self.logger.debug('Reloading configuration and connections')
         self.update_config()
@@ -142,6 +151,7 @@ class Process(metaclass=ABCMeta):
         dStat = self._processStat.get_dico()
         dStat.update(self.get_system_info())
         pInfo['stats'] = dStat
+        pInfo['representationTimestamp'] = time.time()
         return pInfo
 
     # push current process info to redis depending on the refresh value.
@@ -215,14 +225,16 @@ class Process(metaclass=ABCMeta):
     def apply_operation(self, operation, data):
         self.logger.debug('Applying operation: %s', operation)
         if operation == 'reload':
-            self.reload()
-            self._alert_manager.send_alert(
-                title=self.name,
-                content='got reloaded ({now})'.format(
-                    now=time.strftime('%H:%M:%S')
-                ),
-                mType='info'
-            )
+            # this condition prevent multiple reload in case of buffered reload operation
+            if time.time() - self.last_reload > self.config.processes.max_reload_interval:
+                self.reload()
+                self._alert_manager.send_alert(
+                    title=self.name,
+                    content='got reloaded ({now})'.format(
+                        now=time.strftime('%H:%M:%S')
+                    ),
+                    mType='info'
+                )
         elif operation == 'pause':
             self.pause()
         elif operation == 'play':

@@ -16,10 +16,12 @@ class Process_manager:
     def __init__(self, projectUUID):
         logging.basicConfig(format='%(levelname)s[%(asctime)s]: %(message)s')
         self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.INFO)
+        # self.logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter('%(levelname)s[%(asctime)s]: %(message)s')
         self.log_handler = logging.FileHandler(os.path.join(os.environ['FLOW_LOGS'], 'project.log'))
-        self.log_handler.setLevel(logging.INFO)
+        # self.log_handler.setLevel(logging.INFO)
+        self.log_handler.setLevel(logging.DEBUG)
         self.log_handler.setFormatter(formatter)
         self.logger.addHandler(self.log_handler)
 
@@ -81,9 +83,23 @@ class Process_manager:
     def get_processes_info(self):
         self.logger.debug('Getting processes info')
         info = []
+        process_uuids_to_be_force_reloaded = []
         for puuid in self.processes_uuid:
+
             pinfo = self._metadata_interface.get_info(puuid)
+
+            if (time.time() - pinfo['representationTimestamp']) > self.config.processes.force_pushing_state_interval: # if no info received from a long time, send a signal to the process
+                self.logger.info('Process "%s" [%s, pid=%s] did not send info data since %s seconds',
+                pinfo['name'], pinfo['puuid'], pinfo['pid'],
+                self.config.processes.force_pushing_state_interval)
+                process_uuids_to_be_force_reloaded.append(puuid)
+                # if process did not get reloaded, setting its state to crashed
+                if (time.time() - pinfo['representationTimestamp']) > (self.config.processes.force_pushing_state_interval + 2*self.config.web.refresh_metadata_interval_in_sec):
+                    pinfo['stats']['state'] = 'crashed'
+
             info.append(pinfo)
+
+        self.reload_states(process_uuids_to_be_force_reloaded)
         return info
 
     def get_buffers_info(self):
@@ -175,7 +191,7 @@ class Process_manager:
         self._serv.lpush(keyCommands, json.dumps(jCommand))
 
     def should_send_signal(self, process_type):
-        MODULE_WITH_SIGNAL = ['generate_lorem_ipsum']
+        MODULE_WITH_SIGNAL = self.config.processes.should_received_a_signal_on_updates
         if process_type in MODULE_WITH_SIGNAL:
             return True
 

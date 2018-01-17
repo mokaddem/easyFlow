@@ -17,7 +17,9 @@ class Process_no_input(Process, metaclass=ABCMeta):
         super().__init__(*args, **kwargs)
 
     def sig_handler(self, signum, frame):
+        self.logger.info('Signal received')
         self.process_commands()
+        self.push_p_info()
 
     def process_message(self, msg):
         pass

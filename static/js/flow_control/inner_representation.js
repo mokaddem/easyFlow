@@ -111,6 +111,10 @@ class InnerRepresentation {
         this.project.projectInfo = project.projectInfo;
     }
 
+    isProjectOpen() {
+        return this.project.projectUUID !== undefined;
+    }
+
     get_processes_info() {
         $.getJSON( url_get_processes_info, {}, function( data ) {
             innerRepresentation.update_nodes(data.processes, data.buffers);

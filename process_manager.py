@@ -14,18 +14,18 @@ easyFlow_conf = os.path.join(os.environ['FLOW_CONFIG'], 'easyFlow_conf.json')
 
 class Process_manager:
     def __init__(self, projectUUID):
+
+        self.config = Config_parser(easyFlow_conf, projectUUID).get_config()
+
         logging.basicConfig(format='%(levelname)s[%(asctime)s]: %(message)s')
         self.logger = logging.getLogger(__name__)
-        # self.logger.setLevel(logging.INFO)
-        self.logger.setLevel(logging.DEBUG)
+        self.logger.setLevel(getattr(logging, self.config.default_project.process_manager.log_level))
         formatter = logging.Formatter('%(levelname)s[%(asctime)s]: %(message)s')
         self.log_handler = logging.FileHandler(os.path.join(os.environ['FLOW_LOGS'], 'project.log'))
-        # self.log_handler.setLevel(logging.INFO)
-        self.log_handler.setLevel(logging.DEBUG)
+        self.log_handler.setLevel(getattr(logging, self.config.default_project.process_manager.log_level))
         self.log_handler.setFormatter(formatter)
         self.logger.addHandler(self.log_handler)
 
-        self.config = Config_parser(easyFlow_conf, projectUUID).get_config()
         try:
             self._serv = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
         except: # fallback using TCP instead of unix_socket

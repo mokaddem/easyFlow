@@ -228,6 +228,7 @@ class Process(metaclass=ABCMeta):
             # this condition prevent multiple reload in case of buffered reload operation
             if time.time() - self.last_reload > self.config.processes.max_reload_interval:
                 self.reload()
+                self.last_reload = time.time()
                 self._alert_manager.send_alert(
                     title=self.name,
                     content='got reloaded ({now})'.format(

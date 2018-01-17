@@ -41,8 +41,6 @@ class Process(metaclass=ABCMeta):
         self.state = 'running'
         self.logger = None
 
-        self.update_config()
-
         logging.basicConfig(format='%(levelname)s[%(asctime)s]: %(message)s')
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
@@ -57,6 +55,8 @@ class Process(metaclass=ABCMeta):
         self._pubhandler.root_topic = self.puuid
         self._pubhandler.setLevel(logging.INFO)
         self.logger.addHandler(self._pubhandler)
+
+        self.update_config()
 
         self._metadata_interface = Process_metadata_interface()
         self._buffer_metadata_interface = Buffer_metadata_interface()

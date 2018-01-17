@@ -88,7 +88,7 @@ class Process_manager:
 
             pinfo = self._metadata_interface.get_info(puuid)
 
-            if (time.time() - pinfo['representationTimestamp']) > self.config.processes.force_pushing_state_interval: # if no info received from a long time, send a signal to the process
+            if (time.time() - pinfo.get('representationTimestamp', time.time())) > self.config.processes.force_pushing_state_interval: # if no info received from a long time, send a signal to the process
                 self.logger.info('Process "%s" [%s, pid=%s] did not send info data since %s seconds',
                 pinfo['name'], pinfo['puuid'], pinfo['pid'],
                 self.config.processes.force_pushing_state_interval)

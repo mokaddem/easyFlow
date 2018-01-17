@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 import redis
 import zmq
 from zmq.log.handlers import PUBHandler
+
 import json
 from io import BytesIO
 import random, math
@@ -36,8 +37,10 @@ except: # fallback using TCP instead of unix_socket
         charset="utf-8", decode_responses=True)
 
 context = zmq.Context()
+
 socket_log_zmq = context.socket(zmq.SUB)
 socket_log_zmq.bind("tcp://*:{port}".format(port=config.zmq.port))
+socket_log_zmq.setsockopt_string(zmq.SUBSCRIBE, '')
 
 alert_manager = Alert_manager()
 alert_manager.subscribe()
@@ -220,8 +223,7 @@ def log_stream():
     return Response(make_log_response_stream(puuid), mimetype="text/event-stream")
 
 def make_log_response_stream(puuid):
-    # socket_log_zmq.setsockopt_string(zmq.SUBSCRIBE, puuid)
-    socket_log_zmq.setsockopt_string(zmq.SUBSCRIBE, '')
+
     while True:
         sleep(0.1)
         # string = socket_log_zmq.recv_string()
@@ -235,7 +237,6 @@ def make_log_response_stream(puuid):
         if logMsg.endswith('\n'):
             # trim trailing newline, which will get appended again
             logMsg = logMsg[:-1]
-
         logDic = {'log_level': level, 'time': int(time()), 'message': logMsg}
         yield 'data: %s\n\n' % json.dumps(logDic)
 

@@ -181,9 +181,7 @@ function fillForm(formID, formIDCustom, isUpdate, formData) {
             // standard input
             var imp = $('#'+formID).find('input[name='+key+']');
             imp.val(formData[key]);
-            if (imp.attr('type') == 'checkbox') {
-                imp.prop( "checked", formData[key] );
-            }
+
             // select
             var sel = $('#'+formID).find('select[name='+key+']');
             sel.val(formData[key]);
@@ -207,7 +205,11 @@ function fillForm(formID, formIDCustom, isUpdate, formData) {
     for(key in form_custom_config) {
         if(form_custom_config.hasOwnProperty(key)){
             // standard input
-            $('#'+formIDCustom).find('input[name='+key+']').val(form_custom_config[key]);
+            var imp = $('#'+formIDCustom).find('input[name='+key+']')
+            imp.val(form_custom_config[key]);
+            if (imp.attr('type') == 'checkbox') {
+                imp.prop( "checked", form_custom_config[key] );
+            }
             // select
             $('#'+formIDCustom).find('select[name='+key+']').val(form_custom_config[key]);
 

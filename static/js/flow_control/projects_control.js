@@ -55,13 +55,13 @@ function load_project(project) {
     }
 
     if (innerRepresentation.isProjectOpen()) {
-        // closeProject(); // FOR NOW: Close project. Does not load the new one.
-    } else {
-        innerRepresentation.set_project(project);
-        innerRepresentation.resync_representation(function() {
-            flowControl.startAll();
-        })
+        notify('Project', 'close the open project before trying to load another one', 'warning');
     }
+    innerRepresentation.set_project(project);
+    innerRepresentation.resync_representation(function() {
+        flowControl.startAll();
+    });
+
 }
 
 function list_projects() {

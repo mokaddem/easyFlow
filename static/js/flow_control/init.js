@@ -141,6 +141,11 @@ function draw() {
     $('#pcontrol_edit').click(function(){
         flowControl.edit_node();
     });
+    $('#tabProcessCustomSettings').click(function(){
+        $($(this).attr('href')).find('select').map(function() {
+            $('#'+$(this).prop('name')+'_additional_options_'+this.value).collapse('show');
+        })
+    });
     $('#switch_show_realtime_log').on("change", function(){
         if ($(this).is(':checked')) {
             var process_is_selected = flowControl.selected.length > 0;

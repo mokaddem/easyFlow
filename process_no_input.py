@@ -17,7 +17,7 @@ class Process_no_input(Process, metaclass=ABCMeta):
         super().__init__(*args, **kwargs)
 
     def sig_handler(self, signum, frame):
-        self.logger.info('Signal received')
+        self.logger.debug('Signal received')
         self.process_commands()
         self.push_p_info()
 
@@ -39,7 +39,7 @@ class Process_no_input(Process, metaclass=ABCMeta):
                 self._processStat.register_processed()
                 time.sleep(self.config.default_project.process.pooling_time_interval_get_message)
             else: # process paused
-                self.logger.info('No message, sleeping %s sec', self.config.default_project.process.pooling_time_interval_get_message)
+                self.logger.debug('Process state: %s, sleeping %s sec', self.state, self.config.default_project.process.pooling_time_interval_get_message)
                 time.sleep(self.config.default_project.process.pooling_time_interval_get_message)
 
     # forward is called from generate_data().

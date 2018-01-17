@@ -55,7 +55,7 @@ function load_project(project) {
     }
 
     if (innerRepresentation.isProjectOpen()) {
-        closeProject(); // FOR NOW: Close project. Does not load the new one.
+        // closeProject(); // FOR NOW: Close project. Does not load the new one.
     } else {
         innerRepresentation.set_project(project);
         innerRepresentation.resync_representation(function() {

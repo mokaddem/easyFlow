@@ -156,14 +156,6 @@ class Process_manager:
         for puuid in process_uuids:
             self.send_command(puuid, 'reload')
 
-        for puuid in [p for p in process_uuids if p in self.processes_uuid_with_signal]:
-            # send signal to the module
-            self.logger.debug('Sending signal to %s [%s]', self.processes[puuid].name, puuid)
-            try:
-                self.processes[puuid]._subprocessObj.send_signal(signal.SIGUSR1)
-            except psutil._exceptions.NoSuchProcess as e:
-                self.logger.debug('Trying to reload a non-existing process "%s" [%s]: %s', self.processes[puuid].name, puuid, str(e))
-
     def pause_process(self, puuid):
         self.logger.info('Pausing process "%s" [%s]', self.processes[puuid].name, puuid)
         self.send_command(puuid, 'pause')
@@ -192,6 +184,14 @@ class Process_manager:
         process_config = self.processes[puuid]
         self._serv.set('config_'+puuid, process_config.toJSON())
         self._serv.lpush(keyCommands, json.dumps(jCommand))
+
+        # send signal to the module
+        self.logger.debug('Sending signal to %s [%s]', self.processes[puuid].name, puuid)
+        try:
+            self.processes[puuid]._subprocessObj.send_signal(signal.SIGUSR1)
+        except psutil._exceptions.NoSuchProcess as e:
+            self.logger.debug('Trying to reload a non-existing process "%s" [%s]: %s', self.processes[puuid].name, puuid, str(e))
+
 
     def should_send_signal(self, process_type):
         MODULE_WITH_SIGNAL = self.config.processes.should_received_a_signal_on_updates
@@ -259,12 +259,6 @@ class Process_manager:
     def delete_process(self, puuid):
         self.logger.info('Deleting process %s [%s]', self.processes[puuid].name, puuid)
         self.kill_process(puuid)
-        self.processes_uuid.remove(puuid)
-        try:
-            self.processes_uuid_with_signal.remove(puuid)
-        except ValueError as e:
-            pass
-        del self.processes[puuid]
         # delete residual keys in redis
         keys = self._serv.keys('*{}*'.format(puuid))
         for k in keys:
@@ -273,6 +267,13 @@ class Process_manager:
         buuids = self.get_connected_buffers(puuid)
         for buuid in buuids:
             self.delete_link(buuid)
+
+        self.processes_uuid.remove(puuid)
+        try:
+            self.processes_uuid_with_signal.remove(puuid)
+        except ValueError as e:
+            pass
+        del self.processes[puuid]
 
     def update_process(self, data):
         puuid = data.get('puuid', None)

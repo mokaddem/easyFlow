@@ -9,7 +9,7 @@ class Print_to_console(Process):
     def process_message(self, msg, channel):
         print('Print_to_console [{}]: {}'.format(os.getpid(), msg))
         self.logger.debug('Printed: %s', msg)
-        self.custom_message = 'last printed: '+msg[0:20]
+        self.custom_message = 'last printed: '+msg[0:25]
         # self.forward(msg)
 
 if __name__ == '__main__':

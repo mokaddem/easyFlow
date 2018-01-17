@@ -248,7 +248,7 @@ class Process(metaclass=ABCMeta):
             pass
 
     def pause(self):
-        self.logger.info('Pausing process')
+        self.logger.warning('Pausing process')
         self.state = 'paused'
 
     def play(self):

@@ -165,6 +165,11 @@ function getFormData(formID) {
         obj[item.name] = itemValue;
         return obj;
     }, {});
+    /* Because serializeArray() ignores checkboxes and radio buttons: */
+    jQuery('#'+formID+' input[type=checkbox]').map(
+                    function() {
+                        formData[this.name] = this.checked;
+                    }).get();
     // disable previously disabled fields
     disabled.attr('disabled','disabled');
     return formData
@@ -174,7 +179,11 @@ function fillForm(formID, formIDCustom, isUpdate, formData) {
     for(key in formData) {
         if(formData.hasOwnProperty(key)){
             // standard input
-            $('#'+formID).find('input[name='+key+']').val(formData[key]);
+            var imp = $('#'+formID).find('input[name='+key+']');
+            imp.val(formData[key]);
+            if (imp.attr('type') == 'checkbox') {
+                imp.prop( "checked", formData[key] );
+            }
             // select
             var sel = $('#'+formID).find('select[name='+key+']');
             sel.val(formData[key]);
@@ -203,7 +212,9 @@ function fillForm(formID, formIDCustom, isUpdate, formData) {
             $('#'+formIDCustom).find('select[name='+key+']').val(form_custom_config[key]);
 
             // open tab if needed
-            $('#'+key+'_additional_options_'+form_custom_config[key]).collapse('toggle');
+            try { // may happen on input content
+                $('#'+key+'_additional_options_'+form_custom_config[key]).collapse('toggle');
+            } catch (e) {}
         }
     }
 
@@ -235,6 +246,9 @@ function create_html_from_json(pName, j, isUpdate) {
             elem.setAttribute("max", j.max);
             elem.setAttribute("step", j.step);
             elem.setAttribute("value", j.default);
+            if (j.inputType == "checkbox") {
+                elem.setAttribute('checked', j.default);
+            }
             break;
         case "select":
             for (var option of j.options) {
@@ -281,7 +295,6 @@ function create_html_from_json(pName, j, isUpdate) {
                 }
                 // append all element to form the collapsible panel
                 divCollapse.appendChild(divBody)
-                // divPan.appendChild(divHead)
                 divPan.appendChild(divCollapse)
                 divPG.appendChild(divPan)
             }
@@ -289,12 +302,18 @@ function create_html_from_json(pName, j, isUpdate) {
         // add the listener to display the panel
         elem.addEventListener("change", function() {
             selected = this.value;
+            if (this.type == "checkbox") { // value is not correct if it is a checkbox
+                selected = this.checked;
+            }
             // close active pannel
             var actives = $('#'+pName+'_panelGroup').find('.in, .collapsing');
             actives.each( function (index, element) {
                 $(element).collapse('hide');
-            })
-            $('#'+pName+'_additional_options_'+selected).collapse('toggle');
+            });
+
+            try{ // may happen on input content
+                $('#'+pName+'_additional_options_'+selected).collapse('toggle');
+            } catch (e) {}
 
         });
     }

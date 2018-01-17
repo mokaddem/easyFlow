@@ -452,24 +452,33 @@ class InnerRepresentation {
                 },
                 "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
                     // Bold the grade for all 'A' grade browsers
+                    nRow.classList.add('success')
                     switch (aData.log_level) {
                         case 'DEBUG':
                             break;
                         case 'INFO':
-                            nRow.classList.add('info')
+                            setTimeout(function() {
+                                nRow.classList.remove('success');
+                                nRow.classList.add('info');
+                            }, 700);
                             break;
                         case 'WARNING':
-                            nRow.classList.add('warning')
+                            setTimeout(function() {
+                                nRow.classList.remove('success');
+                                nRow.classList.add('warning')
+                            }, 700);
                             break;
                         case 'ERROR':
-                            nRow.classList.add('danger')
+                            setTimeout(function() {
+                                nRow.classList.remove('success');
+                                nRow.classList.add('danger')
+                            }, 700);
                             break;
                         case 'NONE':
                             break;
                         default:
 
                     }
-                    $('td:eq(4)', nRow).html( '<b>A</b>' );
                 },
                 "columns": [
                     { data: "log_level" },

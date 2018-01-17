@@ -159,7 +159,10 @@ class Process_manager:
         for puuid in [p for p in process_uuids if p in self.processes_uuid_with_signal]:
             # send signal to the module
             self.logger.debug('Sending signal to %s [%s]', self.processes[puuid].name, puuid)
-            self.processes[puuid]._subprocessObj.send_signal(signal.SIGUSR1)
+            try:
+                self.processes[puuid]._subprocessObj.send_signal(signal.SIGUSR1)
+            except psutil._exceptions.NoSuchProcess as e:
+                self.logger.debug('Trying to reload a non-existing process "%s" [%s]: %s', self.processes[puuid].name, puuid, str(e))
 
     def pause_process(self, puuid):
         self.logger.info('Pausing process "%s" [%s]', self.processes[puuid].name, puuid)
@@ -198,7 +201,10 @@ class Process_manager:
     def kill_process(self, puuid):
         subProcObj = self.processes[puuid]._subprocessObj
         self.logger.info('Killing process "%s" [%s, pid=%s]', self.processes[puuid].name, puuid, subProcObj.pid)
-        subProcObj.terminate()
+        try:
+            subProcObj.terminate()
+        except psutil._exceptions.NoSuchProcess as e:
+            self.logger.debug('Trying to kill a non-existing process "%s" [%s]: %s', self.processes[puuid].name, puuid, str(e))
         self._serv.delete(puuid)
 
     def create_process(self, data, puuid=None):

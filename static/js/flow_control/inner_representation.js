@@ -483,6 +483,18 @@ class InnerRepresentation {
         } else {
             logListDatatable.ajax.reload();
         }
+        this.applyLogLevelFiltering();
+    }
+
+    applyLogLevelFiltering() {
+        // generate the regex to filter logs in datatable
+        var log_levels_regex = '(' + $("#checkboxes_log_level").find("input:checked").map(function() {
+                return this.value
+        }).get().join('|') + ')';
+        logListDatatable // filter rows based on checked log level
+            .columns( 0 )
+            .search( log_levels_regex, true )
+            .draw();
     }
 
 

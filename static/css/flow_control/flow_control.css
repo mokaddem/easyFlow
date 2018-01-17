@@ -165,6 +165,14 @@ div.vis-network {
     transition: .4s;
 }
 
+input.checkbox-log-level {
+    margin-left: -16px !important;
+}
+
+label.btn-log-level {
+    width: 100px;
+}
+
 input:checked + .slider {
     background-color: #2196F3;
 }

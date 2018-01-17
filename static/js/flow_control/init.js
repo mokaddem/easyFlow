@@ -154,6 +154,9 @@ function draw() {
             }
         }
     });
+    $("#checkboxes_log_level").find("input").on("change", function() {
+        innerRepresentation.applyLogLevelFiltering();
+    });
 
     $('button[name="pipe"]').on("click", function (eventObject) {
         var btnPipe = $(eventObject.currentTarget);

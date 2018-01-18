@@ -443,13 +443,14 @@ class Flow_project_manager:
              }
         mypath = os.environ['FLOW_PROC']
         procName = data.get('name', None)
+        procExtendType = 'Process' if data.get('rcv_message', True) else 'Process_no_input'
         if procName is None:
             self.logger.warning('Process type creation failed')
             return {'status': 'failure'}
 
         pConfig = {}
         for param, j in data.items(): # re-construct config #FIXME should not be done
-            if param in ['name', 'description']:
+            if param in ['name', 'description', 'rcv_message']:
                 continue
             pConfig[param] = {}
             print(param, j)
@@ -462,6 +463,17 @@ class Flow_project_manager:
 
         with open(join(mypath, procName+'.json'), 'w') as f:
             json.dump(pConfig, f)
+
+        with open(join(mypath, 'process_template_to_be_filled'+'.py'), 'r') as f_template:
+            content = f_template.read()
+            content = content.format(
+                parameters=str(pConfig.keys()),
+                procExtendType=procExtendType,
+                procExtendTypeClass='p'+procExtendType[1:],
+                processType=procName)
+                
+            with open(join(mypath, procName+'.py'), 'w') as f_proc:
+                f_proc.write(content)
             self.logger.info('Written new process type %s', procName)
 
         return {'status': 'success'}

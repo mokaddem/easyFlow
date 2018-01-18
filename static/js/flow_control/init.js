@@ -195,9 +195,9 @@ function draw() {
     $("#CreateProcessType_add_parameter").click(function() {
         param_data = {
             label:              createProcessDatatable.cell(0,0).nodes().to$().find('input').val(),
-            dom:                createProcessDatatable.cell(0,1).nodes().to$().find('select').val(),
-            input_type:         createProcessDatatable.cell(0,2).nodes().to$().find('select').val(),
-            default_value:      createProcessDatatable.cell(0,3).nodes().to$().find('input').val(),
+            DOM:                createProcessDatatable.cell(0,1).nodes().to$().find('select').val(),
+            inputType:         createProcessDatatable.cell(0,2).nodes().to$().find('select').val(),
+            default:      createProcessDatatable.cell(0,3).nodes().to$().find('input').val(),
             dynamic_change:     createProcessDatatable.cell(0,4).nodes().to$().find('input').prop('checked'),
             additional_options: createProcessDatatable.cell(0,5).nodes().to$().find('input').val()
         }

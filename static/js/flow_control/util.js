@@ -152,7 +152,13 @@ function validateForm(formID) {
     if (res) { // form is valid
         return res;
     } else {
-        notify('Invalid form:', "One or more fields are not valid", "danger");
+        var err_fields = [];
+        for (i = 0; i < form.length ;i++) {
+            if(!form.elements[i].checkValidity()) {
+                err_fields.push(form.elements[i].getAttribute('name'));
+            }
+        }
+        notify('Invalid form:', "One or more fields are not valid: "+err_fields, "danger");
         return res;
     }
 }

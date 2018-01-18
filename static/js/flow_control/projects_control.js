@@ -231,5 +231,41 @@ function force_project_select() {
 }
 
 function create_process_type() {
-    $('#'+'modalCreateProcessType').modal('show');
+    var modalID = "modalCreateProcessType";
+    var formID = "formCreateProcessType";
+    $('#'+modalID).modal('show');
+    var confirmBtn = $('#'+modalID).find('button[confirm="1"]');
+    confirmBtn.one('click', function(event) {
+        if (validateForm(formID)) {
+            var formData = getFormData(formID);
+            $('#'+formID)[0].reset();
+            var flag_skip = true; // skip from row
+            var formDataParam = createProcessDatatable.rows().data().map(function(obj) {
+                var validLabel = obj.label.replace(' ', '');
+                if (!flag_skip) { // datatable may return DOM data...
+                    formData[validLabel] = obj;
+                }
+                flag_skip = false;
+            });
+            createProcessDatatable.clear();
+            $('#'+modalID).modal('hide');
+
+            // send creation operation to server
+            console.log(formData);
+            $.ajax({
+                type: "POST",
+                url: url_create_process_type,
+                data: JSON.stringify(formData),
+                contentType: 'application/json; charset=utf-8',
+                beforeSend: function() { toggle_loading(true); },
+                complete: function() { toggle_loading(false); }
+            }).done(function(data) {
+                if (data.status == 'success') {
+                    notify('System', 'new process type created', 'success');
+                } else {
+                    notify('System', 'new process type creation failed', 'danger');
+                }
+            });
+        }
+    });
 }

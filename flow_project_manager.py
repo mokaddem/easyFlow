@@ -370,7 +370,6 @@ class Flow_project_manager:
             ret.append(p.get_project_summary())
         return ret
 
-
     def select_project(self, projectUUID):
         self.logger.info('Selected project %s', projectUUID)
         if self.is_project_open():
@@ -428,6 +427,44 @@ class Flow_project_manager:
             return False
         else:
             return True
+
+    def create_process_type(self, data):
+        {'para1': {
+        'additional_options': '{q:123}',
+         'label': 'para1',
+          'dynamic_change': True,
+           'default_value': '213213213',
+            'dom': 'input',
+             'input_type': 'text'}
+             , 'para2': {
+             'additional_options': '', 'label': 'para2', 'dynamic_change': False, 'default_value': 'blabla', 'dom': 'input', 'input_type': 'text'},
+             'name': 'Proc1',
+             'description': 'descdsc'
+             }
+        mypath = os.environ['FLOW_PROC']
+        procName = data.get('name', None)
+        if procName is None:
+            self.logger.warning('Process type creation failed')
+            return {'status': 'failure'}
+
+        pConfig = {}
+        for param, j in data.items(): # re-construct config #FIXME should not be done
+            if param in ['name', 'description']:
+                continue
+            pConfig[param] = {}
+            print(param, j)
+            for k, v in j.items():
+                if k == 'additional_options':
+                    # pConfig[param][k] = json.loads(v) #FIXME
+                    pConfig[param][k] = v
+                else:
+                    pConfig[param][k] = v
+
+        with open(join(mypath, procName+'.json'), 'w') as f:
+            json.dump(pConfig, f)
+            self.logger.info('Written new process type %s', procName)
+
+        return {'status': 'success'}
 
     def applyOperation(self, data, operation):
         self.logger.info('Applying operation %s', operation)

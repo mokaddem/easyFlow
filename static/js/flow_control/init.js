@@ -170,9 +170,9 @@ function draw() {
         "searching":false,
         columns: [
             { data: 'label' },
-            { data: 'dom' },
-            { data: 'input_type' },
-            { data: 'default_value' },
+            { data: 'DOM' },
+            { data: 'inputType' },
+            { data: 'default' },
             { data: 'dynamic_change' },
             { data: 'additional_options' },
             {
@@ -189,6 +189,9 @@ function draw() {
             }
         ]
     });
+    $("#CreateProcessType_inputType").on('change', function() {
+        $("#CreateProcessType_defaultValue").attr('type', $(this).val());
+    });
     $("#CreateProcessType_add_parameter").click(function() {
         param_data = {
             label:              createProcessDatatable.cell(0,0).nodes().to$().find('input').val(),
@@ -196,9 +199,15 @@ function draw() {
             input_type:         createProcessDatatable.cell(0,2).nodes().to$().find('select').val(),
             default_value:      createProcessDatatable.cell(0,3).nodes().to$().find('input').val(),
             dynamic_change:     createProcessDatatable.cell(0,4).nodes().to$().find('input').prop('checked'),
-            additional_options: createProcessDatatable.cell(0,5).nodes().to$().find('input').prop('checked')
+            additional_options: createProcessDatatable.cell(0,5).nodes().to$().find('input').val()
         }
         createProcessDatatable.row.add(param_data).draw( false );
+        createProcessDatatable.cell(0,0).nodes().to$().find('input').val('');
+        createProcessDatatable.cell(0,1).nodes().to$().find('select').val('input');
+        createProcessDatatable.cell(0,2).nodes().to$().find('select').val('text');
+        createProcessDatatable.cell(0,3).nodes().to$().find('input').val('');
+        createProcessDatatable.cell(0,4).nodes().to$().find('input').prop('checked', false);
+        createProcessDatatable.cell(0,5).nodes().to$().find('input').val('');
     })
 
     $('button[name="pipe"]').on("click", function (eventObject) {

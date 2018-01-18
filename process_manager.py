@@ -219,8 +219,8 @@ class Process_manager:
         if self.process_started_and_managed(puuid):
             return ""
 
-        # pStarted, pid = self.process_started_in_system(puuid, killIt=False)
-        pStarted, pid = self.process_started_in_system(puuid, killIt=True)
+        pStarted, pid = self.process_started_in_system(puuid, killIt=False)
+        # pStarted, pid = self.process_started_in_system(puuid, killIt=True)
         if pStarted:
             self.logger.info('Process "%s" [%s, pid=%s] was already started', data.get('name', None), puuid, pid)
             self._alert_manager.send_alert(title='Process',

@@ -173,6 +173,12 @@ def project_operation():
     status = flow_project_manager.applyOperation(data, operation)
     return jsonify(status)
 
+@app.route("/create_process_type" ,methods=['POST'])
+def create_process_type():
+    data = request.get_json()
+    status = flow_project_manager.create_process_type(data)
+    return jsonify(status)
+
 @app.route("/flow_operation", methods=['POST'])
 def flow_operation():
     data = request.get_json()

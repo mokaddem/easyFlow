@@ -106,7 +106,7 @@
         <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0;">
             <div id="navBarTop" class="navbar-header" style="">
                 <div style="height: 50px; border-right:2px solid #c6c6c6; display: inline-block;">
-                    <img src="{{ url_for('static', filename='pics/easyFlow.svg') }}" alt="EasyFlow" style="height: 40px; padding-right: 10px;">
+                    <img src="{{ url_for('static', filename='pics/easyFlow2.svg') }}" alt="EasyFlow" style="height: 40px; padding-right: 10px;">
                 </div>
                 <button type="button" class="btn btn-default" id="load_network" onclick="show_projects()" style="margin-left: 10px;"><span class="glyphicon glyphicon-folder-open" style="margin-right: 3px;"></span> Manage projects</button>
                 <button type="button" class="btn btn-default" id="create_process_type" onclick="create_process_type()" style="margin-left: 10px;"><span class="glyphicon glyphicon-asterisk" style="margin-right: 3px;"></span> Create new process type</button>
@@ -154,50 +154,52 @@
                     </div>
                 </div>
 
-                <table class="table table-striped" style="margin-bottom: 0px; padding: 1px;">
-                    <tbody>
-                        <tr style="border: 1px solid #ddd; border-top-width: 2px;">
-                            <td class="no_border"><b>Type</b></td>
-                            <td id='selectedType' class="no_border"></td>
-                        </tr>
-                        <tr>
-                            <td class="no_border"><b>UUID</b></td>
-                            <td id='selectedUUID' class="no_border"></td>
-                        </tr>
-                        <tr>
-                            <td class="no_border"><b>State</b></td>
-                            <td id='selectedState' class="no_border"></td>
-                        </tr>
-                        <tr>
-                            <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/bytesIN_OUT.png') }}" title="Bytes IN/OUT"></td>
-                            <td id='selectedByte' class="no_border"></td>
-                        </tr>
-                        <tr>
-                            <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/flowItemIN_OUT.png') }}" title="FlowItem IN/OUT"></td>
-                            <td id='selectedFlowItem' class="no_border"></td>
-                        </tr>
-                        <tr>
-                            <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/procTime.png') }}" title="Processing time"></td>
-                            <td id='selectedTime' class="no_border"></td>
-                        </tr>
-                        <tr>
-                            <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/cpu.png') }}" title="CPU load"></td>
-                            <td id='selectedCPULoad' class="no_border"></td>
-                        </tr>
-                        <tr>
-                            <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/memory.png') }}" title="Memory load"></td>
-                            <td id='selectedMemoryLoad' class="no_border"></td>
-                        </tr>
-                        <tr  style="border: 1px solid #ddd; border-bottom-width: 2px;">
-                            <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/pid.png') }}" title="PID"></td>
-                            <td id='selectedPID' class="no_border"></td>
-                        </tr>
-                        <tr>
-                            <td class="no_border"><b>Message</b></td>
-                            <td id='selectedMessage' class="no_border"></td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div id='controlPanelCollapse' class="collapse">
+                    <table class="table table-striped" style="margin-bottom: 0px; padding: 1px;">
+                        <tbody>
+                            <tr style="border: 1px solid #ddd; border-top-width: 2px;">
+                                <td class="no_border"><b>Type</b></td>
+                                <td id='selectedType' class="no_border"></td>
+                            </tr>
+                            <tr>
+                                <td class="no_border"><b>UUID</b></td>
+                                <td id='selectedUUID' class="no_border"></td>
+                            </tr>
+                            <tr>
+                                <td class="no_border"><b>State</b></td>
+                                <td id='selectedState' class="no_border"></td>
+                            </tr>
+                            <tr>
+                                <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/bytesIN_OUT.png') }}" title="Bytes IN/OUT"></td>
+                                <td id='selectedByte' class="no_border"></td>
+                            </tr>
+                            <tr>
+                                <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/flowItemIN_OUT.png') }}" title="FlowItem IN/OUT"></td>
+                                <td id='selectedFlowItem' class="no_border"></td>
+                            </tr>
+                            <tr>
+                                <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/procTime.png') }}" title="Processing time"></td>
+                                <td id='selectedTime' class="no_border"></td>
+                            </tr>
+                            <tr>
+                                <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/cpu.png') }}" title="CPU load"></td>
+                                <td id='selectedCPULoad' class="no_border"></td>
+                            </tr>
+                            <tr>
+                                <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/memory.png') }}" title="Memory load"></td>
+                                <td id='selectedMemoryLoad' class="no_border"></td>
+                            </tr>
+                            <tr  style="border: 1px solid #ddd; border-bottom-width: 2px;">
+                                <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/pid.png') }}" title="PID"></td>
+                                <td id='selectedPID' class="no_border"></td>
+                            </tr>
+                            <tr>
+                                <td class="no_border"><b>Message</b></td>
+                                <td id='selectedMessage' class="no_border"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
 
 
             </div>

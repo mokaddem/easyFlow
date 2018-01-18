@@ -389,10 +389,10 @@ class InnerRepresentation {
             var selectedNodeType = innerRepresentation.nodeType(selectedNodes);
             if (selectedNodeType == 'process') {
                 node = innerRepresentation.processObj[selectedNodes];
-                this.setProcessControlButtonData([node.puuid])
+                this.setProcessControlButtonData([node.puuid]);
             } else if (selectedNodeType == 'buffer') {
                 node = innerRepresentation.bufferObj[selectedNodes];
-                this.setBufferControlButtonData([node.buuid])
+                this.setBufferControlButtonData([node.buuid]);
             } else {
             }
             $('#selectedNodeName').text(node.name);
@@ -408,6 +408,7 @@ class InnerRepresentation {
             $('#pcontrol_delete').prop("disabled", false);
             $('#pcontrol_edit').prop("disabled", false);
         flowControl.selected = puuid;
+        $('#controlPanelCollapse').collapse('show');
     }
 
     setBufferControlButtonData(buuid) {
@@ -419,6 +420,7 @@ class InnerRepresentation {
             $('#pcontrol_delete').prop("disabled", false);
             $('#pcontrol_edit').prop("disabled", false);
         flowControl.selected = buuid;
+        $('#controlPanelCollapse').collapse('hide');
     }
 
     resetControlButtonData() {
@@ -430,6 +432,7 @@ class InnerRepresentation {
             $('#pcontrol_delete').prop("disabled", true);
             $('#pcontrol_edit').prop("disabled", true);
         flowControl.selected = [];
+        $('#controlPanelCollapse').collapse('hide');
     }
 
     show_log(pName, puuid) {

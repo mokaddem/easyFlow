@@ -181,7 +181,7 @@ function draw() {
                     if (meta.row == 0) {
                         return data;
                     }
-                    return '<button type="button" class="btn btn-danger btn-datatable" style="margin-left: 5px;" title="Delete project" onclick="createProcessDatatable.row($(this).parents(\'tr\')).remove()">'+
+                    return '<button type="button" class="btn btn-danger btn-datatable" style="margin-left: 5px;" title="Delete project" onclick="createProcessDatatable.row($(this).parents(\'tr\')).remove().draw(false)">'+
                                 '<span class="glyphicon glyphicon-trash"></span>'+
                             '</button>';
                 }

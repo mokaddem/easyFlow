@@ -80,6 +80,7 @@
         var flowControl = null;
         var projectListDatatable = null;
         var logListDatatable = null;
+        var createProcessDatatable = null;
         var alertManager = null;
         var realtimeLogs = null;
 
@@ -98,17 +99,6 @@
 
 <body>
     <div id="loaderBack" class="loader-background" style="display: none;"><div id="loader" class="loader" style="display: none;"></div></div>
-    <div id="network-popUp">
-        <span id="operation">node</span> <br>
-        <table style="margin:auto;"><tr>
-            <td>id</td><td><input id="node-id" value="new value"></td>
-        </tr>
-        <tr>
-            <td>label</td><td><input id="node-label" value="new value"> </td>
-        </tr></table>
-        <button type="button" value="save" id="saveButton">save</button>
-        <button type="button" value="cancel" id="cancelButton">cancel</button>
-    </div>
 
     <div id="wrapper">
 
@@ -116,22 +106,13 @@
         <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0;">
             <div id="navBarTop" class="navbar-header" style="">
                 <div style="height: 50px; border-right:2px solid #c6c6c6; display: inline-block;">
-                    <img src="{{ url_for('static', filename='pics/MISP.png') }}" alt="EasyFlow" style="height: 40px; padding-right: 10px;">
+                    <img src="{{ url_for('static', filename='pics/easyFlow.svg') }}" alt="EasyFlow" style="height: 40px; padding-right: 10px;">
                 </div>
                 <button type="button" class="btn btn-default" id="load_network" onclick="show_projects()" style="margin-left: 10px;"><span class="glyphicon glyphicon-folder-open" style="margin-right: 3px;"></span> Manage projects</button>
+                <button type="button" class="btn btn-default" id="create_process_type" onclick="create_process_type()" style="margin-left: 10px;"><span class="glyphicon glyphicon-asterisk" style="margin-right: 3px;"></span> Create new process type</button>
                 <h2 id="projectName" style=""><small id="projectInfo"></small></h2>
             </div>
             <!-- /.navbar-header -->
-
-            <!-- <div class="navbar-default sidebar" role="navigation">
-                <div class="sidebar-nav navbar-collapse"> -->
-
-
-
-                <!-- </div> -->
-                <!-- /.sidebar-collapse -->
-            <!-- </div> -->
-            <!-- /.navbar-sidebar -->
         </nav>
 
         <div id="controlPanel" class="panel panel-primary controlPanel">
@@ -226,6 +207,7 @@
         {% include 'modals/listProjects.html' %}
         {% include 'modals/createProject.html' %}
         {% include 'modals/importProject.html' %}
+        {% include 'modals/createProcessType.html' %}
         {% include 'modals/showLog.html' %}
         {% include 'modals/addProcess.html' %}
 

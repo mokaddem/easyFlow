@@ -163,6 +163,44 @@ function draw() {
         innerRepresentation.applyLogLevelFiltering();
     });
 
+    createProcessDatatable = $("#CreateProcessTypeDatatable").DataTable({
+        "paging":   false,
+        "ordering": false,
+        "info":     false,
+        "searching":false,
+        columns: [
+            { data: 'label' },
+            { data: 'dom' },
+            { data: 'input_type' },
+            { data: 'default_value' },
+            { data: 'dynamic_change' },
+            { data: 'additional_options' },
+            {
+                data: "Action",
+                render: function(data, type, row, meta) {
+                    if (meta.row == 0) {
+                        return data;
+                    }
+                    return '<button type="button" class="btn btn-danger btn-datatable" style="margin-left: 5px;" title="Delete project" onclick="createProcessDatatable.row($(this).parents(\'tr\')).remove()">'+
+                                '<span class="glyphicon glyphicon-trash"></span>'+
+                            '</button>';
+                }
+
+            }
+        ]
+    });
+    $("#CreateProcessType_add_parameter").click(function() {
+        param_data = {
+            label:              createProcessDatatable.cell(0,0).nodes().to$().find('input').val(),
+            dom:                createProcessDatatable.cell(0,1).nodes().to$().find('select').val(),
+            input_type:         createProcessDatatable.cell(0,2).nodes().to$().find('select').val(),
+            default_value:      createProcessDatatable.cell(0,3).nodes().to$().find('input').val(),
+            dynamic_change:     createProcessDatatable.cell(0,4).nodes().to$().find('input').prop('checked'),
+            additional_options: createProcessDatatable.cell(0,5).nodes().to$().find('input').prop('checked')
+        }
+        createProcessDatatable.row.add(param_data).draw( false );
+    })
+
     $('button[name="pipe"]').on("click", function (eventObject) {
         var btnPipe = $(eventObject.currentTarget);
         if (btnPipe.attr('activated') == 'true' ){
@@ -212,16 +250,11 @@ function draw() {
             }
     });
     $('#controlPanel').draggable({
-        // cancel:false,
         stack: "#mynetwork",
         revert: false,
         scroll: false,
         cursor: "move",
         zIndex: 5000,
-        // cursorAt: {
-        //     top: 31,
-        //     left: 31
-        // }
     });
 }
 

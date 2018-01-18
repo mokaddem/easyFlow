@@ -202,7 +202,6 @@ function importProject() {
 
 function exportProject(rowID) {
     var rowData = projectListDatatable.row(rowID).data();
-    console.log('performing ajax');
     $.ajax({
         url: url_download_file+'?projectUUID='+rowData.projectUUID,
         success: function() {
@@ -229,4 +228,8 @@ function force_project_select() {
         $('#'+'modalListProject').data('bs.modal').options.backdrop = 'static';
     } catch(err) { /* do nothing */ }
     $('#'+'modalListProject').modal({show: true, backdrop: 'static'});
+}
+
+function create_process_type() {
+    $('#'+'modalCreateProcessType').modal('show');
 }

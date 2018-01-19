@@ -331,6 +331,8 @@ class FlowControl {
             url: url_flow_operation,
             data: JSON.stringify(data),
             contentType: 'application/json; charset=utf-8'
+        }).done(function() {
+            alertManager.messageGroup['Process_manager_ready'].nobj.close();
         });
     }
 }

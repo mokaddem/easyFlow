@@ -295,23 +295,3 @@ function init_load() {
         });
     }
 }
-
-/* FORM CREATION */
-function clearPopUp() {
-    var saveButton = document.getElementById('saveButton');
-    var cancelButton = document.getElementById('cancelButton');
-    saveButton.onclick = null;
-    cancelButton.onclick = null;
-    var div = document.getElementById('network-popUp');
-    div.style.display = 'none';
-}
-
-function saveData(data,callback) {
-    var idInput = document.getElementById('node-id');
-    var labelInput = document.getElementById('node-label');
-    var div = document.getElementById('network-popUp');
-    data.id = idInput.value;
-    data.label = labelInput.value;
-    clearPopUp();
-    callback(data);
-}

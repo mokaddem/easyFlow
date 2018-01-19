@@ -148,7 +148,7 @@ class Process_manager:
         return self.processes[puuid].is_multiplexer
 
     def shutdown(self):
-        self.logger.info('Shutting down all processes (%s process(es))')
+        self.logger.info('Shutting down all processes (%s process(es))', len(self.processes.keys()))
         for puuid in self.processes.keys():
             # self.kill_process(puuid)
             self.stop_process(puuid)

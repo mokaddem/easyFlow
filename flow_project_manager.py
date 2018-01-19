@@ -71,11 +71,16 @@ class Project:
         self._process_manager = Process_manager(self.projectUUID)
         self._process_manager._alert_manager.send_alert(
             title='System',
-            content='Process manager ready',
+            content='Process manager ready'+'''<button id="pcontrol_startAll" type="button" class="btn btn-success" style="display: inline-block; float:right; margin-right: 10px; margin-top: -7px;" onclick="flowControl.startAll();">
+                    <span class="glyphicon glyphicon-play-circle"></span> Start all!
+                </button>
+                ''',
             mType='success',
-            group='singleton',
-            totalCount=0
+            group='Process_manager_ready',
+            totalCount=1
         )
+
+
 
     # keep fields to be saved in the project
     def filter_correct_init_fields(self, proc):

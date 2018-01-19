@@ -58,9 +58,7 @@ function load_project(project) {
         notify('Project', 'close the open project before trying to load another one', 'warning');
     }
     innerRepresentation.set_project(project);
-    innerRepresentation.resync_representation(function() {
-        flowControl.startAll();
-    });
+    innerRepresentation.resync_representation(function() {});
 
 }
 

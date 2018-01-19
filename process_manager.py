@@ -50,10 +50,10 @@ class Process_manager:
         self._alert_manager = Alert_manager()
         self._being_restarted = []
         self.processes = {}
-        self.processes_uuid = []
-        self.processes_uuid_with_signal = []
+        self.processes_uuid = set()
+        self.processes_uuid_with_signal = set()
         self.buffers = {}
-        self.buffers_uuid = []
+        self.buffers_uuid = set()
         self.projectUUID = projectUUID
 
 
@@ -70,7 +70,7 @@ class Process_manager:
             for buuid, bufData in buffers_to_register.items():
                 buffer_config = Link_representation(bufData)
                 self.buffers[buuid] = buffer_config
-                self.buffers_uuid.append(buuid)
+                self.buffers_uuid.add(buuid)
 
     def get_connected_buffers(self, puuid):
         self.logger.debug('Getting connected buffers of process "%s" [%s]', self.processes[puuid].name, puuid)
@@ -150,7 +150,8 @@ class Process_manager:
     def shutdown(self):
         self.logger.info('Shutting down all processes (%s process(es))')
         for puuid in self.processes.keys():
-            self.kill_process(puuid)
+            # self.kill_process(puuid)
+            self.stop_process(puuid)
 
     def reload_states(self, process_uuids):
         for puuid in process_uuids:
@@ -162,6 +163,9 @@ class Process_manager:
     def play_process(self, puuid):
         self.logger.info('Playing process "%s" [%s]', self.processes[puuid].name, puuid)
         self.send_command(puuid, 'play')
+    def stop_process(self, puuid):
+        self.logger.info('Stopping process "%s" [%s]', self.processes[puuid].name, puuid)
+        self.send_command(puuid, 'shutdown')
     def restart_process(self, puuid):
         self.logger.info('Restarting process "%s" [%s]', self.processes[puuid].name, puuid)
         pData = self.processes[puuid].get_dico()
@@ -229,9 +233,9 @@ class Process_manager:
             process_config = Process_representation(data)
             process_config.add_subprocessObj(psutil.Process(pid))
             self.processes[puuid] = process_config
-            self.processes_uuid.append(puuid)
+            self.processes_uuid.add(puuid)
             if self.should_send_signal(process_config.type):
-                self.processes_uuid_with_signal.append(puuid)
+                self.processes_uuid_with_signal.add(puuid)
             return process_config
 
         else:
@@ -244,6 +248,7 @@ class Process_manager:
             self._serv.set('config_'+puuid, process_config.toJSON())
             # start process with Popen
             args = shlex.split('python3.5 {} {}'.format(os.path.join(os.environ['FLOW_PROC'], process_type+'.py'), puuid))
+            # args = shlex.split('python3.5 -m cProfile -o /home/sami/Desktop/{}.report {} {}'.format(process_type, os.path.join(os.environ['FLOW_PROC'], process_type+'.py'), puuid))
             proc = psutil.Popen(args)
             self.logger.info('Creating new process "%s" [pid=%s] ', data.get('name', 'NO_NAME'), proc.pid)
             # wait that process start the run() phase, publish info
@@ -251,9 +256,9 @@ class Process_manager:
 
             process_config.add_subprocessObj(proc)
             self.processes[puuid] = process_config
-            self.processes_uuid.append(puuid)
+            self.processes_uuid.add(puuid)
             if self.should_send_signal(process_type):
-                self.processes_uuid_with_signal.append(puuid)
+                self.processes_uuid_with_signal.add(puuid)
             return process_config
 
     def delete_process(self, puuid):
@@ -305,7 +310,7 @@ class Process_manager:
         # add it to self.buffers
         self.buffers[buuid] = buffer_config
         # add it to self.buffers_uuid
-        self.buffers_uuid.append(buuid)
+        self.buffers_uuid.add(buuid)
         return buffer_config
 
     def delete_link(self, buuid):

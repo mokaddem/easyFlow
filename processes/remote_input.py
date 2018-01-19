@@ -12,7 +12,7 @@ class Remote_input(Process_no_input):
         remote_protocol = self.custom_config['remote_protocol']
         host = self.custom_config['remote_host']
         port = self.custom_config['remote_port']
-        self.logger.info('Trying to listen on %s', '({}, {})'.format(host, port))
+        self.logger.info('Trying to listen on (%s, %s)', host, port)
 
         if remote_protocol == 'socket':
             sock = None
@@ -23,9 +23,11 @@ class Remote_input(Process_no_input):
                     sock = socket.socket(af, socktype, proto)
                 except OSError as msg:
                     self.logger.error('Socket creation error', exc_info=True)
+                    self.state = 'crashed'
                     sock = None
                     continue
                 try:
+                    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
                     sock.bind(sa)
                     self.custom_message = 'Listening on {}'.format(sa)
                     sock.listen(1)
@@ -33,15 +35,19 @@ class Remote_input(Process_no_input):
                     self.logger.error('Socket binding/listening error', exc_info=True)
                     sock.close()
                     sock = None
+                    self.state = 'crashed'
                     continue
                 break
             if sock is None:
                 self.logger.error('Could not open socket')
-                sys.exit(1)
+                self.state = 'crashed'
+                # sys.exit(1)
+                return
+            self.logger.info('Listening on socket')
             while True:
                 conn, addr = sock.accept()
                 with conn:
-                    self.logger.info('Connected by', addr)
+                    self.logger.info('Connected by %s', addr)
                     while True:
                         data = conn.recv(1024)
                         if not data:
@@ -50,7 +56,6 @@ class Remote_input(Process_no_input):
                             break
                         remote_message = data.decode('utf8')
                         self.forward(remote_message)
-
 
         elif remote_protocol == 'ZMQ':
             context = zmq.Context()

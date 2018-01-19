@@ -156,9 +156,10 @@ class Process(metaclass=ABCMeta):
 
     # push current process info to redis depending on the refresh value.
     def push_p_info(self):
-        self.logger.debug('Pushing process info to redis')
         now = time.time()
         if now - self.last_refresh > self.state_refresh_rate:
+            self.logger.debug('Pushing process info to redis')
+            self.last_refresh = now
             self.timestamp = now
             self._metadata_interface.push_info(self.get_representation())
 
@@ -205,7 +206,6 @@ class Process(metaclass=ABCMeta):
                 flowItem = self._link_manager.get_flowItem()
                 if flowItem is not None: # if not part of the flow yet
                     #FIXME SHOULD WE LOG HERE? PERFS ISSUE?
-                    self.logger.debug('Processing: %s', flowItem.message())
                     self._processStat.register_processing(flowItem)
                     self.process_message(flowItem.message(), flowItem.channel)
                     self._processStat.register_processed()
@@ -240,6 +240,8 @@ class Process(metaclass=ABCMeta):
             self.pause()
         elif operation == 'play':
             self.play()
+        elif operation == 'shutdown':
+            self.shutdown()
         elif operation == 'log_to_zmq':
             self.log_to_zmq(True)
         elif operation == 'stop_log_to_zmq':
@@ -254,6 +256,9 @@ class Process(metaclass=ABCMeta):
     def play(self):
         self.logger.info('Playing process')
         self.state = 'running'
+
+    def shutdown(self):
+        sys.exit(0)
 
     def log_to_zmq(self, should_log):
         if should_log:

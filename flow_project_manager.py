@@ -341,8 +341,11 @@ class Flow_project_manager:
         mypath = os.environ['FLOW_PROC']
         to_ret = {}
         for procName in procs:
-            with open(join(mypath, procName+'.json')) as f:
-                to_ret[procName] = json.load(f)
+            try:
+                with open(join(mypath, procName+'.json')) as f:
+                    to_ret[procName] = json.load(f)
+            except:
+                self.logger.warning('Error while trying to load %s', join(mypath, procName+'.json'))
         return to_ret
 
     @staticmethod
@@ -471,7 +474,7 @@ class Flow_project_manager:
                 procExtendType=procExtendType,
                 procExtendTypeClass='p'+procExtendType[1:],
                 processType=procName)
-                
+
             with open(join(mypath, procName+'.py'), 'w') as f_proc:
                 f_proc.write(content)
             self.logger.info('Written new process type %s', procName)

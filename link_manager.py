@@ -203,7 +203,7 @@ class Multiple_link_manager(Link_manager):
             return False
 
 class FlowItem:
-    def __init__(self, content, origin=None, raw=False, channel=0):
+    def __init__(self, content, origin=None, raw=False, channel=0, is_json=False):
         if raw:
             if content is None:
                 self.content = None
@@ -214,11 +214,18 @@ class FlowItem:
                 self.origin = jflowItem['origin']
                 # self.channel = jflowItem['channel'] ## ignore no channel...
                 self.channel = jflowItem['channel'] ## ignore no channel...
+                # if self.is_json:
+                #     self.content = json.loads(self.content)
         else:
             self.content = content
-            self.size = len(content.encode('utf-8'))
+            if isinstance(content, dict):
+                # msg = json.dumps(dict)
+                self.size = len(json.dumps(self.content).encode('utf-8'))
+            else:
+                self.size = len(self.content.encode('utf-8'))
             self.origin = origin
             self.channel = channel
+            # self.is_json = is_json
 
     def message(self):
         return self.content

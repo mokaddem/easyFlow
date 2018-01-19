@@ -156,7 +156,7 @@ class FlowControl {
             });
 
         } else if (dropData.type == 'remote_input') {
-            self.handleModal('AddProcess', dropData, function(modalData) {
+            self.handleModal('AddRemoteInput', dropData, function(modalData) {
                 self.execute_operation('create_process', modalData)
                 .done(function(responseData, textStatus, jqXHR) {
                 })

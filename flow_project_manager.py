@@ -251,6 +251,9 @@ class Project:
             buuid = link_config.buuid
             self.buffers[buuid] = link_config.get_dico()
             concerned_processes = [link_config.fromUUID, link_config.toUUID]
+        elif operation == 'empty_buffer':
+            for buuid in data.get('buuid', []): # may contain multiple processes
+                self._process_manager.empty_buffer(buuid)
 
         # ''' MULT_INPUT '''
         elif operation == 'create_mult_input':

@@ -141,6 +141,9 @@ function draw() {
     $('#pcontrol_edit').click(function(){
         flowControl.edit_node();
     });
+    $('#pcontrol_empty').click(function(){
+        flowControl.empty_buffer();
+    });
     $('#tabProcessCustomSettings').click(function(){
         $($(this).attr('href')).find('select').map(function() {
             $('#'+$(this).prop('name')+'_additional_options_'+this.value).collapse('show');

@@ -249,6 +249,7 @@ class Process_manager:
             # start process with Popen
             args = shlex.split('python3.5 {} {}'.format(os.path.join(os.environ['FLOW_PROC'], process_type+'.py'), puuid))
             # args = shlex.split('python3.5 -m cProfile -o /home/sami/Desktop/{}.report {} {}'.format(process_type, os.path.join(os.environ['FLOW_PROC'], process_type+'.py'), puuid))
+            # args = shlex.split('python3.5 -m memory_profiler {} {}'.format(os.path.join(os.environ['FLOW_PROC'], process_type+'.py'), puuid))
             proc = psutil.Popen(args)
             self.logger.info('Creating new process "%s" [pid=%s] ', data.get('name', 'NO_NAME'), proc.pid)
             # wait that process start the run() phase, publish info
@@ -340,3 +341,7 @@ class Process_manager:
         keys = self._serv_buffers.keys('*{}*'.format(buuid))
         for k in keys:
             self._serv_buffers.delete(k)
+
+    def empty_buffer(self, buuid):
+        self.logger.info('Emptying buffer %s', self.buffers[buuid].name)
+        self._serv_buffers.delete(buuid)

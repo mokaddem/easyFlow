@@ -24,6 +24,12 @@ class FlowControl {
         var uuids = this.selected;
         this.execute_operation('play_process', {puuid: uuids}, false);
     }
+    empty_buffer() {
+        var uuids = this.selected;
+        if (confirm("Confirm: Empty selected buffer(s)")) {
+            this.execute_operation('empty_buffer', {buuid: uuids}, false);
+        }
+    }
     get_logs() {
         if (this.selected.length > 0) {
             var uuid = this.selected[0];

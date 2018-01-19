@@ -403,36 +403,45 @@ class InnerRepresentation {
         $('#pcontrol_play').prop("disabled", false);
         $('#pcontrol_pause').prop("disabled", false);
         $('#pcontrol_restart').prop("disabled", false);
+        $( "#pcontrol_empty" ).hide(0);
         $('#pcontrol_logs').prop("disabled", false);
         $('#pcontrol_param').prop("disabled", false);
             $('#pcontrol_delete').prop("disabled", false);
             $('#pcontrol_edit').prop("disabled", false);
         flowControl.selected = puuid;
         $('#controlPanelCollapse').collapse('show');
+        $('#controlPanel').toggleClass('panel-info', false);
+        $('#controlPanel').toggleClass('panel-primary', true);
     }
 
     setBufferControlButtonData(buuid) {
         $('#pcontrol_play').prop("disabled", true);
         $('#pcontrol_pause').prop("disabled", true);
         $('#pcontrol_restart').prop("disabled", true);
+        $( "#pcontrol_empty" ).show(0);
         $('#pcontrol_logs').prop("disabled", false);
         $('#pcontrol_param').prop("disabled", false);
             $('#pcontrol_delete').prop("disabled", false);
             $('#pcontrol_edit').prop("disabled", false);
         flowControl.selected = buuid;
         $('#controlPanelCollapse').collapse('hide');
+        $('#controlPanel').toggleClass('panel-info', false);
+        $('#controlPanel').toggleClass('panel-primary', true);
     }
 
     resetControlButtonData() {
         $('#pcontrol_play').prop("disabled", true);
         $('#pcontrol_pause').prop("disabled", true);
         $('#pcontrol_restart').prop("disabled", true);
+        $( "#pcontrol_empty" ).hide(0);
         $('#pcontrol_logs').prop("disabled", true);
         $('#pcontrol_param').prop("disabled", true);
             $('#pcontrol_delete').prop("disabled", true);
             $('#pcontrol_edit').prop("disabled", true);
         flowControl.selected = [];
         $('#controlPanelCollapse').collapse('hide');
+        $('#controlPanel').toggleClass('panel-info', true);
+        $('#controlPanel').toggleClass('panel-primary', false);
     }
 
     show_log(pName, puuid) {

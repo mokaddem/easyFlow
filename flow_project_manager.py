@@ -247,8 +247,10 @@ class Project:
                 concerned_processes = [link_config['fromUUID'], link_config['toUUID']]
                 del self.buffers[buuid] # effectively delete
         elif operation == 'edit_link':
-            print(operation)
-            print(data)
+            link_config = self._process_manager.update_link(data)
+            buuid = link_config.buuid
+            self.buffers[buuid] = link_config.get_dico()
+            concerned_processes = [link_config.fromUUID, link_config.toUUID]
 
         # ''' MULT_INPUT '''
         elif operation == 'create_mult_input':

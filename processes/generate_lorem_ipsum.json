@@ -30,6 +30,14 @@
                     "default": 1000,
                     "required": true,
                     "dynamic_change": true
+                },
+                "linear": {
+                    "label": "Should the generation of numbers be linear",
+                    "DOM": "input",
+                    "inputType": "checkbox",
+                    "default": false,
+                    "required": true,
+                    "dynamic_change": true
                 }
             },
             "text": {

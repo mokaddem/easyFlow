@@ -313,6 +313,22 @@ class Process_manager:
         self.buffers_uuid.add(buuid)
         return buffer_config
 
+    def update_link(self, data):
+        buuid = data.get('buuid', None)
+        self.logger.info('Updating buffer: "%s"', data.get('name', 'unamed'))
+        # gen config
+        prev_conf = self.buffers[buuid]
+        # merge and overwrite config
+        for k, v in data.items():
+            setattr(prev_conf, k, v)
+
+        buffer_config = Link_representation(prev_conf.get_dico())
+        self._serv.set('config_'+buuid, buffer_config.toJSON())
+
+        # add it to self.buffers
+        self.buffers[buuid] = buffer_config
+        return buffer_config
+
     def delete_link(self, buuid):
         self.logger.info('Deleting buffer %s', self.buffers[buuid].name)
         self.buffers_uuid.remove(buuid)

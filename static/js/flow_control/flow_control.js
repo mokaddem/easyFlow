@@ -45,7 +45,7 @@ class FlowControl {
             this.query_config_and_fill_form(uuid, modalType, {type: 'process', uuid: uuid}, function() {
                 var modalID = 'modal'+modalType;
                 $('#'+modalID).modal('show');
-                self.handleModalConfirm(modalType, {puuid: uuid, update: true}, function(modalData) {
+                self.handleModalConfirm(modalType, { type: "process", puuid: uuid, update: true}, function(modalData) {
                     console.log(modalData);
                     self.execute_operation('edit_process', modalData)
                     .done(function(responseData, textStatus, jqXHR) {
@@ -57,15 +57,20 @@ class FlowControl {
 
             });
         } else if (innerRepresentation.nodeType(uuid) == 'buffer') {
-            this.query_config_and_fill_form(uuid, 'AddLink', {type: 'buffer', uuid: uuid}, function() {
-                self.handleModal('AddLink', {buuid: uuid}, function(modalData) {
-                    self.execute_operation('edit_link', modalData)
-                    .done(function(responseData, textStatus, jqXHR) {
-                    })
-                    .fail(function() {
-                        console.log( "An error occured" );
-                    });
-                });
+            var modalType = 'AddLink'
+            this.query_config_and_fill_form(uuid, modalType, {type: 'buffer', uuid: uuid}, function() {
+                var modalID = 'modal'+modalType;
+                $('#'+modalID).modal('show');
+                self.handleModalConfirm('AddLink', {type: 'buffer', buuid: uuid, update: true}, function(modalData) {
+                   console.log(modalData);
+                   self.execute_operation('edit_link', modalData)
+                   .done(function(responseData, textStatus, jqXHR) {
+                   })
+                   .fail(function() {
+                       console.log( "An error occured" );
+                   });
+               });
+
             });
         } else {
         }
@@ -238,7 +243,11 @@ class FlowControl {
         // set correct button text
         if (dropData.update) {
             confirmBtn.text('Update');
-            $('#'+modalID).find('.modal-title').text('Update: '+innerRepresentation.processObj[dropData.puuid].name);
+            if (dropData.type == 'process') {
+                $('#'+modalID).find('.modal-title').text('Update: '+innerRepresentation.processObj[dropData.puuid].name);
+            } else {
+                $('#'+modalID).find('.modal-title').text('Update: '+innerRepresentation.bufferObj[dropData.buuid].name);
+            }
             // disable type change
             $('#processTypeSelector').prop('disabled', true);
         } else {

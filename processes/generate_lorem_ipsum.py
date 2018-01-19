@@ -33,18 +33,24 @@ texts = [
 
 class Generate_lorem_ipsum(Process_no_input):
     def generate_data(self):
+        num = 0
         while True:
             if self.custom_config['ipsumType'] == 'text':
                 r = random.randint(0, len(texts)-1)
                 to_send = texts[r]
-                # if self.custom_config['']
                 self.forward(to_send)
                 self.custom_message = 'last generated: '+to_send[0:20]
+
             elif self.custom_config['ipsumType'] == 'numbers':
-                num = random.randint(0, 1000)
+                if self.custom_config['ipsumType_linear']:
+                    num = num+1 if num+1 < self.custom_config['ipsumType_generation_range'] else 0
+                else:
+                    num = random.randint(0, self.custom_config['ipsumType_generation_range'])
+
                 channel = 1 if num > 500 else 2
                 self.forward(str(num), channel)
                 self.custom_message = 'last generated: '+str(num)
+
             else:
                 print('error type', self.custom_config['ipsumType'])
             time.sleep(self.custom_config['sleepTime'])

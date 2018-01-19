@@ -60,13 +60,24 @@ class Link_manager:
             procFrom = bConfig['fromUUID']
             if procTo == self.puuid:
                 self.ingress = buuid
+                self.bufType = bConfig.get('type', None)
             if procFrom == self.puuid:
                 self.egress = buuid
         # self.show_connections()
 
+    def buffer_pop(self, target):
+        if self.bufType == 'FIFO':
+            flowItem_raw = self._serv_buffers.rpop(target)
+        elif self.bufType == 'LIFO':
+            flowItem_raw = self._serv_buffers.lpop(target)
+        else:
+            flowItem_raw = None
+        return flowItem_raw
+
     def get_flowItem(self):
         if self.ingress is not None:
-            flowItem_raw = self._serv_buffers.rpop(self.ingress)
+            flowItem_raw = self.buffer_pop(self.ingress)
+
             if flowItem_raw is None:
                 return None
             else:
@@ -143,10 +154,10 @@ class Multiple_link_manager(Link_manager):
             multiplex_logic = self.custom_config.get('multiplex_logic', 'Interleave')
             if self.multi_in: # custom logic: interleaving, priority
                 if multiplex_logic == 'Interleave':
-                    flowItem_raw = self._serv_buffers.rpop(self.ingress[self.interleave_index])
+                    flowItem_raw = self.buffer_pop(self.ingress[self.interleave_index])
                 elif multiplex_logic == 'Priority':
                     self.logger.warning('Ignoring priority for the moment, falling back to "Interleave" multiplex_logic')
-                    flowItem_raw = self._serv_buffers.rpop(self.ingress[self.interleave_index])
+                    flowItem_raw = self.buffer_pop(self.ingress[self.interleave_index])
                 else:
                     self.logger.warning('Unkown multiplexer logic')
 
@@ -159,7 +170,7 @@ class Multiple_link_manager(Link_manager):
                     return flowItem
 
             else: # same as simple link manager
-                flowItem_raw = self._serv_buffers.rpop(self.ingress[0])
+                flowItem_raw = self.buffer_pop(self.ingress[0])
                 if flowItem_raw is None:
                     return None
                 else:

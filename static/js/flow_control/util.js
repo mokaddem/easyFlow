@@ -352,7 +352,8 @@ function create_json_for_switch(connectedNodesName) {
             "DOM": "select",
             "options": numberOfChannel,
             "default": "1",
-            "required": "true"
+            "required": false,
+            "dynamic_change": true
         };
     }
     return j;

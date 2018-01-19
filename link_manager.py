@@ -188,7 +188,7 @@ class Multiple_link_manager(Link_manager):
                         self._buffer_metadata_interface.push_info(key, flowItem.size) # increase buffer size
                         self._serv_buffers.lpush(key, flowItem)
                 elif multiplex_logic == 'Switch':
-                    buuids = self.egress[flowItem.channel]
+                    buuids = self.egress.get(flowItem.channel, []) # drop non valid channel
                     for buuid in buuids:
                         self._buffer_metadata_interface.push_info(buuid, flowItem.size) # increase buffer size
                         self._serv_buffers.lpush(buuid, flowItem)

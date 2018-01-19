@@ -4,6 +4,7 @@
         "DOM": "select",
         "options": ["Interleave", "Priority"],
         "default": "Interleave",
-        "required": "true"
+        "required": true,
+        "dynamic_change": true
     }
 }

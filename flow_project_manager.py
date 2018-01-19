@@ -402,8 +402,9 @@ class Flow_project_manager:
             else:
                 return {'status': False, 'message': 'Project does not contain all required fields'}
 
-        except json.decoder.JSONDecodeError as e:
+        except:
             return {'status': False, 'message': 'Project not valid'}
+
 
     def projectToDico(self, projectUUID):
         return Project(projectUUID).get_project_summary()

@@ -192,10 +192,10 @@ function closeProject() {
 function importProject() {
     send_file('importForm', url_upload_project, function(response) {
         if (response.status) {
-            notify('Project upload Sucess', '', 'success');
+            notify('Project upload sucess', '', 'success');
             list_projects();
         } else {
-            notify('Project upload Error:', response.message, 'danger');
+            notify('Project upload error:', response.message, 'danger');
         }
     });
 }

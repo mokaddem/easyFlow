@@ -67,7 +67,11 @@ def index():
     raw_remote_out_svg = read_module_svg_template(config.web.remote_output_svg_template_name)
     raw_switch_svg = read_module_svg_template(config.web.switch_svg_template_name)
     raw_buffer_svg = read_module_svg_template(config.web.buffer_svg_template_name)
+
     all_process_type = Flow_project_manager.list_process_type(config.processes.allowed_script)
+    not_displayed_process = [ p.replace('.py', '') for p in config.processes.should_not_be_displayed ]
+    all_process_type = [ p for p in all_process_type if p not in not_displayed_process ]
+
     all_multiplexer_in = Flow_project_manager.list_all_multiplexer_in()
     all_multiplexer_out = Flow_project_manager.list_all_multiplexer_out()
     all_switch = Flow_project_manager.list_all_switch()
@@ -158,7 +162,8 @@ def load_network():
 @app.route("/close_project")
 def close_project():
     resp = make_response(jsonify({'state': 'closed'}))
-    flow_project_manager.close_project(resp)
+    if flow_project_manager.is_project_open():
+        flow_project_manager.close_project(resp)
     return resp
 
 @app.route("/get_projects")

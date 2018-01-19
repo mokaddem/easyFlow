@@ -142,7 +142,7 @@ class InnerRepresentation {
                         jStats['custom_message']
 
                     ),
-                    size: 75
+                    size: get_node_size_from_type(node['type'])
                 });
 
                 // update table in control panel
@@ -176,7 +176,7 @@ class InnerRepresentation {
                         jStats['buffered_bytes'],  // bytes
                         jStats['buffered_flowItems']
                     ),
-                    size: 30
+                    size: get_node_size_from_type('buffer')
                 });
             }
         } catch(err) { /* processes is empty */ }
@@ -262,7 +262,7 @@ class InnerRepresentation {
             shape: 'image',
             physics: false,
             mass: 3,
-            size: 75
+            size: get_node_size_from_type(nodeData.type)
         });
     }
 
@@ -303,7 +303,7 @@ class InnerRepresentation {
             shape: 'image',
             physics: false,
             mass: 1,
-            size: 30
+            size: get_node_size_from_type('buffer')
         });
         this.edges.add({ // link nodes to buffer
             from: edgeData.from,

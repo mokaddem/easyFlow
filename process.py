@@ -312,6 +312,11 @@ class ProcessStat:
         to_ret['bytes_out'] = self._bytes_out.get_sum()
         to_ret['flowItem_in'] = self._flowItem_in.get_sum()
         to_ret['flowItem_out'] = self._flowItem_out.get_sum()
+
+        to_ret['bytes_in_history'] = self._bytes_in.get_history()
+        to_ret['bytes_out_history'] = self._bytes_out.get_history()
+        to_ret['flowItem_in_history'] = self._flowItem_in.get_history()
+        to_ret['flowItem_out_history'] = self._flowItem_out.get_history()
         return to_ret
 
     def __str__(self):

@@ -74,8 +74,9 @@ def dicoToList(dic):
 
 class TimeSpanningArray:
     def __init__(self, lifetime):
-        self.lifetime = lifetime
+        self.lifetime = int(lifetime)
         self.timedArray = deque() # used as we will pop fom the begining -> O(1) instead of O(n)
+        self.resolution = int(float(self.lifetime)/10.0)
 
     def add(self, element):
         now = time.time()
@@ -94,6 +95,26 @@ class TimeSpanningArray:
                 index_offset += 1
             else: # array is sorted, no need to continue
                 break
+
+    def get_history(self):
+        self.enforce_consistency()
+        # prepare empty array
+        temp = {}
+        now = int(time.time())
+        for i in range(now-self.lifetime, now, self.resolution):
+            temp[i] = 0
+        # fill with data
+        for i in range(len(self.timedArray)):
+            t, element = self.timedArray[i]
+            index_to_be_placed = int((now-self.lifetime) / self.resolution)
+            temp[index_to_be_placed] += 1
+
+        # convert into sorted list
+        ret = []
+        for i in range(now-self.lifetime, now, self.resolution):
+            ret.append(temp[i])
+        return ret
+
 
 class SummedTimeSpanningArray(TimeSpanningArray):
     def __init__(self, lifetime):
@@ -119,3 +140,22 @@ class SummedTimeSpanningArray(TimeSpanningArray):
                 index_offset += 1
             else: # array is sorted, no need to continue
                 break
+
+    def get_history(self):
+        self.enforce_consistency()
+        # prepare empty array
+        temp = {}
+        now = int(time.time())
+        for i in range(now-self.lifetime, now+self.resolution, self.resolution):
+            temp[i] = 0
+        # fill with data
+        for i in range(len(self.timedArray)):
+            t, element = self.timedArray[i]
+            index_to_be_placed = int((t-(now-self.lifetime)) / self.resolution)
+            index_to_be_placed = now-self.lifetime + index_to_be_placed*self.resolution
+            temp[index_to_be_placed] += element
+        # convert into sorted list
+        ret = []
+        for i in range(now-self.lifetime, now, self.resolution):
+            ret.append(temp[i])
+        return ret

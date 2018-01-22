@@ -56,6 +56,8 @@ class Process_manager:
         self.buffers_uuid = set()
         self.projectUUID = projectUUID
 
+        self.puuid_to_be_restarted = {}
+
 
     def start_processes(self, processes_to_start, buffers_to_register):
         l = len(processes_to_start)
@@ -68,6 +70,8 @@ class Process_manager:
 
             # register buffers
             for buuid, bufData in buffers_to_register.items():
+                # delete any state before starting
+                self._buffer_metadata_interface.clear_info(buuid)
                 buffer_config = Link_representation(bufData)
                 self.buffers[buuid] = buffer_config
                 self.buffers_uuid.add(buuid)
@@ -88,14 +92,27 @@ class Process_manager:
 
             pinfo = self._metadata_interface.get_info(puuid)
 
-            if (time.time() - pinfo.get('representationTimestamp', time.time())) > self.config.processes.force_pushing_state_interval: # if no info received from a long time, send a signal to the process
-                self.logger.info('Process "%s" [%s, pid=%s] did not send info data since %s seconds',
-                pinfo['name'], pinfo['puuid'], pinfo['pid'],
-                self.config.processes.force_pushing_state_interval)
-                process_uuids_to_be_force_reloaded.append(puuid)
-                # if process did not get reloaded, setting its state to crashed
-                if (time.time() - pinfo['representationTimestamp']) > (self.config.processes.force_pushing_state_interval + 2*self.config.web.refresh_metadata_interval_in_sec):
-                    pinfo['stats']['state'] = 'crashed'
+            now = time.time()
+            if pinfo == {}:  # no info for the moment OR impossible to start module
+                self.logger.info('No process info for the moment for "%s" [%s]', self.processes[puuid].name, puuid)
+                if puuid in self.puuid_to_be_restarted:
+                    self.logger.info('"%s" [%s]: %ssec until force restart', self.processes[puuid].name, puuid, self.puuid_to_be_restarted[puuid] - now)
+                    if self.puuid_to_be_restarted[puuid] >= now:
+                        self.logger.info('Process "%s" [%s] still not send information. Forcing restart', self.processes[puuid].name, puuid)
+                        process_uuids_to_be_force_reloaded.append(puuid)
+                        del self.puuid_to_be_restarted[puuid]
+                else:
+                    self.puuid_to_be_restarted[puuid] = now + self.config.processes.force_restart
+
+            else:
+                if (now - pinfo.get('representationTimestamp', 0)) > self.config.processes.force_pushing_state_interval: # if no info received from a long time, send a signal to the process
+                    self.logger.info('Process "%s" [%s, pid=%s] did not send info data since %s seconds',
+                        pinfo['name'], pinfo['puuid'], pinfo['pid'],
+                        self.config.processes.force_pushing_state_interval)
+                    process_uuids_to_be_force_reloaded.append(puuid)
+                    # if process did not get reloaded, setting its state to crashed
+                    if (now - pinfo['representationTimestamp']) > (self.config.processes.force_pushing_state_interval + 2*self.config.web.refresh_metadata_interval_in_sec):
+                        pinfo['stats']['state'] = 'crashed'
 
             info.append(pinfo)
 
@@ -114,7 +131,7 @@ class Process_manager:
 
     # A process terminate its setup when its config key is deleted
     def wait_for_process_running_state(self, puuid):
-        self.logger.debug('Waiting for process "%s" [%s] to run', self.processes[puuid].name, puuid)
+        self.logger.debug('Waiting for process [%s] to run', puuid)
         while True:
             if not self._serv.exists('config_'+puuid):
                 break
@@ -153,9 +170,37 @@ class Process_manager:
             # self.kill_process(puuid)
             self.stop_process(puuid)
 
+        self._alert_manager.send_alert(
+            title='Processes',
+            content='Properly closing processes',
+            mType='info',
+            group=self.projectUUID+'_processesClosing',
+            totalCount=len(self.processes.keys())
+        )
+        for puuid in self.processes.keys():
+            subProcObj = self.processes[puuid]._subprocessObj
+            try:
+                _, _ = subProcObj.communicate(timeout=2)
+            except subprocess.TimeoutExpired:
+                subProcObj.kill()
+                _, _ = subProcObj.communicate()
+            except AttributeError as e:
+                self.logger.info('Process %s [%s] was recovered from system, skipping communicate', self.processes[puuid].name, puuid)
+            self._alert_manager.send_alert(
+                title='Processes',
+                content='{} closed'.format(self.processes[puuid].name),
+                mType='info',
+                group=self.projectUUID+'_processesClosing',
+                totalCount=1
+            )
+
     def reload_states(self, process_uuids):
         for puuid in process_uuids:
-            self.send_command(puuid, 'reload')
+            self.logger.info('Sending reload state command to "%s" [%s]', self.processes[puuid].name, puuid)
+            sucess = self.send_command(puuid, 'reload')
+            if not sucess:
+                self.logger.info('reload failure, restarting process "%s" [%s]', self.processes[puuid].name, puuid)
+                self.restart_process(puuid)
 
     def pause_process(self, puuid):
         self.logger.info('Pausing process "%s" [%s]', self.processes[puuid].name, puuid)
@@ -166,18 +211,30 @@ class Process_manager:
     def stop_process(self, puuid):
         self.logger.info('Stopping process "%s" [%s]', self.processes[puuid].name, puuid)
         self.send_command(puuid, 'shutdown')
-    def restart_process(self, puuid):
-        self.logger.info('Restarting process "%s" [%s]', self.processes[puuid].name, puuid)
-        pData = self.processes[puuid].get_dico()
-        self._alert_manager.send_alert(
-            title='Processes',
-            content='restarting '+pData['name'],
-            mType='warning'
-        )
-        self._being_restarted.append(puuid)
-        self.kill_process(puuid)
-        self.create_process(pData, puuid)
-        self._being_restarted.remove(puuid)
+    def restart_process(self, puuid, procData=None, bufsData=None):
+        if puuid in self.processes:
+            self.logger.info('Restarting process "%s" [%s]', self.processes[puuid].name, puuid)
+            pData = self.processes[puuid].get_dico()
+            self._alert_manager.send_alert(
+                title='Processes',
+                content='restarting '+pData['name'],
+                mType='warning'
+            )
+            self._being_restarted.append(puuid)
+            self.kill_process(puuid)
+            self.create_process(pData, puuid)
+            self._being_restarted.remove(puuid)
+        else: # process was not started
+            self.logger.info('Wanted to restart process [%s] but it has not been started. Starting it.', puuid)
+            self.create_process(procData, puuid)
+            # register buffers
+            for buuid, bufData in bufsData.items():
+                # delete any state before starting
+                self._buffer_metadata_interface.clear_info(buuid)
+                buffer_config = Link_representation(bufData)
+                self.buffers[buuid] = buffer_config
+                self.buffers_uuid.add(buuid)
+
 
     def send_command(self, puuid, command, data=None):
         self.logger.info('Sending command (%s) to process "%s" [%s]', command, self.processes[puuid].name, puuid)
@@ -193,8 +250,10 @@ class Process_manager:
         self.logger.debug('Sending signal to %s [%s]', self.processes[puuid].name, puuid)
         try:
             self.processes[puuid]._subprocessObj.send_signal(signal.SIGUSR1)
+            return True
         except psutil._exceptions.NoSuchProcess as e:
             self.logger.debug('Trying to reload a non-existing process "%s" [%s]: %s', self.processes[puuid].name, puuid, str(e))
+            return False
 
 
     def should_send_signal(self, process_type):
@@ -211,7 +270,19 @@ class Process_manager:
             self.logger.debug('Trying to kill a non-existing process "%s" [%s]: %s', self.processes[puuid].name, puuid, str(e))
         self._serv.delete(puuid)
 
+        try:
+            self.logger.info('Waiting for process "%s" to terminate', self.processes[puuid].name)
+            _, _ = subProcObj.communicate(timeout=2)
+        except subprocess.TimeoutExpired:
+            subProcObj.kill()
+            _, _ = subProcObj.communicate()
+        except AttributeError as e:
+            self.logger.info('Process %s [%s] was recovered from system, skipping communicate', self.processes[puuid].name, puuid)
+
     def create_process(self, data, puuid=None):
+        # delete any state before starting
+        self._metadata_interface.clear_info(puuid)
+
         if puuid is None:
             puuid = data.get('puuid', None)
             if puuid is None:
@@ -221,6 +292,7 @@ class Process_manager:
         data['projectUUID'] = self.projectUUID
 
         if self.process_started_and_managed(puuid):
+            self.logger.info('Process "%s" [%s] is started and managed', data.get('name', None), puuid)
             return ""
 
         pStarted, pid = self.process_started_in_system(puuid, killIt=False)
@@ -230,6 +302,7 @@ class Process_manager:
             self._alert_manager.send_alert(title='Process',
                 content='{} was started in system (pid={}). Trying to recover state...'.format(data.get('name', None), pid),
                 mType='warning', group='singleton')
+            # Add process info
             process_config = Process_representation(data)
             process_config.add_subprocessObj(psutil.Process(pid))
             self.processes[puuid] = process_config
@@ -278,6 +351,8 @@ class Process_manager:
         try:
             self.processes_uuid_with_signal.remove(puuid)
         except ValueError as e:
+            pass
+        except KeyError as e:
             pass
         del self.processes[puuid]
 

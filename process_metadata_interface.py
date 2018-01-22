@@ -32,6 +32,9 @@ class Process_metadata_interface:
         puuid = pMetadata['puuid']
         self._serv.set(puuid, jMetadata)
 
+    def clear_info(self, puuid):
+        self._serv.delete(puuid)
+
 # Do not use JSON as a buffer is updated by the pushing process and the poping process
 class Buffer_metadata_interface:
     def __init__(self):
@@ -62,6 +65,10 @@ class Buffer_metadata_interface:
 
     def push_info(self, buuid, the_bytes):
         self._serv.incrby(buuid+'_buffered_bytes', the_bytes)
+
+    def clear_info(self, buuid):
+        self._serv.delete(buuid+'_buffered_bytes'),
+        self._serv_buffers.delete(buuid)
 
 class Process_representation:
     def __init__(self, data):
@@ -101,6 +108,20 @@ class Process_representation:
 
     def get_dico(self):
         return self.gen_process_config()
+
+    @staticmethod
+    def getEmptyInfo(projectUUID, puuid):
+        ret = {}
+        ret['puuid'] = puuid
+        ret['name'] = None
+        ret['type'] = None
+        ret['description'] = None
+        ret['custom_config'] = {}
+        ret['config'] = {}
+        ret['projectUUID'] = projectUUID
+        ret['is_multiplexer'] = None
+        ret['stats'] = {}
+        return ret
 
 class Link_representation:
     def __init__(self, data):

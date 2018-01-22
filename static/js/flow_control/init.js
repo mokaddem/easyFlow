@@ -35,8 +35,13 @@ function draw() {
             shadow: true,
             chosen: {
                 node: function(values, id, selected, hovering) {
-                    values.shadowSize ='10px';
-                    values.shadowColor = '#337ab7';
+                    // values.shadowSize ='10px';
+                    values.shadowSize = 5;
+                    if (selected) {
+                        values.shadowColor = '#337ab7';
+                    } else if (hovering) {
+                        values.shadowColor = '#65A5FB';
+                    }
                 }
             }
         },
@@ -54,9 +59,6 @@ function draw() {
             addEdge: function(edgeData, callback) {
                 if (edgeData.from === edgeData.to) {
                     var r = alert("Process recursion is not yet supported");
-                    // if (r === true) {
-                    //     callback(edgeData);
-                    // }
                 }
                 else {
                     flowControl.add_link(edgeData);
@@ -88,6 +90,8 @@ function draw() {
         easingFunction: 'easeInOutQuad'
     };
     network.fit({animation:options});
+    canvas = network.canvas.frame.canvas;
+    ctx = canvas.getContext('2d');
     function changeCursor(newCursorStyle){
         $('#mynetwork').find('canvas').css( 'cursor', newCursorStyle );
     }
@@ -144,6 +148,7 @@ function draw() {
     $('#pcontrol_empty').click(function(){
         flowControl.empty_buffer();
     });
+
     $('#tabProcessCustomSettings').click(function(){
         $($(this).attr('href')).find('select').map(function() {
             $('#'+$(this).prop('name')+'_additional_options_'+this.value).collapse('show');

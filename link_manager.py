@@ -137,6 +137,7 @@ class Multiple_link_manager(Link_manager):
             procFrom = bConfig['fromUUID']
             if procTo == self.puuid:
                 self.ingress.append(buuid)
+                self.bufType = bConfig.get('type', None)
             if procFrom == self.puuid:
                 self.egress.append(buuid)
 

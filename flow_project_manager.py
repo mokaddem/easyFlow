@@ -195,6 +195,14 @@ class Project:
                 temp[buuid] = buf
         self.buffers = temp
 
+    def get_connected_buffers(self, puuid):
+        self.logger.debug('Getting connected buffers of process "%s" [%s]', self.processes[puuid]['name'], puuid)
+        buuids = []
+        for buuid, buf in self.buffers.items():
+            if (puuid in buf['fromUUID']) or (puuid in buf['toUUID']):
+                buuids.append(buuid)
+        return buuids
+
     def flowOperation(self, operation, data):
         self.logger.info('Executing operation %s', operation)
         concerned_processes = []
@@ -207,7 +215,11 @@ class Project:
                 self._process_manager.play_process(puuid)
         elif operation == 'restart_process':
             for puuid in data.get('puuid', []): # may contain multiple processes
-                self._process_manager.restart_process(puuid)
+                buuids = self.get_connected_buffers(puuid)
+                bufs_info = {}
+                for buuid in buuids:
+                    bufs_info[buuid] = self.buffers[buuid]
+                self._process_manager.restart_process(puuid, self.processes[puuid], bufs_info)
         elif operation == 'log_to_zmq':
             puuid = data.get('puuid', None)
             self._process_manager.send_command(puuid, 'log_to_zmq')
@@ -443,18 +455,6 @@ class Flow_project_manager:
             return True
 
     def create_process_type(self, data):
-        {'para1': {
-        'additional_options': '{q:123}',
-         'label': 'para1',
-          'dynamic_change': True,
-           'default_value': '213213213',
-            'dom': 'input',
-             'input_type': 'text'}
-             , 'para2': {
-             'additional_options': '', 'label': 'para2', 'dynamic_change': False, 'default_value': 'blabla', 'dom': 'input', 'input_type': 'text'},
-             'name': 'Proc1',
-             'description': 'descdsc'
-             }
         mypath = os.environ['FLOW_PROC']
         procName = data.get('name', None)
         procExtendType = 'Process' if data.get('rcv_message', True) else 'Process_no_input'

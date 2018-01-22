@@ -16,6 +16,8 @@
     <script src="{{ url_for('static', filename='js/jquery.flot.pie.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/jquery.flot.resize.js') }}"></script>
     <script src="{{ url_for('static', filename='js/jquery.flot.time.js') }}"></script>
+    <!-- jQuery Sparkline -->
+    <script src="{{ url_for('static', filename='js/jquery.sparkline.js') }}"></script>
     <!-- Bootstrap Core JavaScript -->
     <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
     <link href="{{ url_for('static', filename='css/font-awesome.min.css') }}" rel="stylesheet" type="text/css" />
@@ -72,6 +74,7 @@
 
         /* RESSOURCES URLS */
         var custom_config_json = {{ custom_config_json | tojson }};
+        var buffer_time_spanned_in_min = {{ buffer_time_spanned_in_min }};
 
         /* GLOBAL VARS */
         var innerRepresentation = null;
@@ -84,9 +87,9 @@
         var createProcessDatatable = null;
         var alertManager = null;
         var realtimeLogs = null;
+        var sparkline = null;
 
         var auto_refresh_rate = {{ auto_refresh_rate }};
-        // var auto_refresh_rate = 50000;
     </script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/inner_representation.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/flow_control/util.js') }}"></script>
@@ -200,6 +203,20 @@
                             <tr>
                                 <td class="no_border"><b>Message</b></td>
                                 <td id='selectedMessage' class="no_border"></td>
+                            </tr>
+                            <tr>
+                                <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/bytesIN_OUT.png') }}" title="Bytes IN/OUT"><small class='small_text_icon'> IN/OUT ({{ buffer_time_spanned_in_min }}min)</small></td>
+                                <td class="no_border">
+                                    <div style="display: inline-block; border-right: 2px solid #ddd;" class='sparkline inlinesparklineBI'></div>
+                                    <div style="display: inline-block" class='sparkline inlinesparklineBO'></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/flowItemIN_OUT.png') }}" title="Bytes IN/OUT"><small class='small_text_icon'>IN/OUT ({{ buffer_time_spanned_in_min }}min)</small></td>
+                                <td class="no_border">
+                                    <div style="display: inline-block; border-right: 2px solid #ddd;" class='sparkline inlinesparklineFI'></div>
+                                    <div style="display: inline-block" class='sparkline inlinesparklineFO'></div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>

@@ -79,6 +79,8 @@ def index():
     custom_config_json = Flow_project_manager.get_processes_config(all_process)
     all_buffer_type = Flow_project_manager.list_buffer_type(config.buffers.allowed_buffer_type)
 
+    buffer_time_spanned_in_min = config.default_project.process.buffer_time_spanned_in_min
+
     resp = make_response(render_template('index.html',
             raw_process_svg=raw_process_svg,
             raw_multi_in_svg=raw_multi_in_svg,
@@ -94,7 +96,8 @@ def index():
             all_multiplexer_in=all_multiplexer_in,
             all_multiplexer_out=all_multiplexer_out,
             all_switch=all_switch,
-            all_buffer_type=all_buffer_type
+            all_buffer_type=all_buffer_type,
+            buffer_time_spanned_in_min=buffer_time_spanned_in_min
     ))
 
     if not flow_project_manager.is_project_open():

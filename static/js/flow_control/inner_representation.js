@@ -127,6 +127,7 @@ class InnerRepresentation {
         try {
             for (var node of processes) {
                 var jStats = node['stats'];
+                // console.log(jStats);
                 update_array.push({
                     id: node['puuid'],
                     image: construct_node(
@@ -160,6 +161,11 @@ class InnerRepresentation {
                         jStats['state'],
                         jStats['custom_message'])
                     this.update_control_table(formatted_data);
+
+                    var sparklineBI = $('.inlinesparklineBI').sparkline(jStats['bytes_in_history'],{width: '48%', height: '35px', chartRangeMin: 0});
+                    var sparklineBO = $('.inlinesparklineBO').sparkline(jStats['bytes_out_history'],{width: '48%', height: '35px', chartRangeMin: 0});
+                    var sparklineFI = $('.inlinesparklineFI').sparkline(jStats['flowItem_in_history'],{width: '48%', height: '35px', chartRangeMin: 0});
+                    var sparklineFO = $('.inlinesparklineFO').sparkline(jStats['flowItem_out_history'],{width: '48%', height: '35px', chartRangeMin: 0});
                 }
             }
             this.nodes.update(update_array);

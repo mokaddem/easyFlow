@@ -46,6 +46,25 @@ div.vis-network {
     z-index: 1000;
 }
 
+div.sparkline > canvas {
+    vertical-align: bottom !important;
+}
+
+.small_text_icon {
+    font-size: 80%;
+    vertical-align: bottom;
+}
+
+/*.jqstooltipC {
+    background: black;
+    position: absolute;
+    z-index: 5000;
+}*/
+
+.jqstooltip{
+    box-sizing: content-box;
+}
+
 #mynetwork {
     position: absolute;
     top: 117px;
@@ -262,23 +281,4 @@ div.table_content {
 }
 div.table_description {
     width:100px;
-}
-
-#operation {
-    font-size:28px;
-}
-#network-popUp {
-    display:none;
-    position:absolute;
-    top:350px;
-    left:170px;
-    z-index:299;
-    width:250px;
-    height:120px;
-    background-color: #f9f9f9;
-    border-style:solid;
-    border-width:3px;
-    border-color: #5394ed;
-    padding:10px;
-    text-align: center;
 }

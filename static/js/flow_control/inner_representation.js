@@ -162,10 +162,22 @@ class InnerRepresentation {
                         jStats['custom_message'])
                     this.update_control_table(formatted_data);
 
-                    var sparklineBI = $('.inlinesparklineBI').sparkline(jStats['bytes_in_history'],{width: '48%', height: '35px', chartRangeMin: 0});
-                    var sparklineBO = $('.inlinesparklineBO').sparkline(jStats['bytes_out_history'],{width: '48%', height: '35px', chartRangeMin: 0});
-                    var sparklineFI = $('.inlinesparklineFI').sparkline(jStats['flowItem_in_history'],{width: '48%', height: '35px', chartRangeMin: 0});
-                    var sparklineFO = $('.inlinesparklineFO').sparkline(jStats['flowItem_out_history'],{width: '48%', height: '35px', chartRangeMin: 0});
+                    var sparklineBI = $('.inlinesparklineBI').sparkline(jStats['bytes_in_history'],{width: '40%', height: '35px', chartRangeMin: 0,
+                        tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                        numberFormatter: sparklineNumberFormatter
+                    });
+                    var sparklineBO = $('.inlinesparklineBO').sparkline(jStats['bytes_out_history'],{width: '40%', height: '35px', chartRangeMin: 0,
+                        tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                        numberFormatter: sparklineNumberFormatter
+                    });
+                    var sparklineFI = $('.inlinesparklineFI').sparkline(jStats['flowItem_in_history'],{width: '40%', height: '35px', chartRangeMin: 0,
+                        tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                        numberFormatter: sparklineNumberFormatter
+                    });
+                    var sparklineFO = $('.inlinesparklineFO').sparkline(jStats['flowItem_out_history'],{width: '40%', height: '35px', chartRangeMin: 0,
+                        tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                        numberFormatter: sparklineNumberFormatter
+                    });
                 }
             }
             this.nodes.update(update_array);

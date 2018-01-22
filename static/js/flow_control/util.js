@@ -381,3 +381,15 @@ function get_node_size_from_type(type) {
 
     }
 }
+
+function sparklineNumberFormatter(number) {
+    var d = new Date(number*1000);
+    var now = new Date().getTime()/1000;
+    if (now-buffer_time_spanned_in_min*60 <= number && number <= now) {
+        var ret = d.toTimeString();
+        var i = ret.indexOf(' ');
+        return ret.slice(0, i);
+    } else {
+        return number;
+    }
+}

@@ -63,7 +63,7 @@ class Process(metaclass=ABCMeta):
         self.last_refresh = time.time() - self.state_refresh_rate # ensure a refresh
         self.last_reload = time.time() - self.state_refresh_rate # ensure a reload
 
-        self._processStat = ProcessStat(self.config.default_project.process.buffer_time_spanned_in_min)
+        self._processStat = ProcessStat(self.config.default_project.process.buffer_time_resolution_in_sec, self.config.default_project.process.buffer_time_spanned_in_min)
         self.push_p_info()
 
         if self.type == 'multiplexer_in':
@@ -273,14 +273,16 @@ class Process(metaclass=ABCMeta):
         pass
 
 class ProcessStat:
-    def __init__(self, buffer_time_spanned_in_min):
+    def __init__(self, buffer_time_resolution_in_sec, buffer_time_spanned_in_min):
         self._start_processing_time = 0
-        self.timeSpannedByArray = buffer_time_spanned_in_min*60 # seconds
+        self.timeSpannedResolution = buffer_time_resolution_in_sec # seconds
+        self.timeSpannedMinute = buffer_time_spanned_in_min*60 # seconds
+        self.timerange_history = int(self.timeSpannedMinute / self.timeSpannedResolution)
         self.processing_time = 0
-        self._bytes_in = SummedTimeSpanningArray(self.timeSpannedByArray)
-        self._bytes_out = SummedTimeSpanningArray(self.timeSpannedByArray)
-        self._flowItem_in = SummedTimeSpanningArray(self.timeSpannedByArray)
-        self._flowItem_out = SummedTimeSpanningArray(self.timeSpannedByArray)
+        self._bytes_in = SummedTimeSpanningArray(self.timeSpannedResolution)
+        self._bytes_out = SummedTimeSpanningArray(self.timeSpannedResolution)
+        self._flowItem_in = SummedTimeSpanningArray(self.timeSpannedResolution)
+        self._flowItem_out = SummedTimeSpanningArray(self.timeSpannedResolution)
 
     def register_processing(self, flowItem):
         self._start_processing_time = time.time()
@@ -308,15 +310,15 @@ class ProcessStat:
         self.compute_processing_time();
         to_ret = objToDictionnary(self)
 
-        to_ret['bytes_in'] = self._bytes_in.get_sum()
-        to_ret['bytes_out'] = self._bytes_out.get_sum()
-        to_ret['flowItem_in'] = self._flowItem_in.get_sum()
-        to_ret['flowItem_out'] = self._flowItem_out.get_sum()
+        to_ret['bytes_in'] = self._bytes_in.get_sum(self.timerange_history)
+        to_ret['bytes_out'] = self._bytes_out.get_sum(self.timerange_history)
+        to_ret['flowItem_in'] = self._flowItem_in.get_sum(self.timerange_history)
+        to_ret['flowItem_out'] = self._flowItem_out.get_sum(self.timerange_history)
 
-        to_ret['bytes_in_history'] = self._bytes_in.get_history()
-        to_ret['bytes_out_history'] = self._bytes_out.get_history()
-        to_ret['flowItem_in_history'] = self._flowItem_in.get_history()
-        to_ret['flowItem_out_history'] = self._flowItem_out.get_history()
+        to_ret['bytes_in_history'] = self._bytes_in.get_history(self.timerange_history)
+        to_ret['bytes_out_history'] = self._bytes_out.get_history(self.timerange_history)
+        to_ret['flowItem_in_history'] = self._flowItem_in.get_history(self.timerange_history)
+        to_ret['flowItem_out_history'] = self._flowItem_out.get_history(self.timerange_history)
         return to_ret
 
     def __str__(self):

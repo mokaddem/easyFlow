@@ -73,89 +73,52 @@ def dicoToList(dic):
     return ret
 
 class TimeSpanningArray:
-    def __init__(self, lifetime):
-        self.lifetime = int(lifetime)
-        self.timedArray = deque() # used as we will pop fom the begining -> O(1) instead of O(n)
-        self.resolution = int(float(self.lifetime)/10.0)
+    def __init__(self, resolution):
+        self.timedDico = {}
+        self.resolution = int(resolution)
+        self.baseTime = int(time.time())
 
     def add(self, element):
-        now = time.time()
-        self.timedArray.append([now, element])
-
-    def get(self):
-        self.enforce_consistency()
-        return list(self.timedArray)
-
-    def enforce_consistency(self):
-        lower_bound = time.time() - self.lifetime
-        index_offset = 0 # if we remove an element, the iterating index value must be adjusted
-        for i in range(len(self.timedArray)):
-            if self.timedArray[i-index_offset][0] < lower_bound: # need to remove element
-                self.timedArray.popleft()
-                index_offset += 1
-            else: # array is sorted, no need to continue
-                break
-
-    def get_history(self):
-        self.enforce_consistency()
-        # prepare empty array
-        temp = {}
         now = int(time.time())
-        for i in range(now-self.lifetime, now, self.resolution):
-            temp[i] = 0
-        # fill with data
-        for i in range(len(self.timedArray)):
-            t, element = self.timedArray[i]
-            index_to_be_placed = int((now-self.lifetime) / self.resolution)
-            temp[index_to_be_placed] += 1
+        offset_to_be_placed = int((now - self.baseTime)/self.resolution)
+        index_to_be_placed = self.baseTime + self.resolution*offset_to_be_placed
+        if index_to_be_placed not in self.timedDico:
+            self.timedDico[index_to_be_placed] = 0
+        self.timedDico[index_to_be_placed] += 1
 
-        # convert into sorted list
+    def get_sum(self, timerange=20):
+        return sum([ v for t,v in self.get_history(timerange) ])
+
+    def get_history(self, timerange=20):
         ret = []
-        for i in range(now-self.lifetime, now, self.resolution):
-            ret.append(temp[i])
+        now = int(time.time())
+        current_offset = int((now - self.baseTime)/self.resolution)
+        current_index = self.baseTime + self.resolution*current_offset
+        for cTime in range(current_index-timerange*self.resolution, current_index+self.resolution, self.resolution):
+            val = self.timedDico.get(cTime, 0)
+            ret.append([cTime, val])
         return ret
 
-
 class SummedTimeSpanningArray(TimeSpanningArray):
-    def __init__(self, lifetime):
-        super().__init__(lifetime)
-        self.sum = 0
+    def __init__(self, resolution):
+        super().__init__(resolution)
+        self.sumedDico = {}
 
     def add(self, element):
         super().add(element)
-        self.sum += element
-
-    def get_sum(self):
-        self.enforce_consistency()
-        return self.sum
-
-    def enforce_consistency(self):
-        lower_bound = time.time() - self.lifetime
-        index_offset = 0 # if we remove an element, the iterating index value must be adjusted
-        for i in range(len(self.timedArray)):
-            t, element = self.timedArray[i-index_offset]
-            if t < lower_bound: # need to remove element
-                self.sum -= element
-                self.timedArray.popleft()
-                index_offset += 1
-            else: # array is sorted, no need to continue
-                break
-
-    def get_history(self):
-        self.enforce_consistency()
-        # prepare empty array
-        temp = {}
         now = int(time.time())
-        for i in range(now-self.lifetime, now+self.resolution, self.resolution):
-            temp[i] = 0
-        # fill with data
-        for i in range(len(self.timedArray)):
-            t, element = self.timedArray[i]
-            index_to_be_placed = int((t-(now-self.lifetime)) / self.resolution)
-            index_to_be_placed = now-self.lifetime + index_to_be_placed*self.resolution
-            temp[index_to_be_placed] += element
-        # convert into sorted list
+        offset_to_be_placed = int((now - self.baseTime)/self.resolution)
+        index_to_be_placed = self.baseTime + self.resolution*offset_to_be_placed
+        if index_to_be_placed not in self.sumedDico:
+            self.sumedDico[index_to_be_placed] = 0
+        self.sumedDico[index_to_be_placed] += int(element)
+
+    def get_history(self, timerange=20):
         ret = []
-        for i in range(now-self.lifetime, now, self.resolution):
-            ret.append(temp[i])
+        now = int(time.time())
+        current_offset = int((now - self.baseTime)/self.resolution)
+        current_index = self.baseTime + self.resolution*current_offset
+        for cTime in range(current_index-timerange*self.resolution, current_index+self.resolution, self.resolution):
+            val = self.sumedDico.get(cTime, 0)
+            ret.append([cTime, val])
         return ret

@@ -204,6 +204,7 @@
                                 <td class="no_border"><b>Message</b></td>
                                 <td id='selectedMessage' class="no_border"></td>
                             </tr>
+
                             <tr>
                                 <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/bytesIN_OUT.png') }}" title="Bytes IN/OUT"><small class='small_text_icon'> IN/OUT ({{ buffer_time_spanned_in_min }}min)</small></td>
                                 <td class="no_border">
@@ -212,12 +213,28 @@
                                 </td>
                             </tr>
                             <tr>
-                                <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/flowItemIN_OUT.png') }}" title="Bytes IN/OUT"><small class='small_text_icon'>IN/OUT ({{ buffer_time_spanned_in_min }}min)</small></td>
+                                <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/flowItemIN_OUT.png') }}" title="Bytes IN/OUT"><small class='small_text_icon'> IN/OUT ({{ buffer_time_spanned_in_min }}min)</small></td>
                                 <td class="no_border">
                                     <div style="display: inline-block;" class='sparkline inlinesparklineFI'></div>
                                     <div style="display: inline-block" class='sparkline inlinesparklineFO'></div>
                                 </td>
                             </tr>
+
+                            <tr>
+                                <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/bytesIN_OUT.png') }}" title="Bytes IN/OUT"><small class='small_text_icon'> / sec</small></td>
+                                <td class="no_border">
+                                    <div style="display: inline-block;" class='sparkline inlinesparklineBI_speed'></div>
+                                    <div style="display: inline-block" class='sparkline inlinesparklineBO_speed'></div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="no_border"><img class="control-panel-icons" src="{{ url_for('static', filename='css/img/icons/flowItemIN_OUT.png') }}" title="Bytes IN/OUT"><small class='small_text_icon'> / sec</small></td>
+                                <td class="no_border">
+                                    <div style="display: inline-block;" class='sparkline inlinesparklineFI_speed'></div>
+                                    <div style="display: inline-block" class='sparkline inlinesparklineFO_speed'></div>
+                                </td>
+                            </tr>
+
                         </tbody>
                     </table>
                 </div>

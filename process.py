@@ -315,15 +315,24 @@ class ProcessStat:
         self.compute_processing_time();
         to_ret = objToDictionnary(self)
 
-        to_ret['bytes_in'] = self._bytes_in.get_sum(self.timerange_history)
-        to_ret['bytes_out'] = self._bytes_out.get_sum(self.timerange_history)
-        to_ret['flowItem_in'] = self._flowItem_in.get_sum(self.timerange_history)
-        to_ret['flowItem_out'] = self._flowItem_out.get_sum(self.timerange_history)
+        # sum
+        to_ret['bytes_in'] = self._bytes_in.get_sum()
+        to_ret['bytes_out'] = self._bytes_out.get_sum()
+        to_ret['flowItem_in'] = self._flowItem_in.get_sum()
+        to_ret['flowItem_out'] = self._flowItem_out.get_sum()
 
+        # history
         to_ret['bytes_in_history'] = self._bytes_in.get_history(self.timerange_history)
         to_ret['bytes_out_history'] = self._bytes_out.get_history(self.timerange_history)
         to_ret['flowItem_in_history'] = self._flowItem_in.get_history(self.timerange_history)
         to_ret['flowItem_out_history'] = self._flowItem_out.get_history(self.timerange_history)
+
+        # speed: sum/resolution
+        to_ret['bytes_in_speed'] = [ [t, elem/self.timeSpannedResolution] for t, elem in to_ret['bytes_in_history'] ]
+        to_ret['bytes_out_speed'] = [ [t, elem/self.timeSpannedResolution] for t, elem in to_ret['bytes_out_history'] ]
+        to_ret['flowItem_in_speed'] = [ [t, elem/self.timeSpannedResolution] for t, elem in to_ret['flowItem_in_history'] ]
+        to_ret['flowItem_out_speed'] = [ [t, elem/self.timeSpannedResolution] for t, elem in to_ret['flowItem_out_history'] ]
+
         return to_ret
 
     def __str__(self):

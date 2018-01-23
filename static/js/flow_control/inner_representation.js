@@ -178,6 +178,23 @@ class InnerRepresentation {
                         tooltipFormat: $.spformat('{{x}} - {{y}}'),
                         numberFormatter: sparklineNumberFormatter
                     });
+
+                    var sparklineBI_speed = $('.inlinesparklineBI_speed').sparkline(jStats['bytes_in_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
+                        tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                        numberFormatter: sparklineNumberFormatter
+                    });
+                    var sparklineBO_speed = $('.inlinesparklineBO_speed').sparkline(jStats['bytes_out_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
+                        tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                        numberFormatter: sparklineNumberFormatter
+                    });
+                    var sparklineFI_speed = $('.inlinesparklineFI_speed').sparkline(jStats['flowItem_in_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
+                        tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                        numberFormatter: sparklineNumberFormatter
+                    });
+                    var sparklineFO_speed = $('.inlinesparklineFO_speed').sparkline(jStats['flowItem_out_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
+                        tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                        numberFormatter: sparklineNumberFormatter
+                    });
                 }
             }
             this.nodes.update(update_array);

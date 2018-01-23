@@ -91,8 +91,8 @@ class TimeSpanningArray:
             self.timedDico[index_to_be_placed] = 0
         self.timedDico[index_to_be_placed] += 1
 
-    def get_sum(self, timerange=20):
-        return sum([ v for t,v in self.get_history(timerange) ])
+    def get_sum(self):
+        return sum([ v for t,v in self.get_history(1) ])
 
     def get_history(self, timerange=20):
         ret = []

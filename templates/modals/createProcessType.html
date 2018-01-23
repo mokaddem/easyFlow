@@ -1,0 +1,112 @@
+<div id="modalCreateProcessType" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                 <h4 class="modal-title">Create new process type</h4>
+            </div><!-- /modal-header -->
+            <div class="modal-body">
+
+                        <!-- Nav tabs -->
+                        <ul class="nav nav-tabs">
+                            <li class="active"><a href="#addParamettersTab" data-toggle="tab">Parametters</a></li>
+                            <li><a href="#addSourceCodeTab" data-toggle="tab">Source code</a></li>
+                        </ul>
+
+                        <!-- Tab panes -->
+                        <div class="tab-content" style="padding-top: 10px;">
+                            <div class="tab-pane fade in active" id="addParamettersTab">
+                                <form id="formCreateProcessType">
+                                    <div class="form-group">
+                                        <label>Process type name</label>
+                                        <input class="form-control" name="name" placeholder="Enter process name" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Description</label>
+                                        <textarea class="form-control" rows="3" name="description" style="resize: vertical;"></textarea>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Will the process receive messages</label>
+                                        <input class="form-control" name="rcv_message" type="checkbox">
+                                    </div>
+                                </form>
+
+                                    <div class="form-group">
+                                        <label>Parametters</label>
+                                        <table id="CreateProcessTypeDatatable" style="width: 100%;">
+                                            <thead>
+                                                <tr>
+                                                    <th>Label</th>
+                                                    <th>DOM</th>
+                                                    <th>Input type</th>
+                                                    <th>Default value</th>
+                                                    <th>Dynamic change</th>
+                                                    <th>Additional options</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td style="border-bottom-color: steelblue; border-bottom-width: 2px; margin-bottom: 3px;">
+                                                        <input class="form-control" name="label" placeholder="label" type="text" required>
+                                                    </td>
+                                                    <td style="border-bottom-color: steelblue; border-bottom-width: 2px;margin-bottom: 3px;">
+                                                        <select name="DOM" required>
+                                                            <option>input</option>
+                                                            <option>select</option>
+                                                        </select>
+                                                    </td>
+                                                    <td style="border-bottom-color: steelblue; border-bottom-width: 2px;margin-bottom: 3px;">
+                                                        <select id="CreateProcessType_inputType" name="inputType" required>
+                                                            <option>text</option>
+                                                            <option>password</option>
+                                                            <option>checkbox</option>
+                                                            <option>email</option>
+                                                            <option>number</option>
+                                                            <option>range</option>
+                                                            <option>tel</option>
+                                                            <option>url</option>
+                                                        </select>
+                                                    </td>
+                                                    <td style="border-bottom-color: steelblue; border-bottom-width: 2px;margin-bottom: 3px;">
+                                                        <input id="CreateProcessType_defaultValue" class="form-control" name="default" placeholder="Default value" type="text" required>
+                                                    </td>
+                                                    <td style="border-bottom-color: steelblue; border-bottom-width: 2px;margin-bottom: 3px;">
+                                                        <input name="dynamic_change" type="checkbox">
+                                                    </td>
+                                                    <td style="border-bottom-color: steelblue; border-bottom-width: 2px;margin-bottom: 3px;">
+                                                        <!-- <input name="additional_options" type="checkbox" required> -->
+                                                        <input class="form-control" name="additional_options" type="input" placeholder="JSON format" required>
+                                                    </td>
+                                                    <td style="border-bottom-color: steelblue; border-bottom-width: 2px;margin-bottom: 3px;">
+                                                        <button type="button" class="btn btn-default" name="add_parametter" id="CreateProcessType_add_parameter"><span class="glyphicon glyphicon-plus-sign"></span></button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                            </div>
+
+                            <div class="tab-pane fade" id="addSourceCodeTab">
+                                <form id="addSourceCode">
+                                    <div class="form-group">
+                                        <label>Source code</label>
+                                        <textarea class="form-control" rows="15" name="source_code" style="resize: vertical;"></textarea>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                </form>
+
+            </div><!-- /modal-body -->
+            <div class="modal-footer">
+                <button type="button" confirm="1" class="btn btn-primary" data-formID="formCreateProcessType" data-modalID="modalCreateProcessType">Create</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div><!-- /modal-content -->
+    </div><!-- /modal-dialog -->
+</div>

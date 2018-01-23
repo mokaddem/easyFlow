@@ -366,8 +366,8 @@ class Flow_project_manager:
             try:
                 with open(join(mypath, procName+'.json')) as f:
                     to_ret[procName] = json.load(f)
-            except:
-                self.logger.warning('Error while trying to load %s', join(mypath, procName+'.json'))
+            except Exception as e:
+                print('Error while trying to load %s: %s', join(mypath, procName+'.json'), str(e))
         return to_ret
 
     @staticmethod

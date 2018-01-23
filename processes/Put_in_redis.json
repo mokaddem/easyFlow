@@ -1,0 +1,89 @@
+{
+    "key_type": {
+        "DOM": "select",
+        "label": "The type of the key to store received message",
+        "options": ["set", "zset"],
+        "default": "set",
+        "additional_options": "",
+        "dynamic_change": false
+    },
+    "keyname": {
+        "DOM": "select",
+        "label": "The name that should have the key",
+        "options": ["from_incomming_message", "from_text_value", "from_date"],
+        "default": "set",
+        "additional_options": "",
+        "dynamic_change": false,
+        "additional_options": {
+            "from_incomming_message": {
+                "from_json_field": {
+                    "label": "JSON field name contaning the keyname",
+                    "DOM": "input",
+                    "inputType": "text",
+                    "default": "timestamp",
+                    "required": true,
+                    "placeholder": "Enter JSON field name containing the keyname",
+                    "dynamic_change": true
+                },
+                "harmonize_date": {
+                    "label": "Should the date be harmonized or use such as passed",
+                    "DOM": "select",
+                    "required": true,
+                    "options": ["Do no harmonize", "Yearly", "Monthly", "Daily", "Hourly", "Minutly", "Secondly"],
+                    "dynamic_change": true
+                },
+                "content_from_json_field": {
+                    "label": "JSON field(s) name contaning the content",
+                    "DOM": "input",
+                    "inputType": "text",
+                    "default": "",
+                    "required": true,
+                    "placeholder": "Enter JSON field name containing the content (comma separeted)",
+                    "dynamic_change": true
+                }
+            },
+            "from_text_value": {
+                "text_keyname": {
+                    "label": "Keyname",
+                    "DOM": "input",
+                    "inputType": "text",
+                    "default": "",
+                    "required": true,
+                    "placeholder": "Enter keyname"
+                }
+            },
+            "from_date": {
+                "date_type": {
+                    "label": "Type of the date to be considered",
+                    "DOM": "select",
+                    "required": true,
+                    "options": ["Yearly", "Monthly", "Daily", "Hourly", "Minutly", "Secondly"]
+                }
+            }
+        }
+    },
+    "redis_host": {
+        "label": "Hostname",
+        "DOM": "input",
+        "inputType": "text",
+        "default": "127.0.0.1",
+        "required": true,
+        "placeholder": "Hostname"
+    },
+    "redis_port": {
+        "label": "Port",
+        "DOM": "input",
+        "inputType": "number",
+        "default": 6781,
+        "required": true,
+        "placeholder": "Port number"
+    },
+    "redis_db": {
+        "label": "Database number",
+        "DOM": "select",
+        "options": [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+        "default": 0,
+        "required": true,
+        "placeholder": "Database number"
+    }
+}

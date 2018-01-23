@@ -1,0 +1,48 @@
+<div id="modalShowLog" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                 <h4 id="modalShowLogTitle" class="modal-title"></h4>
+            </div><!-- /modal-header -->
+            <div class="modal-body">
+                <div style="margin-bottom: 5px;">
+                    <label class="switch">
+                        <input id="switch_show_realtime_log" type="checkbox">
+                        <span class="slider round"></span>
+                    </label>
+                    <h4 style="vertical-align: middle; display: inline-block;">Shows realtime logs</h4>
+                </div>
+                <div class="form-group">
+                    <div id="checkboxes_log_level" class="checkbox">
+                        <label class="btn btn-default btn-log-level">
+                            <input id="checkbox_log_debug" value="DEBUG" type="checkbox" class="checkbox-log-level">DEBUG
+                        </label>
+                        <label class="btn btn-info btn-log-level">
+                            <input id="checkbox_log_info" value="INFO" type="checkbox" class="checkbox-log-level" checked>INFO
+                        </label>
+                        <label class="btn btn-warning btn-log-level">
+                            <input id="checkbox_log_warning" value="WARNING" type="checkbox" class="checkbox-log-level" checked>WARNING
+                        </label>
+                        <label class="btn btn-danger btn-log-level">
+                            <input id="checkbox_log_critical" value="ERROR" type="checkbox" class="checkbox-log-level" checked>ERROR
+                        </label>
+                    </div>
+                </div>
+
+                <table id="logTable" style="width: 100%;" class="table table-striped table-hover responsive">
+                    <thead>
+                        <tr>
+                            <th>Level</th>
+                            <th>Time</th>
+                            <th>Message</th>
+                        </tr>
+                    </thead>
+                </table>
+
+            </div><!-- /modal-body -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div><!-- /modal-content -->
+    </div><!-- /modal-dialog -->
+</div>

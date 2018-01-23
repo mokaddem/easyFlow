@@ -1,0 +1,58 @@
+{
+    "script_interpreter": {
+        "label": "Script interpreter",
+        "DOM": "select",
+        "options": ["python", "bash"],
+        "default": "python",
+        "required": true,
+        "additional_options": {
+            "python": {
+                "python_version": {
+                    "label": "python version",
+                    "DOM": "select",
+                    "options": ["python2", "python3"],
+                    "default": "python3",
+                    "required": true,
+                    "dynamic_change": false
+                }
+            }
+        },
+        "dynamic_change": false
+    },
+    "filepath": {
+        "label": "Path of the script",
+        "DOM": "input",
+        "inputType": "text",
+        "default": "",
+        "required": true
+    },
+    "line_by_line_forward": {
+        "label": "Should the script forward each line of the output",
+        "DOM": "input",
+        "inputType": "checkbox",
+        "default": true
+    },
+    "should_be_paused_after_run": {
+        "label": "Should the script be paused after execution",
+        "DOM": "input",
+        "inputType": "checkbox",
+        "default": true,
+        "additional_options": {
+            "false": {
+                "sleeptime": {
+                    "label": "Time to wait between script execution",
+                    "DOM": "input",
+                    "inputType": "number",
+                    "min": 0.01,
+                    "max": 86400,
+                    "step": 0.01,
+                    "default": 60,
+                    "placeholder": "time between execution (seconds)",
+                    "required": true,
+                    "dynamic_change": true
+                }
+            }
+        },
+        "dynamic_change": true
+    }
+}

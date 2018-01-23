@@ -63,7 +63,12 @@ def objToDictionnary(obj, full=False, to_ignore=[]):
 def listToDictionnary(l, full=False):
     ret = []
     for elem in l:
-        ret.append(dicoToList(elem))
+        if type(elem) is dict:
+            ret.append(dicoToList(elem))
+        elif type(elem) is list:
+            ret.append(listToDictionnary)
+        else:
+            ret.append(elem)
     return ret
 
 def dicoToList(dic):

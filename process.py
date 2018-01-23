@@ -81,6 +81,7 @@ class Process(metaclass=ABCMeta):
         # do not log to zmq by default
         self.log_to_zmq(False)
 
+        self.pre_run()
         self.run()
 
     def update_config(self):
@@ -267,6 +268,10 @@ class Process(metaclass=ABCMeta):
         else:
             self._log_handler.setLevel(logging.CRITICAL)
             self.logger.info('Stopped logging to ZMQ')
+
+    # can be used to add variables in processes
+    def pre_run(self):
+        pass
 
     @abstractmethod
     def process_message(self, msg, channel=0):

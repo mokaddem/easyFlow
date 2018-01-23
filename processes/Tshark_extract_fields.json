@@ -1,0 +1,20 @@
+{
+    "filters": {
+        "label": "Filtering command to be applyied",
+        "DOM": "input",
+        "inputType": "text",
+        "default": "",
+        "placeholder": "Filtering command",
+        "required": false,
+        "dynamic_change": true
+    },
+    "fields_list": {
+        "label": "List of wanted fields",
+        "DOM": "input",
+        "inputType": "text",
+        "default": "",
+        "required": true,
+        "placeholder": "List of fields comma separeted (e.g. timestamp,ip.src,ip.dst)",
+        "dynamic_change": true
+    }
+}

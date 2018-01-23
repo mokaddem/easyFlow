@@ -1,0 +1,62 @@
+<div id="modalAddRemoteInput" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                 <h4 class="modal-title">Create process</h4>
+            </div><!-- /modal-header -->
+            <div class="modal-body">
+
+                        <!-- Nav tabs -->
+                        <ul class="nav nav-tabs">
+                            <li class="active"><a href="#AddRemoteInputSettings" data-toggle="tab">Settings</a></li>
+                            <li><a id="tabProcessCustomSettings" href="#processCustomSetting" data-toggle="tab">Process custom settings</a></li>
+                        </ul>
+
+                        <!-- Tab panes -->
+                        <div class="tab-content" style="padding-top: 10px;">
+                            <div class="tab-pane fade in active" id="AddRemoteInputSettings">
+                                <form id="formAddRemoteInput">
+                                <div class="form-group">
+                                    <label>Process name</label>
+                                    <input class="form-control" name="name" placeholder="Enter process name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Process type</label>
+                                    <select id="processTypeSelector" class="form-control" name="type" style="font-size: medium;" required>
+                                        <option>remote_input</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <textarea class="form-control" rows="3" name="description" style="resize: vertical;"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label>Bulletin level</label>
+                                    <select class="form-control" name="bulletin_level" required>
+                                        <option>DEBUG</option>
+                                        <option selected>INFO</option>
+                                        <option>WARNING</option>
+                                        <option>ERROR</option>
+                                        <option>NONE</option>
+                                    </select>
+                                </div>
+                                </form>
+                            </div>
+
+                            <div class="tab-pane fade" id="processCustomSetting">
+                                <form id="formAddRemoteInputCustom">
+                                </form>
+                            </div>
+                        </div>
+
+                </form>
+
+            </div><!-- /modal-body -->
+            <div class="modal-footer">
+                <button type="button" confirm="1" class="btn btn-primary" data-formID="formAddRemoteInput" data-modalID="modalAddRemoteInput">Create</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+            </div>
+        </div><!-- /modal-content -->
+    </div><!-- /modal-dialog -->
+</div>

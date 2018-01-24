@@ -41,20 +41,16 @@ class Buffer_metadata_interface:
         self.config = Config_parser(easyFlow_conf).get_config()
         try:
             self._serv = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
+            self._serv_pipeline = self._serv.pipeline()
+            self.pipeline_counter = 0
         except: # fallback using TCP instead of unix_socket
             self._serv = redis.StrictRedis(
                 self.config.redis.project.host,
                 self.config.redis.project.port,
                 self.config.redis.project.db,
                 charset="utf-8", decode_responses=True)
-        try:
-            self._serv_buffers = redis.Redis(unix_socket_path=self.config.redis.buffers.unix_socket_path, decode_responses=True)
-        except: # fallback using TCP instead of unix_socket
-            self._serv_buffers = redis.StrictRedis(
-                self.config.redis.project.host,
-                self.config.redis.project.port,
-                self.config.redis.project.db,
-                charset="utf-8", decode_responses=True)
+
+        self._serv_buffers = redis.Redis(unix_socket_path=self.config.redis.buffers.unix_socket_path, decode_responses=True)
 
     def get_info(self, buuid):
         bMetadata = {
@@ -64,7 +60,16 @@ class Buffer_metadata_interface:
         return bMetadata
 
     def push_info(self, buuid, the_bytes):
-        self._serv.incrby(buuid+'_buffered_bytes', the_bytes)
+        key = buuid+'_buffered_bytes'
+        self._serv_pipeline.incrby(key, the_bytes)
+
+        self.pipeline_counter += 1
+        if self.pipeline_counter >= 64:
+            self._serv_pipeline.execute()
+            self.pipeline_counter = 0
+
+    def push_info_from_pipeline(self):
+        self._serv_pipeline.execute()
 
     def clear_info(self, buuid):
         self._serv.delete(buuid+'_buffered_bytes'),

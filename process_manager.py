@@ -45,6 +45,9 @@ class Process_manager:
                 self.config.redis.project.db,
                 charset="utf-8", decode_responses=True)
 
+        self.boostraping = False
+        self.shutting_down_phase = False
+
         self._metadata_interface = Process_metadata_interface()
         self._buffer_metadata_interface = Buffer_metadata_interface()
         self._alert_manager = Alert_manager()
@@ -63,6 +66,7 @@ class Process_manager:
         l = len(processes_to_start)
         if l>0:
             self.push_starting_all_processes(l);
+            self.boostraping = True
             # start processes
             for puuid, procData in processes_to_start.items():
                 time.sleep(0.1)
@@ -75,6 +79,8 @@ class Process_manager:
                 buffer_config = Link_representation(bufData)
                 self.buffers[buuid] = buffer_config
                 self.buffers_uuid.add(buuid)
+
+            self.boostraping = False
 
     def get_connected_buffers(self, puuid):
         self.logger.debug('Getting connected buffers of process "%s" [%s]', self.processes[puuid].name, puuid)
@@ -162,10 +168,15 @@ class Process_manager:
         )
 
     def is_multiplexer(self, puuid):
-        return self.processes[puuid].is_multiplexer
+        ret = self.processes.get(puuid, False)
+        if not ret:
+            return ret
+        else:
+            return ret.is_multiplexer
 
     def shutdown(self):
         self.logger.info('Shutting down all processes (%s process(es))', len(self.processes.keys()))
+        self.shutting_down_phase = True
         for puuid in self.processes.keys():
             # self.kill_process(puuid)
             self.stop_process(puuid)
@@ -193,12 +204,22 @@ class Process_manager:
                 group=self.projectUUID+'_processesClosing',
                 totalCount=1
             )
+        self.shutting_down_phase = False
 
     def reload_states(self, process_uuids):
+        if self.shutting_down_phase:
+            self.logger.info('Will not restart process as a shutdown has been requested')
+            return
+
         for puuid in process_uuids:
+            if puuid not in self.processes:
+                self.logger.info('Process [%s] not known by the manager', puuid)
+                return
+
             self.logger.info('Sending reload state command to "%s" [%s]', self.processes[puuid].name, puuid)
             sucess = self.send_command(puuid, 'reload')
             if not sucess:
+            # if not sucess and self.boostraping:
                 self.logger.info('reload failure, restarting process "%s" [%s]', self.processes[puuid].name, puuid)
                 self.restart_process(puuid)
 
@@ -279,6 +300,10 @@ class Process_manager:
         except AttributeError as e:
             self.logger.info('Process %s [%s] was recovered from system, skipping communicate', self.processes[puuid].name, puuid)
 
+        # delete pending commands
+        keyCommands = 'command_'+puuid
+        self._serv.delete(keyCommands)
+
     def create_process(self, data, puuid=None):
         # delete any state before starting
         self._metadata_interface.clear_info(puuid)
@@ -319,9 +344,19 @@ class Process_manager:
             # gen config
             process_config = Process_representation(data)
             self._serv.set('config_'+puuid, process_config.toJSON())
+
             # start process with Popen
-            args = shlex.split('python3.5 {} {}'.format(os.path.join(os.environ['FLOW_PROC'], process_type+'.py'), puuid))
-            # args = shlex.split('python3.5 -m cProfile -o /home/sami/Desktop/{}.report {} {}'.format(process_type, os.path.join(os.environ['FLOW_PROC'], process_type+'.py'), puuid))
+            # args = shlex.split('python3.5 {} {}'.format(os.path.join(os.environ['FLOW_PROC'], process_type+'.py'), puuid))
+
+            # args = shlex.split('screen -S "easyFlow_processes" -X screen -t "{process_type}" bash -c "{virt}; {python_bin} {path} {puuid}; read x;"'.format(
+            #         virt='. /home/sami/git/easyFlow/FLOWENV/bin/activate',
+            #         path=os.path.join(os.environ['FLOW_PROC'], process_type+'.py'),
+            #         process_type=process_type,
+            #         puuid=puuid,
+            #         python_bin='python3.5')
+            # )
+
+            args = shlex.split('python3.5 -m cProfile -o /home/sami/Desktop/reports/{}.report {} {}'.format(process_type, os.path.join(os.environ['FLOW_PROC'], process_type+'.py'), puuid))
             # cmd: pstats.Stats('remote_input.report').strip_dirs().sort_stats('cumtime').reverse_order().print_stats()
             # args = shlex.split('python3.5 -m memory_profiler {} {}'.format(os.path.join(os.environ['FLOW_PROC'], process_type+'.py'), puuid))
             proc = psutil.Popen(args)
@@ -337,6 +372,8 @@ class Process_manager:
             return process_config
 
     def delete_process(self, puuid):
+        if puuid not in self.processes:
+            return
         self.logger.info('Deleting process %s [%s]', self.processes[puuid].name, puuid)
         self.kill_process(puuid)
         # delete residual keys in redis

@@ -502,6 +502,9 @@ class InnerRepresentation {
                     nRow.classList.add('success')
                     switch (aData.log_level) {
                         case 'DEBUG':
+                            setTimeout(function() {
+                                nRow.classList.remove('success');
+                            }, 700);
                             break;
                         case 'INFO':
                             setTimeout(function() {

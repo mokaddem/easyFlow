@@ -1,0 +1,42 @@
+{
+    "host": {
+        "label": "host",
+        "default": "127.0.0.1",
+        "DOM": "input",
+        "dynamic_change": false,
+        "inputType": "text",
+        "required": true
+    },
+    "port": {
+        "label": "port",
+        "default": "6781",
+        "DOM": "input",
+        "dynamic_change": false,
+        "inputType": "number",
+        "required": true
+    },
+    "prepend_keyname": {
+        "label": "prepend_keyname",
+        "default": "",
+        "DOM": "input",
+        "dynamic_change": false,
+        "inputType": "text",
+        "required": false
+    },
+    "db": {
+        "label": "db",
+        "default": "0",
+        "DOM": "input",
+        "dynamic_change": false,
+        "inputType": "number",
+        "required": true
+    },
+    "unix_socket": {
+        "label": "Unix socket",
+        "default": "/tmp/redis_easyFlow_redirected_data.sock",
+        "DOM": "input",
+        "dynamic_change": true,
+        "inputType": "text",
+        "required": false
+    }
+}

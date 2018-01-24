@@ -19,22 +19,21 @@ class Link_manager:
         # from puuid, get buuid
         self.projectUUID = projectUUID
         self.puuid = puuid
-        try:
-            self._serv_config = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
-        except: # fallback using TCP instead of unix_socket
-            self._serv_config = redis.StrictRedis(
-                self.config.redis.project.host,
-                self.config.redis.project.port,
-                self.config.redis.project.db,
-                charset="utf-8", decode_responses=True)
+        self._serv_config = redis.StrictRedis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
 
+        self._serv_buffers = redis.StrictRedis(unix_socket_path=self.config.redis.buffers.unix_socket_path, decode_responses=True)
+        self._pipeline_buffers = self._serv_buffers.pipeline()
+        self.pipeline_counter = 0
+
+        # register redis server for flowItem
         try:
-            self._serv_buffers = redis.Redis(unix_socket_path=self.config.redis.buffers.unix_socket_path, decode_responses=True)
+            self.redis_server_redirected_data = redis.Redis(unix_socket_path=self.config.redis.redirected_data.unix_socket_path, decode_responses=True)
         except: # fallback using TCP instead of unix_socket
-            self._serv_buffers = redis.StrictRedis(
-                self.config.redis.project.host,
-                self.config.redis.project.port,
-                self.config.redis.project.db,
+            self.logger.error('REDIS SOCKET FOR REDIRECT')
+            self.redis_server_redirected_data = redis.StrictRedis(
+                self.config.redis.redirected_data.host,
+                self.config.redis.redirected_data.port,
+                self.config.redis.redirected_data.db,
                 charset="utf-8", decode_responses=True)
 
 
@@ -66,13 +65,14 @@ class Link_manager:
         # self.show_connections()
 
     def buffer_pop(self, target):
+        # fr[0] is key and fr[1] is value
         if self.bufType == 'FIFO':
-            flowItem_raw = self._serv_buffers.rpop(target)
+            flowItem_raw = self._serv_buffers.brpop(target, 1)
         elif self.bufType == 'LIFO':
-            flowItem_raw = self._serv_buffers.lpop(target)
+            flowItem_raw = self._serv_buffers.blpop(target, 1)
         else:
             flowItem_raw = None
-        return flowItem_raw
+        return flowItem_raw[1] if flowItem_raw is not None else None
 
     def get_flowItem(self):
         if self.ingress is not None:
@@ -89,20 +89,48 @@ class Link_manager:
             self.logger.warning('Process wanted to get message but no ingress connection is registered')
             return None
 
-    def push_flowItem(self, flowItem):
+    def push_flowItem(self, flowItem, pipeline=False):
         if self.egress is not None:
             self._buffer_metadata_interface.push_info(self.egress, flowItem.size) # increase buffer size
-            self._serv_buffers.lpush(self.egress, flowItem)
-            return True
+
+            if pipeline:
+                self.push_flow_pipeline(self.egress, flowItem)
+            else:
+                self._serv_buffers.lpush(self.egress, flowItem)
+
+            return 1
         else:
             self.logger.warning('Process wanted to push message but no egress connection is registered')
-            return False
+            return 0
+
+    def push_flow_pipeline(self, output, flowItem):
+        self._pipeline_buffers.lpush(output, flowItem)
+        self.pipeline_counter += 1
+        if self.pipeline_counter >= 16:
+            self._pipeline_buffers.execute()
+            self.pipeline_counter = 0
+
 
     def get_config(self):
         return json.loads(self._serv_config.get(self.projectUUID))['buffers']
 
     def show_connections(self):
         print('{} -> {} -> {}'.format(self.ingress, self.puuid, self.egress))
+
+    def fetch_content(self, msg):
+        # message content is the source of the data
+        complete_path = msg.split('@') # redis e.g. redis@keyname; fs e.g. fs@/home/user/filename
+        source_type =  complete_path[0] # redis, fs (filesystem)
+        path = complete_path[1] # path
+        if source_type == 'redis':
+            ret = self.redis_server_redirected_data.get(path)
+            return ret
+        elif source_type == 'fs':
+            with open(path, 'r') as f:
+                return f.read()
+        else:
+            print('error, not valid source_type')
+            return ""
 
 
 class Multiple_link_manager(Link_manager):
@@ -118,6 +146,7 @@ class Multiple_link_manager(Link_manager):
 
         self.update_connections(custom_config)
         self.interleave_index = 0 # last poped buffer index
+        self.duplicate_pipeline_counter = 0
 
     def inc_interleave_index(self):
         if self.multi_in:
@@ -148,7 +177,6 @@ class Multiple_link_manager(Link_manager):
                     self.egress[channel] = []
                 self.egress[channel].append(buuid)
                 self.egress[0].append(buuid)
-
 
     def get_flowItem(self):
         if len(self.ingress) > 0: # check that has at least 1 ingess connection
@@ -181,8 +209,9 @@ class Multiple_link_manager(Link_manager):
         else:
             self.logger.warning('Process wanted to get message but no ingress connection(s) are registered')
 
-    def push_flowItem(self, flowItem):
+    def push_flowItem(self, flowItem, pipeline=False):
         if len(self.egress) > 0: # check that has at least 1 egress connection
+            pushed_count = 1
             multiplex_logic = self.custom_config.get('multiplex_logic', 'Interleave')
             multiplex_logic = 'Switch' if self.is_switch else multiplex_logic # change multiplex_logic in case of switch
             if self.multi_out: # custom logic: copy, dispatch
@@ -198,24 +227,31 @@ class Multiple_link_manager(Link_manager):
                 elif multiplex_logic == 'Duplicate':
                     for key in self.egress:
                         self._buffer_metadata_interface.push_info(key, flowItem.size) # increase buffer size
-                        self._serv_buffers.lpush(key, flowItem)
+                        # self._serv_buffers.lpush(key, flowItem)
+                        self.push_flow_pipeline(key, flowItem)
+                    pushed_count = len(self.egress)
                 elif multiplex_logic == 'Switch':
                     buuids = self.egress.get(flowItem.channel, []) # drop non valid channel
                     for buuid in buuids:
                         self._buffer_metadata_interface.push_info(buuid, flowItem.size) # increase buffer size
-                        self._serv_buffers.lpush(buuid, flowItem)
+                        self.push_flow_pipeline(buuid, flowItem)
                 else:
                     self.logger.warning('Unkown multiplexer logic')
             else: # same as simple link manager
                 self._buffer_metadata_interface.push_info(self.egress[0], flowItem.size) # increase buffer size
-                self._serv_buffers.lpush(self.egress[0], flowItem)
-            return True
+                # self._serv_buffers.lpush(self.egress[0], flowItem)
+                if pipeline:
+                    self.push_flow_pipeline(self.egress[0], flowItem)
+                else:
+                    self._serv_buffers.lpush(self.egress[0], flowItem)
+
+            return pushed_count
         else:
             self.logger.warning('Process wanted to push message but no egress connection(s) are registered')
-            return False
+            return 0
 
 class FlowItem:
-    def __init__(self, content, origin=None, raw=False, channel=0, is_json=False):
+    def __init__(self, content, origin=None, raw=False, channel=0, is_json=False, redirect=False):
         if raw:
             if content is None:
                 self.content = None
@@ -224,7 +260,7 @@ class FlowItem:
                 self.content = jflowItem['content']
                 self.size = jflowItem['size']
                 self.origin = jflowItem['origin']
-                # self.channel = jflowItem['channel'] ## ignore no channel...
+                self.redirect = jflowItem['redirect']
                 self.channel = jflowItem['channel'] ## ignore no channel...
                 # if self.is_json:
                 #     self.content = json.loads(self.content)
@@ -237,6 +273,7 @@ class FlowItem:
                 self.size = len(self.content.encode('utf-8'))
             self.origin = origin
             self.channel = channel
+            self.redirect = redirect
             # self.is_json = is_json
 
     def message(self):

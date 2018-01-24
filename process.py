@@ -24,6 +24,7 @@ class Process(metaclass=ABCMeta):
         try:
             self._serv_config = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
         except: # fallback using TCP instead of unix_socket
+            self.logger.warning('Unix socket not availalbe, switching to unix_socket')
             self._serv_config = redis.StrictRedis(
                 self.config.redis.project.host,
                 self.config.redis.project.port,
@@ -60,8 +61,10 @@ class Process(metaclass=ABCMeta):
 
         self._metadata_interface = Process_metadata_interface()
         self._buffer_metadata_interface = Buffer_metadata_interface()
-        self.last_refresh = time.time() - self.state_refresh_rate # ensure a refresh
-        self.last_reload = time.time() - self.state_refresh_rate # ensure a reload
+        now = time.time()
+        self.last_refresh = now - self.state_refresh_rate # ensure a refresh
+        self.last_reload = now - self.state_refresh_rate # ensure a reload
+        self.last_processed_cmd = now - self.state_refresh_rate # ensure a reload
 
         self._processStat = ProcessStat(self.config.default_project.process.buffer_time_resolution_in_sec, self.config.default_project.process.buffer_time_spanned_in_min)
         self.push_p_info()
@@ -81,7 +84,9 @@ class Process(metaclass=ABCMeta):
         # do not log to zmq by default
         self.log_to_zmq(False)
 
+        self.logger.info('Starting pre_run phase')
         self.pre_run()
+        self.logger.info('Starting running phase')
         self.run()
 
     def update_config(self):
@@ -119,7 +124,7 @@ class Process(metaclass=ABCMeta):
 
         self.x = configData.get('x', 0)
         self.y = configData.get('y', 0)
-        self.config = Config_parser('config/easyFlow_conf.json', self.projectUUID).get_config()
+        self.config = Config_parser(os.path.join(os.environ['FLOW_CONFIG'], 'easyFlow_conf.json'), self.projectUUID).get_config()
 
     def sig_handler(self, signum, frame):
         self.logger.debug('Signal received')
@@ -178,14 +183,17 @@ class Process(metaclass=ABCMeta):
         )
 
     def process_commands(self):
-        self.logger.debug('Processing inbound commands')
-        while True:
-            rawCommand = self._serv_config.rpop(self._keyCommands)
-            if rawCommand is not None: # there is a message
-                jCommand = json.loads(rawCommand)
-                self.apply_operation(jCommand['operation'], jCommand.get('data', None))
-            else:
-                break
+        now = time.time()
+        if now - self.last_processed_cmd > self.state_refresh_rate:
+            self.logger.debug('Processing inbound commands')
+            self.last_processed_cmd = now
+            while True:
+                rawCommand = self._serv_config.rpop(self._keyCommands)
+                if rawCommand is not None: # there is a message
+                    jCommand = json.loads(rawCommand)
+                    self.apply_operation(jCommand['operation'], jCommand.get('data', None))
+                else:
+                    break
 
     '''
         - Process incoming commands
@@ -208,9 +216,19 @@ class Process(metaclass=ABCMeta):
                 if flowItem is not None: # if not part of the flow yet
                     #FIXME SHOULD WE LOG HERE? PERFS ISSUE?
                     self._processStat.register_processing(flowItem)
-                    self.process_message(flowItem.message(), flowItem.channel)
+                    try:
+                        self.process_message(flowItem.message(), channel=flowItem.channel, redirect=flowItem.redirect)
+                    except:
+                        print(flowItem)
+                        print(flowItem.message())
+                        sys.exit(1)
                     self._processStat.register_processed()
                 else:
+                    self.before_sleep()
+                     # empty pipeline
+                    self._link_manager._pipeline_buffers.execute()
+                    self._buffer_metadata_interface.push_info_from_pipeline()
+
                     self.logger.debug('No message, sleeping %s sec', self.config.default_project.process.pooling_time_interval_get_message)
                     time.sleep(self.config.default_project.process.pooling_time_interval_get_message)
 
@@ -218,10 +236,11 @@ class Process(metaclass=ABCMeta):
                 time.sleep(self.config.default_project.process.pooling_time_interval_get_message)
 
 
-    def forward(self, msg, channel=0):
-        flowItem = FlowItem(msg, channel=channel)
-        if self._link_manager.push_flowItem(flowItem):
-            self._processStat.register_forward(flowItem)
+    def forward(self, msg, pipeline=False, channel=0, redirect=False):
+        flowItem = FlowItem(msg, channel=channel, redirect=redirect)
+        pushed_count = self._link_manager.push_flowItem(flowItem, pipeline=pipeline)
+        if pushed_count > 0:
+            self._processStat.register_forward(flowItem, count=pushed_count)
 
     def apply_operation(self, operation, data):
         self.logger.debug('Applying operation: %s', operation)
@@ -273,8 +292,12 @@ class Process(metaclass=ABCMeta):
     def pre_run(self):
         pass
 
+    # can be used to add operation in the process (such as empty buffer, execute transaction, ...)
+    def before_sleep(self):
+        pass
+
     @abstractmethod
-    def process_message(self, msg, channel=0):
+    def process_message(self, msg, **kargs):
         pass
 
 class ProcessStat:
@@ -303,9 +326,9 @@ class ProcessStat:
         else:
             self.processing_time = time.time() - self._start_processing_time
 
-    def register_forward(self, flowItem):
-        self._bytes_out.add(flowItem.size)
-        self._flowItem_out.add(1)
+    def register_forward(self, flowItem, count=1):
+        self._bytes_out.add(flowItem.size*count)
+        self._flowItem_out.add(1*count)
 
 
     def __repr__(self):

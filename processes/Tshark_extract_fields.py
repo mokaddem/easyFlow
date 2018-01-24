@@ -20,12 +20,12 @@ from subprocess import PIPE, Popen
 
 class Tshark_extract_fields(Process):
 
-    def process_message(self, msg, channel):
+    def process_message(self, msg, **kargs):
         # msg is filepath
         self.logger.info('Processing file %s', msg)
-        self.fields_from_tshark(msg, self.custom_config['fields_list'], self.custom_config['filters'])
+        self.fields_from_tshark(msg, self.custom_config['fields_list'], self.custom_config['filters'], **kargs)
 
-    def fields_from_tshark(self, filepath, fields_list, filters):
+    def fields_from_tshark(self, filepath, fields_list, filters, **kargs):
         filepath = filepath.strip()
         to_return = []
 
@@ -66,8 +66,9 @@ class Tshark_extract_fields(Process):
                     dico[f] = json_layer[key][0] # wanted value is in an array, take the 1 element
                 except KeyError: # sometimes fields are not present in the json
                     dico[f] = ""
-            self.forward(dico)
-            # self.forward(json.dumps(dico))
+
+            self.forward(json.dumps(dico), pipeline=True, **kargs)
+            # self.forward(dico, **kargs)
             # to_return.append(dico)
         # return to_return
         self._alert_manager.send_alert(

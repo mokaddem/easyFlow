@@ -4,7 +4,7 @@ import sys,  os
 sys.path.append(os.environ['FLOW_HOME'])
 
 from process import Process
-import redis, datetime, time
+import redis, datetime, time, json
 
 # available functions:
 #   self.forward(msg)   -> forwards messages to egress modules
@@ -21,17 +21,20 @@ def getTimestamp(date):
 class Put_in_redis(Process):
 
     def pre_run(self):
-        self._database_server = redis.StrictRedis(
-            self.custom_config['redis_host'],
-            self.custom_config['redis_port'],
-            self.custom_config['redis_db']
-        )
+        try:
+            self._database_server = redis.Redis(unix_socket_path=self.custom_config['unix_socket'], decode_responses=True)
+        except: # fallback using TCP instead of unix_socket
+            self.logger.warning('Redis unix_socket not used, falling back to TCP')
+            self._database_server = redis.StrictRedis(
+                self.custom_config['redis_host'],
+                self.custom_config['redis_port'],
+                self.custom_config['redis_db']
+            )
+            
         if self.custom_config['keyname'] == "from_incomming_message":
             self.keynameField = self.custom_config['keyname_from_json_field']
             self.fields_list = self.custom_config['keyname_content_from_json_field'].split(',')
             self.harmonize_date = self.custom_config['keyname_harmonize_date'] if self.custom_config['keyname_harmonize_date'] != 'Do no harmonize' else False
-        from pprint import pprint
-        pprint(self.custom_config)
 
     def generate_keyname_from_date(self, datetype, the_date=datetime.datetime.now()):
         if not isinstance(the_date, datetime.datetime):
@@ -69,7 +72,11 @@ class Put_in_redis(Process):
         else:
             self.logger.error('invalid redis key type: %s', self.custom_config['key_type'])
 
-    def process_message(self, msg, channel):
+    def process_message(self, msg, channel, redirect):
+        if redirect: # if it is redirected, fetch the content
+            msg = self._link_manager.fetch_content(msg)
+        msg = json.loads(msg)
+
         if self.custom_config['keyname'] == "from_incomming_message":
             if self.harmonize_date:
                 keyname = self.generate_keyname_from_date(self.harmonize_date, float(msg[self.keynameField]))

@@ -68,7 +68,8 @@
         "inputType": "text",
         "default": "127.0.0.1",
         "required": true,
-        "placeholder": "Hostname"
+        "placeholder": "Hostname",
+        "dynamic_change": true
     },
     "redis_port": {
         "label": "Port",
@@ -76,7 +77,8 @@
         "inputType": "number",
         "default": 6781,
         "required": true,
-        "placeholder": "Port number"
+        "placeholder": "Port number",
+        "dynamic_change": true
     },
     "redis_db": {
         "label": "Database number",
@@ -84,6 +86,15 @@
         "options": [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
         "default": 0,
         "required": true,
-        "placeholder": "Database number"
+        "placeholder": "Database number",
+        "dynamic_change": true
+    },
+    "unix_socket": {
+        "label": "Unix socket",
+        "default": "/tmp/redis_easyFlow_database.sock",
+        "DOM": "input",
+        "dynamic_change": false,
+        "inputType": "text",
+        "required": false
     }
 }

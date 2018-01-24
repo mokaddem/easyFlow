@@ -16,7 +16,7 @@ from process import Process
 
 class Blackhole(Process):
 
-    def process_message(self, msg, channel):
+    def process_message(self, msg, **kargs):
         pass
 
 

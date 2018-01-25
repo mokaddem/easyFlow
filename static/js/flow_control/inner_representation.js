@@ -462,6 +462,7 @@ class InnerRepresentation {
         $('#controlPanelCollapse').collapse('hide');
         $('#controlPanel').toggleClass('panel-info', false);
         $('#controlPanel').toggleClass('panel-primary', true);
+        $('#selectedNodeID').text(buuid);
     }
 
     resetControlButtonData() {

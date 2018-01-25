@@ -66,7 +66,7 @@ def listToDictionnary(l, full=False):
         if type(elem) is dict:
             ret.append(dicoToList(elem))
         elif type(elem) is list:
-            ret.append(listToDictionnary)
+            ret.append(listToDictionnary(elem))
         else:
             ret.append(elem)
     return ret

@@ -212,25 +212,40 @@ class Process(metaclass=ABCMeta):
 
             if self.state == 'running':
                 # Process flowItems
-                flowItem = self._link_manager.get_flowItem()
-                if flowItem is not None: # if not part of the flow yet
-                    #FIXME SHOULD WE LOG HERE? PERFS ISSUE?
-                    self._processStat.register_processing(flowItem)
-                    try:
-                        self.process_message(flowItem.message(), channel=flowItem.channel, redirect=flowItem.redirect)
-                    except:
-                        print(flowItem)
-                        print(flowItem.message())
-                        sys.exit(1)
-                    self._processStat.register_processed()
-                else:
+                flowItems = self._link_manager.get_flowItems(count=100)
+                if len(flowItems) == 0:
+                    # self.before_sleep()
                     self.before_sleep()
-                     # empty pipeline
+                     # empty remaining items in pipeline
                     self._link_manager._pipeline_buffers.execute()
                     self._buffer_metadata_interface.push_info_from_pipeline()
 
-                    self.logger.debug('No message, sleeping %s sec', self.config.default_project.process.pooling_time_interval_get_message)
+                    self.logger.debug('"%s" No message, sleeping %s sec', self.name, self.config.default_project.process.pooling_time_interval_get_message)
                     time.sleep(self.config.default_project.process.pooling_time_interval_get_message)
+
+                else:
+                    for flowItem in flowItems:
+                        if flowItem is not None: # if not part of the flow yet
+                            #FIXME SHOULD WE LOG HERE? PERFS ISSUE?
+                            self._processStat.register_processing(flowItem)
+                            self.process_message(flowItem.message(), channel=flowItem.channel, redirect=flowItem.redirect)
+                            self._processStat.register_processed()
+
+
+                # flowItems = self._link_manager.get_flowItems(count=10)
+                # for flowItem in flowItems:
+                #     if flowItem is not None: # if not part of the flow yet
+                #         #FIXME SHOULD WE LOG HERE? PERFS ISSUE?
+                #         self._processStat.register_processing(flowItem)
+                #         self.process_message(flowItem.message(), channel=flowItem.channel, redirect=flowItem.redirect)
+                #         self._processStat.register_processed()
+                #     else:
+                #         self.before_sleep()
+                #          # empty remaining items in pipeline
+                #         self._link_manager._pipeline_buffers.execute()
+                #         self._buffer_metadata_interface.push_info_from_pipeline()
+                #
+                #         self.logger.debug('No message, sleeping %s sec', self.config.default_project.process.pooling_time_interval_get_message)
 
             else: # process paused
                 time.sleep(self.config.default_project.process.pooling_time_interval_get_message)

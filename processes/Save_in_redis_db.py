@@ -25,12 +25,13 @@ class Put_in_redis(Process):
             self._database_server = redis.Redis(unix_socket_path=self.custom_config['unix_socket'], decode_responses=True)
         except: # fallback using TCP instead of unix_socket
             self.logger.warning('Redis unix_socket not used, falling back to TCP')
+            sys.exit(1)
             self._database_server = redis.StrictRedis(
                 self.custom_config['redis_host'],
                 self.custom_config['redis_port'],
                 self.custom_config['redis_db']
             )
-            
+
         if self.custom_config['keyname'] == "from_incomming_message":
             self.keynameField = self.custom_config['keyname_from_json_field']
             self.fields_list = self.custom_config['keyname_content_from_json_field'].split(',')

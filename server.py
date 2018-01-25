@@ -136,9 +136,9 @@ def download_file():
         print('error: no project uuid provided')
         return 'KO'
 
-    JSONProject = flow_project_manager.projectToDico(projectUUID)
-    projectName = JSONProject['projectName']
-    JSONProject = JSONProject.encode('utf-8')
+    DICOProject = flow_project_manager.projectToDico(projectUUID)
+    projectName = DICOProject['projectName']
+    JSONProject = json.dumps(DICOProject).encode('utf-8')
     resp = make_response(send_file(BytesIO(JSONProject),
              attachment_filename="{}.json".format(projectName),
              as_attachment=True))

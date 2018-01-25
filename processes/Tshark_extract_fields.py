@@ -6,7 +6,10 @@ sys.path.append(os.environ['FLOW_HOME'])
 from process import Process
 
 import json
+import uuid as uuid_lib
 from subprocess import PIPE, Popen
+import shlex
+import errno
 
 # available functions:
 #   self.forward(msg)   -> forwards messages to egress modules
@@ -16,7 +19,16 @@ from subprocess import PIPE, Popen
 #   self.custom_config  -> contains the config of the process
 #                          available custom parameters: dict_keys([])
 
+def genUUID():
+    return str(uuid_lib.uuid4())
 
+def generate_redis_proto(cmd, key, value):
+    cmd_split = cmd.split()
+    proto = '*{argNum}\r\n'.format(argNum=3)
+    proto += '${argLen}\r\n{arg}\r\n'.format(argLen=len(cmd), arg=cmd)
+    proto += '${argLen}\r\n{arg}\r\n'.format(argLen=len(key), arg=key)
+    proto += '${argLen}\r\n{arg}\r\n'.format(argLen=len(value), arg=value)
+    return proto
 
 class Tshark_extract_fields(Process):
 
@@ -40,6 +52,16 @@ class Tshark_extract_fields(Process):
             tshark_command += ['-e', f]
         if filters != "":
             tshark_command += ['\"'+filters+'\"']
+
+        put_in_redis_directly = self.custom_config['put_in_redis_directly']
+        if put_in_redis_directly:
+            args = shlex.split('/home/sami/git/redis/src/redis-cli -h {host} -p {port} -n {db} --pipe'.format(
+                host=self.config.redis.redirected_data.host,
+                port=self.config.redis.redirected_data.port,
+                db=self.config.redis.redirected_data.db))
+            p_mass_insert = Popen(args, stdin=PIPE, universal_newlines=True)
+
+            del kargs['redirect']
 
         p = Popen(tshark_command, stdin=PIPE, stdout=PIPE)
 
@@ -67,7 +89,25 @@ class Tshark_extract_fields(Process):
                 except KeyError: # sometimes fields are not present in the json
                     dico[f] = ""
 
-            self.forward(json.dumps(dico), pipeline=True, **kargs)
+            if put_in_redis_directly:
+                keyname = 'redirect_tshark'+':'+genUUID()
+                complete_path_redirect = 'redis@'+keyname
+                # buffer_to_push = self._link_manager.egress # monolink
+                proto_cmd = generate_redis_proto(cmd='SET', key=keyname, value=json.dumps(dico))
+                try:
+                    p_mass_insert.stdin.write(proto_cmd)
+                    self.forward(complete_path_redirect, pipeline=True, redirect=True, **kargs)
+                except IOError as e:
+                    if e.errno == errno.EPIPE or e.errno == errno.EINVAL:
+                        # Stop loop on "Invalid pipe" or "Invalid argument".
+                        # No sense in continuing with broken pipe.
+                        break
+                    else:
+                        # Raise any other error.
+                        raise
+
+            else:
+                self.forward(json.dumps(dico), pipeline=True, **kargs)
             # self.forward(dico, **kargs)
             # to_return.append(dico)
         # return to_return
@@ -78,6 +118,8 @@ class Tshark_extract_fields(Process):
             group='singleton'
         )
 
+        p_mass_insert.stdin.close()
+        p_mass_insert.wait()
 
 
 if __name__ == '__main__':

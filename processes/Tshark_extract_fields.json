@@ -16,5 +16,12 @@
         "required": true,
         "placeholder": "List of fields comma separeted (e.g. timestamp,ip.src,ip.dst)",
         "dynamic_change": true
+    },
+    "put_in_redis_directly": {
+        "label": "Should the tshark immediatly put the data in redis_redirect",
+        "DOM": "input",
+        "inputType": "checkbox",
+        "default": true,
+        "dynamic_change": true
     }
 }

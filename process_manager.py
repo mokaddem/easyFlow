@@ -346,7 +346,7 @@ class Process_manager:
             self._serv.set('config_'+puuid, process_config.toJSON())
 
             # start process with Popen
-            # args = shlex.split('python3.5 {} {}'.format(os.path.join(os.environ['FLOW_PROC'], process_type+'.py'), puuid))
+            args = shlex.split('python3.5 {} {}'.format(os.path.join(os.environ['FLOW_PROC'], process_type+'.py'), puuid))
 
             # args = shlex.split('screen -S "easyFlow_processes" -X screen -t "{process_type}" bash -c "{virt}; {python_bin} {path} {puuid}; read x;"'.format(
             #         virt='. /home/sami/git/easyFlow/FLOWENV/bin/activate',
@@ -356,7 +356,7 @@ class Process_manager:
             #         python_bin='python3.5')
             # )
 
-            args = shlex.split('python3.5 -m cProfile -o /home/sami/Desktop/reports/{}.report {} {}'.format(process_type, os.path.join(os.environ['FLOW_PROC'], process_type+'.py'), puuid))
+            # args = shlex.split('python3.5 -m cProfile -o /home/sami/Desktop/reports/{}.report {} {}'.format(process_type, os.path.join(os.environ['FLOW_PROC'], process_type+'.py'), puuid))
             # cmd: pstats.Stats('remote_input.report').strip_dirs().sort_stats('cumtime').reverse_order().print_stats()
             # args = shlex.split('python3.5 -m memory_profiler {} {}'.format(os.path.join(os.environ['FLOW_PROC'], process_type+'.py'), puuid))
             proc = psutil.Popen(args)

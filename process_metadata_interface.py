@@ -43,6 +43,8 @@ class Buffer_metadata_interface:
             self._serv = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
             self._serv_pipeline = self._serv.pipeline()
             self.pipeline_counter = 0
+            self.pipeline_threshold = 1000
+            self.buffered_byte_value = {}
         except: # fallback using TCP instead of unix_socket
             self._serv = redis.StrictRedis(
                 self.config.redis.project.host,
@@ -61,15 +63,26 @@ class Buffer_metadata_interface:
 
     def push_info(self, buuid, the_bytes):
         key = buuid+'_buffered_bytes'
-        self._serv_pipeline.incrby(key, the_bytes)
+        # self._serv_pipeline.incrby(key, the_bytes)
+        #
+        # self.pipeline_counter += 1
+        # if self.pipeline_counter >= self.pipeline_threshold:
+        #     self._serv_pipeline.execute()
+        #     self.pipeline_counter = 0
+        if key not in self.buffered_byte_value:
+            self.buffered_byte_value[key] = 0
+        self.buffered_byte_value[key] += the_bytes
 
         self.pipeline_counter += 1
-        if self.pipeline_counter >= 64:
-            self._serv_pipeline.execute()
+        if self.pipeline_counter >= self.pipeline_threshold:
+            self.push_info_from_pipeline()
             self.pipeline_counter = 0
 
     def push_info_from_pipeline(self):
-        self._serv_pipeline.execute()
+        # self._serv_pipeline.execute()
+        for k, v in self.buffered_byte_value.items():
+            self._serv.incrby(k, v)
+        self.buffered_byte_value = {}
 
     def clear_info(self, buuid):
         self._serv.delete(buuid+'_buffered_bytes'),

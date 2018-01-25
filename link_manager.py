@@ -24,6 +24,7 @@ class Link_manager:
         self._serv_buffers = redis.StrictRedis(unix_socket_path=self.config.redis.buffers.unix_socket_path, decode_responses=True)
         self._pipeline_buffers = self._serv_buffers.pipeline()
         self.pipeline_counter = 0
+        self.pipeline_threshold = 100
 
         # register redis server for flowItem
         try:
@@ -64,26 +65,38 @@ class Link_manager:
                 self.egress = buuid
         # self.show_connections()
 
-    def buffer_pop(self, target):
+    def buffer_pop(self, target, count=1):
         # fr[0] is key and fr[1] is value
         if self.bufType == 'FIFO':
-            flowItem_raw = self._serv_buffers.brpop(target, 1)
+            # flowItem_raw = self._serv_buffers.brpop(target, 1)
+            flowItems_raw = self._serv_buffers.lrange(target, -count, -1)
+            self._serv_buffers.ltrim(target, 0, -len(flowItems_raw)-1)
         elif self.bufType == 'LIFO':
-            flowItem_raw = self._serv_buffers.blpop(target, 1)
+            # flowItem_raw = self._serv_buffers.blpop(target, 1)
+            flowItems_raw = self._serv_buffers.lrange(target, 0, count)
+            self._serv_buffers.ltrim(target, len(flowItems_raw), -1)
         else:
-            flowItem_raw = None
-        return flowItem_raw[1] if flowItem_raw is not None else None
+            flowItems_raw = []
 
-    def get_flowItem(self):
+        # return flowItem_raw[1] if flowItem_raw is not None else None
+        return flowItems_raw
+
+    def get_flowItems(self, count=1):
         if self.ingress is not None:
-            flowItem_raw = self.buffer_pop(self.ingress)
+            flowItems_raw = self.buffer_pop(self.ingress, count=count)
+            flowItems_parsed = self.parse_raw_flowItem(flowItems_raw)
+            self._buffer_metadata_interface.push_info(self.ingress, flowItems_parsed['summed_size']) # decrease buffer size
+            return flowItems_parsed['flowItems']
 
-            if flowItem_raw is None:
-                return None
-            else:
-                flowItem = FlowItem(flowItem_raw, raw=True)
-                self._buffer_metadata_interface.push_info(self.ingress, -flowItem.size) # decrease buffer size
-                return flowItem
+            # if len(flowItems_raw) == 0:
+            #     return []
+            # else:
+            #     ret = []
+            #     for flowItem_raw in flowItems_raw:
+            #         flowItem = FlowItem(flowItem_raw, raw=True)
+            #         self._buffer_metadata_interface.push_info(self.ingress, -flowItem.size) # decrease buffer size
+            #         ret.append(flowItem)
+            #     return ret
         else:
             # Either return None or wait until part of the flow
             self.logger.warning('Process wanted to get message but no ingress connection is registered')
@@ -106,10 +119,21 @@ class Link_manager:
     def push_flow_pipeline(self, output, flowItem):
         self._pipeline_buffers.lpush(output, flowItem)
         self.pipeline_counter += 1
-        if self.pipeline_counter >= 16:
+        if self.pipeline_counter >= self.pipeline_threshold:
             self._pipeline_buffers.execute()
             self.pipeline_counter = 0
 
+    def parse_raw_flowItem(self, flowItems_raw):
+        if len(flowItems_raw) == 0:
+            return {'flowItems': [], 'summed_size': 0}
+        else:
+            ret = []
+            summed_size = 0
+            for flowItem_raw in flowItems_raw:
+                flowItem = FlowItem(flowItem_raw, raw=True)
+                summed_size += -flowItem.size
+                ret.append(flowItem)
+            return {'flowItems': ret, 'summed_size': summed_size}
 
     def get_config(self):
         return json.loads(self._serv_config.get(self.projectUUID))['buffers']
@@ -145,14 +169,21 @@ class Multiple_link_manager(Link_manager):
         self.egress = []
 
         self.update_connections(custom_config)
-        self.interleave_index = 0 # last poped buffer index
+        self.interleave_index_push = 0 # last pushed buffer index
+        self.interleave_index_get = 0  # last poped buffer index
         self.duplicate_pipeline_counter = 0
 
-    def inc_interleave_index(self):
+    def inc_interleave_index_push(self):
         if self.multi_in:
-            self.interleave_index = self.interleave_index+1 if self.interleave_index < len(self.ingress)-1 else 0
+            self.interleave_index_push = self.interleave_index_push+1 if self.interleave_index_push < len(self.ingress)-1 else 0
         else:
-            self.interleave_index = self.interleave_index+1 if self.interleave_index < len(self.egress)-1 else 0
+            self.interleave_index_push = self.interleave_index_push+1 if self.interleave_index_push < len(self.egress)-1 else 0
+
+    def inc_interleave_index_get(self):
+        if self.multi_in:
+            self.interleave_index_get = self.interleave_index_get+1 if self.interleave_index_get < len(self.ingress)-1 else 0
+        else:
+            self.interleave_index_get = self.interleave_index_get+1 if self.interleave_index_get < len(self.egress)-1 else 0
 
     def update_connections(self, custom_config):
         self.logger.debug('updating connections')
@@ -178,34 +209,47 @@ class Multiple_link_manager(Link_manager):
                 self.egress[channel].append(buuid)
                 self.egress[0].append(buuid)
 
-    def get_flowItem(self):
-        if len(self.ingress) > 0: # check that has at least 1 ingess connection
+    def get_flowItems(self, count=1):
+        if len(self.ingress) > 0: # check that has at least 1 ingress connection
             multiplex_logic = self.custom_config.get('multiplex_logic', 'Interleave')
             if self.multi_in: # custom logic: interleaving, priority
                 if multiplex_logic == 'Interleave':
-                    flowItem_raw = self.buffer_pop(self.ingress[self.interleave_index])
+                    flowItems_raw = self.buffer_pop(self.ingress[self.interleave_index_get], count=count)
                 elif multiplex_logic == 'Priority':
                     self.logger.warning('Ignoring priority for the moment, falling back to "Interleave" multiplex_logic')
-                    flowItem_raw = self.buffer_pop(self.ingress[self.interleave_index])
+                    flowItems_raw = self.buffer_pop(self.ingress[self.interleave_index_get], count=count)
                 else:
                     self.logger.warning('Unkown multiplexer logic')
 
-                if flowItem_raw is None:
-                    return None
-                else:
-                    flowItem = FlowItem(flowItem_raw, raw=True)
-                    self._buffer_metadata_interface.push_info(self.ingress[self.interleave_index], -flowItem.size) # decrease buffer size
-                    self.inc_interleave_index()
-                    return flowItem
+                flowItems_parsed = self.parse_raw_flowItem(flowItems_raw)
+                self._buffer_metadata_interface.push_info(self.ingress[self.interleave_index_get], flowItems_parsed['summed_size']) # decrease buffer size
+                self.inc_interleave_index_get()
+                return flowItems_parsed['flowItems']
+                # if len(flowItems_raw) == 0:
+                #     return []
+                # else:
+                #     ret = []
+                #     for flowItem_raw in flowItems_raw:
+                #         flowItem = FlowItem(flowItem_raw, raw=True)
+                #         self._buffer_metadata_interface.push_info(self.ingress[self.interleave_index_get], -flowItem.size) # decrease buffer size
+                #         ret.append(flowItem)
+                #     self.inc_interleave_index_get()
+                #     return ret
 
             else: # same as simple link manager
-                flowItem_raw = self.buffer_pop(self.ingress[0])
-                if flowItem_raw is None:
-                    return None
-                else:
-                    flowItem = FlowItem(flowItem_raw, raw=True)
-                    self._buffer_metadata_interface.push_info(self.ingress[0], -flowItem.size) # decrease buffer size
-                    return flowItem
+                flowItems_raw = self.buffer_pop(self.ingress[0], count=count)
+                flowItems_parsed = self.parse_raw_flowItem(flowItems_raw)
+                self._buffer_metadata_interface.push_info(self.ingress[0], flowItems_parsed['summed_size']) # decrease buffer size
+                return flowItems_parsed['flowItems']
+                # if len(flowItems_raw) == 0:
+                #     return []
+                # else:
+                #     ret = []
+                #     for flowItem_raw in flowItems_raw:
+                #         flowItem = FlowItem(flowItem_raw, raw=True)
+                #         self._buffer_metadata_interface.push_info(self.ingress[0], -flowItem.size) # decrease buffer size
+                #         ret.append(flowItem)
+                #     return ret
         else:
             self.logger.warning('Process wanted to get message but no ingress connection(s) are registered')
 
@@ -216,25 +260,26 @@ class Multiple_link_manager(Link_manager):
             multiplex_logic = 'Switch' if self.is_switch else multiplex_logic # change multiplex_logic in case of switch
             if self.multi_out: # custom logic: copy, dispatch
                 if multiplex_logic == 'Interleave':
-                    self._buffer_metadata_interface.push_info(self.egress[self.interleave_index], flowItem.size) # increase buffer size
-                    self._serv_buffers.lpush(self.egress[self.interleave_index], flowItem)
-                    self.inc_interleave_index()
+                    self._buffer_metadata_interface.push_info(self.egress[self.interleave_index_push], flowItem.size) # increase buffer size
+                    self._serv_buffers.lpush(self.egress[self.interleave_index_push], flowItem)
+                    self.inc_interleave_index_push()
                 elif multiplex_logic == 'Priority':
                     self.logger.warning('Ignoring priority for the moment, falling back to "Interleave" multiplex_logic')
-                    self._buffer_metadata_interface.push_info(self.egress[self.interleave_index], flowItem.size) # increase buffer size
-                    self._serv_buffers.lpush(self.egress[self.interleave_index], flowItem)
-                    self.inc_interleave_index()
+                    self._buffer_metadata_interface.push_info(self.egress[self.interleave_index_push], flowItem.size) # increase buffer size
+                    self._serv_buffers.lpush(self.egress[self.interleave_index_push], flowItem)
+                    self.inc_interleave_index_push()
                 elif multiplex_logic == 'Duplicate':
                     for key in self.egress:
-                        self._buffer_metadata_interface.push_info(key, flowItem.size) # increase buffer size
                         # self._serv_buffers.lpush(key, flowItem)
                         self.push_flow_pipeline(key, flowItem)
+                        self._buffer_metadata_interface.push_info(key, flowItem.size) # increase buffer size
                     pushed_count = len(self.egress)
                 elif multiplex_logic == 'Switch':
                     buuids = self.egress.get(flowItem.channel, []) # drop non valid channel
                     for buuid in buuids:
-                        self._buffer_metadata_interface.push_info(buuid, flowItem.size) # increase buffer size
                         self.push_flow_pipeline(buuid, flowItem)
+                    pushed_count = len(buuids)
+                    self._buffer_metadata_interface.push_info(buuid, flowItem.size*pushed_count) # increase buffer size
                 else:
                     self.logger.warning('Unkown multiplexer logic')
             else: # same as simple link manager

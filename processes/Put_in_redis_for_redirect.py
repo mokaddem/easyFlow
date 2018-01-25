@@ -33,26 +33,34 @@ class Put_in_redis_for_redirect(Process):
         self._database_pipeline = self._database_server.pipeline()
         self.prepend_keyname = self.custom_config['prepend_keyname']
         self.pipeline_counter = 0
-
+        self._to_forward = []
 
     def before_sleep(self):
         self._database_pipeline.execute()
+        # only forward when items has been saved in the redirect database
+        for item, kargs in self._to_forward:
+            del kargs['redirect']
+            self.forward(item, pipeline=True, redirect=True, **kargs)
+        self._to_forward = []
 
     def process_message(self, msg, **kargs):
         keyname = self.prepend_keyname+'_'+genUUID()
         # self._database_server.set(keyname, msg)
 
         self._database_pipeline.set(keyname, msg)
-        if self.pipeline_counter >= 16:
+        complete_path_redirect = 'redis@'+keyname
+        self._to_forward.append([complete_path_redirect, kargs])
+
+        if self.pipeline_counter >= 400:
             self._database_pipeline.execute()
             self.pipeline_counter = 0
+            # only forward when items has been saved in the redirect database
+            for item, kargs in self._to_forward:
+                del kargs['redirect']
+                self.forward(item, pipeline=True, redirect=True, **kargs)
+            self._to_forward = []
         else:
             self.pipeline_counter += 1
-
-        complete_path_redirect = 'redis@'+keyname
-
-        del kargs['redirect']
-        self.forward(complete_path_redirect, pipeline=True, redirect=True, **kargs)
 
 
 if __name__ == '__main__':

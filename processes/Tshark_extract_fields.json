@@ -22,6 +22,18 @@
         "DOM": "input",
         "inputType": "checkbox",
         "default": true,
-        "dynamic_change": true
+        "dynamic_change": true,
+        "additional_options": {
+            "true": {
+                "prepend_keyname": {
+                    "label": "Text that should be put in front of the generated keyname",
+                    "default": "tshark_save",
+                    "DOM": "input",
+                    "dynamic_change": true,
+                    "inputType": "text",
+                    "required": true
+                }
+           }
+        }
     }
 }

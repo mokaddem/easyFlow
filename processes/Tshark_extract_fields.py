@@ -60,6 +60,7 @@ class Tshark_extract_fields(Process):
                 port=self.config.redis.redirected_data.port,
                 db=self.config.redis.redirected_data.db))
             p_mass_insert = Popen(args, stdin=PIPE, universal_newlines=True)
+            self.prepend_keyname = self.custom_config['put_in_redis_directly_prepend_keyname']
 
             del kargs['redirect']
 
@@ -90,7 +91,7 @@ class Tshark_extract_fields(Process):
                     dico[f] = ""
 
             if put_in_redis_directly:
-                keyname = 'redirect_tshark'+':'+genUUID()
+                keyname = self.prepend_keyname+':'+genUUID()
                 complete_path_redirect = 'redis@'+keyname
                 # buffer_to_push = self._link_manager.egress # monolink
                 proto_cmd = generate_redis_proto(cmd='SET', key=keyname, value=json.dumps(dico))
@@ -118,8 +119,9 @@ class Tshark_extract_fields(Process):
             group='singleton'
         )
 
-        p_mass_insert.stdin.close()
-        p_mass_insert.wait()
+        if put_in_redis_directly:
+            p_mass_insert.stdin.close()
+            p_mass_insert.wait()
 
 
 if __name__ == '__main__':

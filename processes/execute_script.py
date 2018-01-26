@@ -29,6 +29,8 @@ class Execute_script(Process_no_input):
                     complete_output += output
         rc = proc.poll()
 
+        self.logger.info("%s", complete_output)
+
         if not self.custom_config['line_by_line_forward']:
             self.forward(complete_output)
 

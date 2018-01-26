@@ -2,7 +2,7 @@
     "script_interpreter": {
         "label": "Script interpreter",
         "DOM": "select",
-        "options": ["python", "bash"],
+        "options": ["python", "bash", ""],
         "default": "python",
         "required": true,
         "additional_options": {
@@ -13,18 +13,19 @@
                     "options": ["python2", "python3"],
                     "default": "python3",
                     "required": true,
-                    "dynamic_change": false
+                    "dynamic_change": true
                 }
             }
         },
-        "dynamic_change": false
+        "dynamic_change": true
     },
     "filepath": {
         "label": "Path of the script",
         "DOM": "input",
         "inputType": "text",
         "default": "",
-        "required": true
+        "required": true,
+        "dynamic_change": true
     },
     "line_by_line_forward": {
         "label": "Should the script forward each line of the output",

@@ -146,13 +146,13 @@ class InnerRepresentation {
     }
     handle_selection_box() {
         if ( this.selection_box != {} ) {
-            this.selectNodesFromRectangle(this.selection_box);
+            this.selectNodesFromRectangle(this.selection_box, confirm("Only select processes"));
         }
         this.reset_selection_box();
     }
 
 
-    selectNodesFromRectangle(selection_box) {
+    selectNodesFromRectangle(selection_box, process_only) {
         var nodesIdInDrawing = [];
 
         var allNodes = innerRepresentation.nodes.get();
@@ -162,10 +162,19 @@ class InnerRepresentation {
             if (selection_box.start_x <= nodePosition.x && nodePosition.x <= selection_box.end_x &&
                 selection_box.start_y <= nodePosition.y && nodePosition.y <= selection_box.end_y)
             {
-                nodesIdInDrawing.push(curNode.id);
+                if (process_only) {
+                    if (this.nodeType(curNode.id) != 'buffer'){
+                        nodesIdInDrawing.push(curNode.id);
+                        // nodesIdInDrawing.push(curNode);
+                    }
+                } else {
+                    nodesIdInDrawing.push(curNode.id);
+                    // nodesIdInDrawing.push(curNode);
+                }
             }
         }
         network.selectNodes(nodesIdInDrawing);
+        this.handleNodeSelection({nodes: nodesIdInDrawing})
     }
 
     update_sparkline(jStats) {
@@ -527,6 +536,9 @@ class InnerRepresentation {
             this.resetControlButtonData();
         } else { // one node selected
             var node;
+            if (selectedNodes.length == 1) { // in case of list
+                selectedNodes = selectedNodes[0];
+            }
             var selectedNodeType = innerRepresentation.nodeType(selectedNodes);
             if (selectedNodeType == 'process') {
                 node = innerRepresentation.processObj[selectedNodes];

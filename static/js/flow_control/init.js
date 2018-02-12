@@ -139,6 +139,9 @@ function draw() {
     $('#pcontrol_restart').click(function(){
         flowControl.restart_node();
     });
+    $('#pcontrol_clone').click(function(){
+        flowControl.duplicate_selected();
+    });
     $('#pcontrol_logs').click(function(){
         flowControl.get_logs();
     });

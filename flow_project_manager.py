@@ -323,6 +323,9 @@ class Project:
             self._start_command_already_called = True
             return {'status': 'sucess' }
 
+        elif operation == 'clone':
+            print('cloning', data)
+
         else:
             self.logger.warning('Unknown operation: %s', operation)
             return {'status': 'error' }

@@ -557,6 +557,7 @@ class InnerRepresentation {
         $('#pcontrol_pause').prop("disabled", false);
         $('#pcontrol_stop').prop("disabled", false);
         $('#pcontrol_restart').prop("disabled", false);
+        $('#pcontrol_clone').prop("disabled", false);
         $( "#pcontrol_empty" ).hide(0);
         $('#pcontrol_logs').prop("disabled", false);
         $('#pcontrol_param').prop("disabled", false);
@@ -573,6 +574,7 @@ class InnerRepresentation {
         $('#pcontrol_pause').prop("disabled", true);
         $('#pcontrol_stop').prop("disabled", true);
         $('#pcontrol_restart').prop("disabled", true);
+        $('#pcontrol_clone').prop("disabled", false);
         $( "#pcontrol_empty" ).show(0);
         $('#pcontrol_logs').prop("disabled", false);
         $('#pcontrol_param').prop("disabled", false);
@@ -590,6 +592,7 @@ class InnerRepresentation {
         $('#pcontrol_pause').prop("disabled", true);
         $('#pcontrol_stop').prop("disabled", true);
         $('#pcontrol_restart').prop("disabled", true);
+        $('#pcontrol_clone').prop("disabled", true);
         $( "#pcontrol_empty" ).hide(0);
         $('#pcontrol_logs').prop("disabled", true);
         $('#pcontrol_param').prop("disabled", true);

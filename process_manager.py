@@ -45,7 +45,7 @@ class Process_manager:
                 self.config.redis.project.db,
                 charset="utf-8", decode_responses=True)
 
-        self.boostraping = False
+        self.boostraping = False # prevent multiple startAll
         self.shutting_down_phase = False
 
         self._metadata_interface = Process_metadata_interface()
@@ -224,16 +224,30 @@ class Process_manager:
                 self.restart_process(puuid)
 
     def pause_process(self, puuid):
-        self.logger.info('Pausing process "%s" [%s]', self.processes[puuid].name, puuid)
-        self.send_command(puuid, 'pause')
-    def play_process(self, puuid):
-        self.logger.info('Playing process "%s" [%s]', self.processes[puuid].name, puuid)
-        self.send_command(puuid, 'play')
+        if self.process_started_and_managed(puuid):
+            self.logger.info('Pausing process "%s" [%s]', self.processes[puuid].name, puuid)
+            self.send_command(puuid, 'pause')
+        else:
+            pass
+
+    def play_process(self, puuid, data=None):
+        if self.process_started_and_managed(puuid):
+            self.logger.info('Playing process "%s" [%s]', self.processes[puuid].name, puuid)
+            self.send_command(puuid, 'play')
+        else: # process not started, starting it
+            self.create_process(data, puuid)
+
     def stop_process(self, puuid):
-        self.logger.info('Stopping process "%s" [%s]', self.processes[puuid].name, puuid)
-        self.send_command(puuid, 'shutdown')
+        if self.process_started_and_managed(puuid):
+            self.logger.info('Stopping process "%s" [%s]', self.processes[puuid].name, puuid)
+            self.kill_process(puuid)
+            self.clean_up_process(puuid)
+        else:
+            pass
+
     def restart_process(self, puuid, procData=None, bufsData=None):
-        if puuid in self.processes:
+        # if puuid in self.processes:
+        if self.process_started_and_managed(puuid):
             self.logger.info('Restarting process "%s" [%s]', self.processes[puuid].name, puuid)
             pData = self.processes[puuid].get_dico()
             self._alert_manager.send_alert(
@@ -384,7 +398,9 @@ class Process_manager:
         buuids = self.get_connected_buffers(puuid)
         for buuid in buuids:
             self.delete_link(buuid)
+        self.clean_up_process(puuid)
 
+    def clean_up_process(self, puuid):
         self.processes_uuid.remove(puuid)
         try:
             self.processes_uuid_with_signal.remove(puuid)

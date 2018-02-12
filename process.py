@@ -293,7 +293,8 @@ class Process(metaclass=ABCMeta):
         self.state = 'running'
 
     def shutdown(self):
-        sys.exit(0)
+        pass
+        #sys.exit(0) # create zombie, should not be called
 
     def log_to_zmq(self, should_log):
         if should_log:

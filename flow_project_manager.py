@@ -212,7 +212,10 @@ class Project:
                 self._process_manager.pause_process(puuid)
         elif operation == 'play_process':
             for puuid in data.get('puuid', []): # may contain multiple processes
-                self._process_manager.play_process(puuid)
+                self._process_manager.play_process(puuid, data=self.processes[puuid])
+        elif operation == 'stop_process':
+            for puuid in data.get('puuid', []): # may contain multiple processes
+                self._process_manager.stop_process(puuid)
         elif operation == 'restart_process':
             for puuid in data.get('puuid', []): # may contain multiple processes
                 buuids = self.get_connected_buffers(puuid)

@@ -121,10 +121,86 @@ class InnerRepresentation {
         });
     }
 
+    update_sparkline(jStats) {
+        if (jStats === undefined) {
+            var sparklineBI = $('.inlinesparklineBI').sparkline([],{width: '40%', height: '35px', chartRangeMin: 0,
+                tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                numberFormatter: sparklineNumberFormatter
+            });
+            var sparklineBO = $('.inlinesparklineBO').sparkline([],{width: '40%', height: '35px', chartRangeMin: 0,
+                tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                numberFormatter: sparklineNumberFormatter
+            });
+            var sparklineFI = $('.inlinesparklineFI').sparkline([],{width: '40%', height: '35px', chartRangeMin: 0,
+                tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                numberFormatter: sparklineNumberFormatter
+            });
+            var sparklineFO = $('.inlinesparklineFO').sparkline([],{width: '40%', height: '35px', chartRangeMin: 0,
+                tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                numberFormatter: sparklineNumberFormatter
+            });
+
+            var sparklineBI_speed = $('.inlinesparklineBI_speed').sparkline([],{width: '40%', height: '35px', chartRangeMin: 0,
+                tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                numberFormatter: sparklineNumberFormatter
+            });
+            var sparklineBO_speed = $('.inlinesparklineBO_speed').sparkline([],{width: '40%', height: '35px', chartRangeMin: 0,
+                tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                numberFormatter: sparklineNumberFormatter
+            });
+            var sparklineFI_speed = $('.inlinesparklineFI_speed').sparkline([],{width: '40%', height: '35px', chartRangeMin: 0,
+                tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                numberFormatter: sparklineNumberFormatter
+            });
+            var sparklineFO_speed = $('.inlinesparklineFO_speed').sparkline([],{width: '40%', height: '35px', chartRangeMin: 0,
+                tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                numberFormatter: sparklineNumberFormatter
+            });
+        } else {
+            var sparklineBI = $('.inlinesparklineBI').sparkline(jStats['bytes_in_history'],{width: '40%', height: '35px', chartRangeMin: 0,
+                tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                numberFormatter: sparklineNumberFormatter
+            });
+            var sparklineBO = $('.inlinesparklineBO').sparkline(jStats['bytes_out_history'],{width: '40%', height: '35px', chartRangeMin: 0,
+                tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                numberFormatter: sparklineNumberFormatter
+            });
+            var sparklineFI = $('.inlinesparklineFI').sparkline(jStats['flowItem_in_history'],{width: '40%', height: '35px', chartRangeMin: 0,
+                tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                numberFormatter: sparklineNumberFormatter
+            });
+            var sparklineFO = $('.inlinesparklineFO').sparkline(jStats['flowItem_out_history'],{width: '40%', height: '35px', chartRangeMin: 0,
+                tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                numberFormatter: sparklineNumberFormatter
+            });
+
+            var sparklineBI_speed = $('.inlinesparklineBI_speed').sparkline(jStats['bytes_in_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
+                tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                numberFormatter: sparklineNumberFormatter
+            });
+            var sparklineBO_speed = $('.inlinesparklineBO_speed').sparkline(jStats['bytes_out_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
+                tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                numberFormatter: sparklineNumberFormatter
+            });
+            var sparklineFI_speed = $('.inlinesparklineFI_speed').sparkline(jStats['flowItem_in_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
+                tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                numberFormatter: sparklineNumberFormatter
+            });
+            var sparklineFO_speed = $('.inlinesparklineFO_speed').sparkline(jStats['flowItem_out_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
+                tooltipFormat: $.spformat('{{x}} - {{y}}'),
+                numberFormatter: sparklineNumberFormatter
+            });
+        }
+    }
+
     update_nodes(processes, buffers) {
         var update_array = [];
         /* Processes */
         try {
+            if (processes.length == 0) {
+                this.clean_control_table();
+                this.update_sparkline();
+            }
             for (var node of processes) {
                 var jStats = node['stats'];
                 // console.log(jStats);
@@ -161,44 +237,18 @@ class InnerRepresentation {
                         jStats['state'],
                         jStats['custom_message'])
                     this.update_control_table(formatted_data);
-
-                    var sparklineBI = $('.inlinesparklineBI').sparkline(jStats['bytes_in_history'],{width: '40%', height: '35px', chartRangeMin: 0,
-                        tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                        numberFormatter: sparklineNumberFormatter
-                    });
-                    var sparklineBO = $('.inlinesparklineBO').sparkline(jStats['bytes_out_history'],{width: '40%', height: '35px', chartRangeMin: 0,
-                        tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                        numberFormatter: sparklineNumberFormatter
-                    });
-                    var sparklineFI = $('.inlinesparklineFI').sparkline(jStats['flowItem_in_history'],{width: '40%', height: '35px', chartRangeMin: 0,
-                        tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                        numberFormatter: sparklineNumberFormatter
-                    });
-                    var sparklineFO = $('.inlinesparklineFO').sparkline(jStats['flowItem_out_history'],{width: '40%', height: '35px', chartRangeMin: 0,
-                        tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                        numberFormatter: sparklineNumberFormatter
-                    });
-
-                    var sparklineBI_speed = $('.inlinesparklineBI_speed').sparkline(jStats['bytes_in_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
-                        tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                        numberFormatter: sparklineNumberFormatter
-                    });
-                    var sparklineBO_speed = $('.inlinesparklineBO_speed').sparkline(jStats['bytes_out_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
-                        tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                        numberFormatter: sparklineNumberFormatter
-                    });
-                    var sparklineFI_speed = $('.inlinesparklineFI_speed').sparkline(jStats['flowItem_in_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
-                        tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                        numberFormatter: sparklineNumberFormatter
-                    });
-                    var sparklineFO_speed = $('.inlinesparklineFO_speed').sparkline(jStats['flowItem_out_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
-                        tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                        numberFormatter: sparklineNumberFormatter
-                    });
+                    this.update_sparkline(jStats);
+                } else {
+                    this.clean_control_table();
+                    this.update_sparkline();
                 }
             }
             this.nodes.update(update_array);
-        } catch(err) { /* processes is empty */ }
+        } catch(err) { /* processes is empty */
+            console.log(err);
+            this.clean_control_table();
+            this.update_sparkline();
+        }
 
         /* Buffers */
         try {
@@ -375,6 +425,19 @@ class InnerRepresentation {
         $('#selectedMessage').text(data.customMessage);
     }
 
+    clean_control_table() {
+        $('#selectedType').text('');
+        $('#selectedUUID').text('');
+        $('#selectedState').text('Not running or Unkwown');
+        $('#selectedByte').text('');
+        $('#selectedFlowItem').text('');
+        $('#selectedTime').text('');
+        $('#selectedCPULoad').text('');
+        $('#selectedMemoryLoad').text('');
+        $('#selectedPID').text('?');
+        $('#selectedMessage').text('This process is most likely not running');
+    }
+
     handleNodeSelection(params) {
         var selectedNodes = params.nodes;
         if(selectedNodes.length > 1) { // multiple node selected
@@ -437,6 +500,7 @@ class InnerRepresentation {
     setProcessControlButtonData(puuid) {
         $('#pcontrol_play').prop("disabled", false);
         $('#pcontrol_pause').prop("disabled", false);
+        $('#pcontrol_stop').prop("disabled", false);
         $('#pcontrol_restart').prop("disabled", false);
         $( "#pcontrol_empty" ).hide(0);
         $('#pcontrol_logs').prop("disabled", false);
@@ -452,6 +516,7 @@ class InnerRepresentation {
     setBufferControlButtonData(buuid) {
         $('#pcontrol_play').prop("disabled", true);
         $('#pcontrol_pause').prop("disabled", true);
+        $('#pcontrol_stop').prop("disabled", true);
         $('#pcontrol_restart').prop("disabled", true);
         $( "#pcontrol_empty" ).show(0);
         $('#pcontrol_logs').prop("disabled", false);
@@ -468,6 +533,7 @@ class InnerRepresentation {
     resetControlButtonData() {
         $('#pcontrol_play').prop("disabled", true);
         $('#pcontrol_pause').prop("disabled", true);
+        $('#pcontrol_stop').prop("disabled", true);
         $('#pcontrol_restart').prop("disabled", true);
         $( "#pcontrol_empty" ).hide(0);
         $('#pcontrol_logs').prop("disabled", true);

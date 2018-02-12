@@ -229,6 +229,7 @@ class FlowControl {
         var modalID = 'modal'+modalType;
 
         $('#'+modalID).modal('show');
+        $('#'+modalID+' li:first-child a').tab('show') // Select first tab
         $('#'+formIDCustom).empty();
         var pSelector = $('#'+modalID).find('[name="type"]');
         add_html_based_on_json(pSelector.val(), $('#'+formIDCustom));

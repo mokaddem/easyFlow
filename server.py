@@ -70,7 +70,7 @@ def index():
 
     all_process_type = Flow_project_manager.list_process_type(config.processes.allowed_script)
     not_displayed_process = [ p.replace('.py', '') for p in config.processes.should_not_be_displayed ]
-    # all_process_type = [ p for p in all_process_type if p not in not_displayed_process ]
+    all_process_type = [ p for p in all_process_type if p not in not_displayed_process ]
 
     all_multiplexer_in = Flow_project_manager.list_all_multiplexer_in()
     all_multiplexer_out = Flow_project_manager.list_all_multiplexer_out()

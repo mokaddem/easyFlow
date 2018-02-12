@@ -221,7 +221,6 @@ class InnerRepresentation {
                     ),
                     size: get_node_size_from_type(node['type'])
                 });
-
                 // update table in control panel
                 if (flowControl.selected.length > 0 && node['puuid'] == flowControl.selected[0]) {
                     var formatted_data = format_proc_data(
@@ -238,9 +237,6 @@ class InnerRepresentation {
                         jStats['custom_message'])
                     this.update_control_table(formatted_data);
                     this.update_sparkline(jStats);
-                } else {
-                    this.clean_control_table();
-                    this.update_sparkline();
                 }
             }
             this.nodes.update(update_array);

@@ -213,8 +213,7 @@ class Process(metaclass=ABCMeta):
             if self.state == 'running':
                 # Process flowItems
                 flowItems = self._link_manager.get_flowItems(count=100)
-                if len(flowItems) == 0:
-                    # self.before_sleep()
+                if flowItems is None or len(flowItems) == 0:
                     self.before_sleep()
                      # empty remaining items in pipeline
                     self._link_manager._pipeline_buffers.execute()

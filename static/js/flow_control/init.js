@@ -113,8 +113,10 @@ function draw() {
     network.on('dragging', function () {
         changeCursor('grabbing');
     });
-    network.on('dragEnd', function () {
+    network.on('dragEnd', function (params) {
         changeCursor('grab');
+        flowControl.handleNodesDrag(params.nodes);
+
     });
 
     // add event listeners
@@ -124,9 +126,7 @@ function draw() {
     network.on("deselectNode", function (params) {
         innerRepresentation.handleNodeSelection(params);
     });
-    network.on("dragEnd", function (params) {
-        flowControl.handleNodesDrag(params.nodes);
-    });
+
     $('#pcontrol_play').click(function(){
         flowControl.play_node();
     });

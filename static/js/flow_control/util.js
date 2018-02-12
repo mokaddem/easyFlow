@@ -393,3 +393,17 @@ function sparklineNumberFormatter(number) {
         return number;
     }
 }
+
+var drawingSurfaceImageData = null;
+var drawing_rect = false;
+function saveDrawingSurface() {
+   drawingSurfaceImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+}
+
+function restoreDrawingSurface() {
+    ctx.putImageData(drawingSurfaceImageData, 0, 0);
+}
+
+function clearDrawingSurface() {
+    drawingSurfaceImageData = null;
+}

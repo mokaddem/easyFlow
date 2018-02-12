@@ -103,6 +103,7 @@ class InnerRepresentation {
         this.processObj = {};
         this.bufferObj = {};
         this.auto_refresh = null;
+        this.selection_box = {};
     }
 
     set_project(project) {
@@ -119,6 +120,52 @@ class InnerRepresentation {
         $.getJSON( url_get_processes_info, {}, function( data ) {
             innerRepresentation.update_nodes(data.processes, data.buffers);
         });
+    }
+
+    /* SELECTION BOX */
+    reset_selection_box() {
+        this.selection_box = {};
+    }
+    set_selection_box(x1, y1, x2, y2) {
+        var start_coord = network.DOMtoCanvas({x: x1, y: y1});
+        var end_coord = network.DOMtoCanvas({x: x2, y: y2});
+        if (start_coord.x <= end_coord.x) {
+            this.selection_box.start_x = start_coord.x;
+            this.selection_box.end_x = end_coord.x;
+        } else { // reverse box (canvas centered in middle of screen)
+            this.selection_box.start_x = end_coord.x;
+            this.selection_box.end_x = start_coord.x;
+        }
+        if (start_coord.y <= end_coord.y) {
+            this.selection_box.start_y = start_coord.y;
+            this.selection_box.end_y = end_coord.y;
+        } else {
+            this.selection_box.start_y = end_coord.y;
+            this.selection_box.end_y = start_coord.y;
+        }
+    }
+    handle_selection_box() {
+        if ( this.selection_box != {} ) {
+            this.selectNodesFromRectangle(this.selection_box);
+        }
+        this.reset_selection_box();
+    }
+
+
+    selectNodesFromRectangle(selection_box) {
+        var nodesIdInDrawing = [];
+
+        var allNodes = innerRepresentation.nodes.get();
+        for (var i = 0; i < allNodes.length; i++) {
+            var curNode = allNodes[i];
+            var nodePosition = {x: curNode.x, y: curNode.y}; // canvas
+            if (selection_box.start_x <= nodePosition.x && nodePosition.x <= selection_box.end_x &&
+                selection_box.start_y <= nodePosition.y && nodePosition.y <= selection_box.end_y)
+            {
+                nodesIdInDrawing.push(curNode.id);
+            }
+        }
+        network.selectNodes(nodesIdInDrawing);
     }
 
     update_sparkline(jStats) {

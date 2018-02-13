@@ -25,6 +25,8 @@ class Link_manager:
         self._pipeline_buffers = self._serv_buffers.pipeline()
         self.pipeline_counter = 0
         self.pipeline_threshold = 100
+        self.pipeline_time_threshold = 1 # sec
+        self.pipeline_lastpush = time.time()
 
         # register redis server for flowItem
         try:
@@ -119,9 +121,11 @@ class Link_manager:
     def push_flow_pipeline(self, output, flowItem):
         self._pipeline_buffers.lpush(output, flowItem)
         self.pipeline_counter += 1
-        if self.pipeline_counter >= self.pipeline_threshold:
+        now = time.time()
+        if self.pipeline_counter >= self.pipeline_threshold or now-self.pipeline_lastpush >= self.pipeline_time_threshold:
             self._pipeline_buffers.execute()
             self.pipeline_counter = 0
+            self.pipeline_lastpush = now
 
     def parse_raw_flowItem(self, flowItems_raw):
         if len(flowItems_raw) == 0:

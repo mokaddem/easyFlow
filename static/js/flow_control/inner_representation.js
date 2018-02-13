@@ -105,6 +105,7 @@ class InnerRepresentation {
         this.bufferObj = {};
         this.auto_refresh = null;
         this.selection_box = {};
+        this.in_selection = false;
     }
 
     set_project(project) {
@@ -126,8 +127,10 @@ class InnerRepresentation {
     /* SELECTION BOX */
     reset_selection_box() {
         this.selection_box = {};
+        this.in_selection = false;
     }
     set_selection_box(x1, y1, x2, y2) {
+        this.in_selection = true;
         var start_coord = network.DOMtoCanvas({x: x1, y: y1});
         var end_coord = network.DOMtoCanvas({x: x2, y: y2});
         if (start_coord.x <= end_coord.x) {
@@ -355,9 +358,11 @@ class InnerRepresentation {
             this.addBuffer(edgeData);
         }
         if (this.auto_refresh != null) { clearInterval(this.auto_refresh); } // clean up if already running
-        this.auto_refresh = setInterval( function() {
-            innerRepresentation.get_processes_info();
 
+        this.auto_refresh = setInterval( function() {
+            if (!innerRepresentation.in_selection) { // do not update nodes if we are in selection
+                innerRepresentation.get_processes_info();
+            }
         }, auto_refresh_rate*1000);
     }
 

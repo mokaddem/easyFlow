@@ -362,7 +362,7 @@ function create_json_for_switch(connectedNodesName) {
 function get_node_size_from_type(type) {
     switch (type) {
         case "process":
-            return 75;
+            return $('#switch_simplified_view').prop('checked') ? 50 : 75;
         case "multiplexer_in":
             return 50;
         case "multiplexer_out":
@@ -377,8 +377,7 @@ function get_node_size_from_type(type) {
             return 30;
         default:
             // default should be a process type
-            return 75;
-
+            return $('#switch_simplified_view').prop('checked') ? 50 : 75;
     }
 }
 

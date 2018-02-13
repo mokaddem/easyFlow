@@ -49,7 +49,7 @@ function construct_node(moduleName, moduleType, bytes, flowItem, time, cpu_load,
             break;
         case 'remote_input':
             raw_svg = simplified_view ? raw_remote_in_svg_simplified : raw_remote_in_svg;
-                break;
+            break;
         case 'remote_output':
             raw_svg = simplified_view ? raw_remote_out_svg_simplified : raw_remote_out_svg;
             break;
@@ -58,7 +58,6 @@ function construct_node(moduleName, moduleType, bytes, flowItem, time, cpu_load,
             break;
         default:
             raw_svg = simplified_view ? raw_process_svg_simplified : raw_process_svg;
-
     }
     var re = new RegExp(Object.keys(mapObj).join("|"),"gi");
     var replaced_svg = raw_svg.replace(re, function(matched){
@@ -78,7 +77,6 @@ function construct_buffer(bufferName, bytes, flowItem) {
     };
 
     var re = new RegExp(Object.keys(mapObj).join("|"),"gi");
-    // var replaced_svg = raw_buffer_svg.replace(re, function(matched){
     var replaced_svg = (simplified_view ? raw_buffer_svg_simplified : raw_buffer_svg).replace(re, function(matched){
       return mapObj[matched];
     });
@@ -158,21 +156,19 @@ class InnerRepresentation {
     selectNodesFromRectangle(selection_box, process_only) {
         var nodesIdInDrawing = [];
 
-        var allNodes = innerRepresentation.nodes.get();
-        for (var i = 0; i < allNodes.length; i++) {
-            var curNode = allNodes[i];
-            var nodePosition = {x: curNode.x, y: curNode.y}; // canvas
-            if (selection_box.start_x <= nodePosition.x && nodePosition.x <= selection_box.end_x &&
-                selection_box.start_y <= nodePosition.y && nodePosition.y <= selection_box.end_y)
+        var allNodesPos = network.getPositions(); // get all nodes
+        allNodesPos = objectToArray(allNodesPos);
+        for (var i = 0; i < allNodesPos.length; i++) {
+            var curNode = allNodesPos[i];
+            if (selection_box.start_x <= curNode.x && curNode.x <= selection_box.end_x &&
+                selection_box.start_y <= curNode.y && curNode.y <= selection_box.end_y)
             {
                 if (process_only) {
                     if (this.nodeType(curNode.id) != 'buffer'){
                         nodesIdInDrawing.push(curNode.id);
-                        // nodesIdInDrawing.push(curNode);
                     }
                 } else {
                     nodesIdInDrawing.push(curNode.id);
-                    // nodesIdInDrawing.push(curNode);
                 }
             }
         }

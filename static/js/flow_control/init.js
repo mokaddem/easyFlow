@@ -31,6 +31,18 @@ function draw() {
             remote_output: {
             }
         },
+        layout: {
+            improvedLayout:true,
+            hierarchical: {
+              enabled:true,
+              levelSeparation: 300,
+              nodeSpacing: 200,
+              blockShifting: true,
+              edgeMinimization: true,
+              direction: 'LR',        // UD, DU, LR, RL
+              sortMethod: 'directed'   // hubsize, directed
+            }
+        },
         nodes: {
             shadow: true,
             chosen: {
@@ -133,7 +145,6 @@ function draw() {
         }
     });
     $( "body" ).keyup(function( event ) {
-        console.log(event.which);
         switch (event.which) {
             case 17: // CTRL
                 $('button[name="pipe"]').click();

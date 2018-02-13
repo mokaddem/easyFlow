@@ -46,13 +46,20 @@
     <link type="text/css" href="{{ url_for('static', filename='css/flow_control/flow_control.css') }}" rel="stylesheet"/>
     <script type="text/javascript">
         /* VARS FROM FLASK*/
-        var raw_process_svg   = '{{ raw_process_svg|safe }}';
-        var raw_multi_in_svg  = '{{ raw_multi_in_svg|safe }}';
-        var raw_multi_out_svg = '{{ raw_multi_out_svg|safe }}';
-        var raw_remote_in_svg = '{{ raw_remote_in_svg|safe }}';
-        var raw_remote_out_svg = '{{ raw_remote_out_svg|safe }}';
-        var raw_switch_svg    = '{{ raw_switch_svg|safe }}';
-        var raw_buffer_svg    = '{{ raw_buffer_svg|safe }}';
+        var raw_process_svg               = '{{ raw_process_svg|safe }}';
+        var raw_process_svg_simplified    = '{{ raw_process_svg_simplified|safe }}';
+        var raw_multi_in_svg              = '{{ raw_multi_in_svg|safe }}';
+        var raw_multi_in_svg_simplified   = '{{ raw_multi_in_svg_simplified|safe }}';
+        var raw_multi_out_svg             = '{{ raw_multi_out_svg|safe }}';
+        var raw_multi_out_svg_simplified  = '{{ raw_multi_out_svg_simplified|safe }}';
+        var raw_remote_in_svg             = '{{ raw_remote_in_svg|safe }}';
+        var raw_remote_in_svg_simplified  = '{{ raw_remote_in_svg_simplified|safe }}';
+        var raw_remote_out_svg            = '{{ raw_remote_out_svg|safe }}';
+        var raw_remote_out_svg_simplified = '{{ raw_remote_out_svg_simplified|safe }}';
+        var raw_switch_svg                = '{{ raw_switch_svg|safe }}';
+        var raw_switch_svg_simplified     = '{{ raw_switch_svg_simplified|safe }}';
+        var raw_buffer_svg                = '{{ raw_buffer_svg|safe }}';
+        var raw_buffer_svg_simplified     = '{{ raw_buffer_svg_simplified|safe }}';
 
         /* URLS */
         var url_save_network = '{{ url_for("save_network") }}';
@@ -268,6 +275,15 @@
 
         <!-- Page Content -->
         <div id="networkToolbar">
+
+            <div style="margin-left: 5px; margin-right: 20px">
+                <label class="switch-small" style="vertical-align:inherit;">
+                    <input id="switch_simplified_view" type="checkbox">
+                    <span class="slider-small round"></span>
+                    <span style="vertical-align: middle; display: inline-block; cursor: pointer;">Light view</span>
+                </label>
+            </div>
+
             <button type="button" class="btn btn-default toolbarBtn" style="margin-right: 50px;" name="pipe"><span style="background:url({{ url_for('static', filename='css/img/icons/pipe.svg') }});"></span></button>
             <button type="button" class="btn btn-default toolbarBtn btnDraggable" name="process"><span style="background:url({{ url_for('static', filename='css/img/icons/process.svg') }});"></span></button>
             <button type="button" class="btn btn-default toolbarBtn btnDraggable" name="remote_input"><span style="background:url({{ url_for('static', filename='css/img/icons/remote_input.svg') }});"></span></button>

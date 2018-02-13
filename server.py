@@ -67,6 +67,14 @@ def index():
     raw_remote_out_svg = read_module_svg_template(config.web.remote_output_svg_template_name)
     raw_switch_svg = read_module_svg_template(config.web.switch_svg_template_name)
     raw_buffer_svg = read_module_svg_template(config.web.buffer_svg_template_name)
+    # simplified svg
+    raw_process_svg_simplified = read_module_svg_template(config.web.process_svg_template_name_simplified)
+    raw_multi_in_svg_simplified = read_module_svg_template(config.web.mult_input_svg_template_name_simplified)
+    raw_multi_out_svg_simplified = read_module_svg_template(config.web.mult_output_svg_template_name_simplified)
+    raw_remote_in_svg_simplified = read_module_svg_template(config.web.remote_input_svg_template_name_simplified)
+    raw_remote_out_svg_simplified = read_module_svg_template(config.web.remote_output_svg_template_name_simplified)
+    raw_switch_svg_simplified = read_module_svg_template(config.web.switch_svg_template_name_simplified)
+    raw_buffer_svg_simplified = read_module_svg_template(config.web.buffer_svg_template_name_simplified)
 
     all_process_type = Flow_project_manager.list_process_type(config.processes.allowed_script)
     not_displayed_process = [ p.replace('.py', '') for p in config.processes.should_not_be_displayed ]
@@ -89,6 +97,15 @@ def index():
             raw_remote_out_svg=raw_remote_out_svg,
             raw_switch_svg=raw_switch_svg,
             raw_buffer_svg=raw_buffer_svg,
+            # simplified svg
+            raw_process_svg_simplified=raw_process_svg_simplified,
+            raw_multi_in_svg_simplified=raw_multi_in_svg_simplified,
+            raw_multi_out_svg_simplified=raw_multi_out_svg_simplified,
+            raw_remote_in_svg_simplified=raw_remote_in_svg_simplified,
+            raw_remote_out_svg_simplified=raw_remote_out_svg_simplified,
+            raw_switch_svg_simplified=raw_switch_svg_simplified,
+            raw_buffer_svg_simplified=raw_buffer_svg_simplified,
+
             all_process_type=all_process_type,
             not_displayed_process=not_displayed_process,
             custom_config_json=custom_config_json,

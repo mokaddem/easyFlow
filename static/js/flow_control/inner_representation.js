@@ -35,28 +35,29 @@ function construct_node(moduleName, moduleType, bytes, flowItem, time, cpu_load,
         '\{\{state\}\}':        state_formated,
         '\{\{customMessage\}\}':message
     };
-    var raw_svg
+    var raw_svg;
+    var simplified_view = $('#switch_simplified_view').prop('checked');
     switch (moduleType) {
         case 'process':
-            raw_svg = raw_process_svg;
+            raw_svg = simplified_view ? raw_process_svg_simplified : raw_process_svg;
             break;
         case 'multiplexer_in':
-            raw_svg = raw_multi_in_svg;
+            raw_svg = simplified_view ? raw_multi_in_svg_simplified : raw_multi_in_svg;
             break;
         case 'multiplexer_out':
-            raw_svg = raw_multi_out_svg;
+            raw_svg = simplified_view ? raw_multi_out_svg_simplified : raw_multi_out_svg;
             break;
         case 'remote_input':
-            raw_svg = raw_remote_in_svg;
+            raw_svg = simplified_view ? raw_remote_in_svg_simplified : raw_remote_in_svg;
                 break;
         case 'remote_output':
-            raw_svg = raw_remote_out_svg;
+            raw_svg = simplified_view ? raw_remote_out_svg_simplified : raw_remote_out_svg;
             break;
         case 'switch':
-            raw_svg = raw_switch_svg;
+            raw_svg = simplified_view ? raw_switch_svg_simplified : raw_switch_svg;
             break;
         default:
-            raw_svg = raw_process_svg;
+            raw_svg = simplified_view ? raw_process_svg_simplified : raw_process_svg;
 
     }
     var re = new RegExp(Object.keys(mapObj).join("|"),"gi");
@@ -68,6 +69,7 @@ function construct_node(moduleName, moduleType, bytes, flowItem, time, cpu_load,
 }
 
 function construct_buffer(bufferName, bytes, flowItem) {
+    var simplified_view = $('#switch_simplified_view').prop('checked');
     var bytes_formated = (bytes > 0 ? String((parseFloat(bytes)/1000000.0).toFixed(2)) : String(0)) + ' MB';
     var mapObj = {
         '\{\{bufferName\}\}':   bufferName,
@@ -76,7 +78,8 @@ function construct_buffer(bufferName, bytes, flowItem) {
     };
 
     var re = new RegExp(Object.keys(mapObj).join("|"),"gi");
-    var replaced_svg = raw_buffer_svg.replace(re, function(matched){
+    // var replaced_svg = raw_buffer_svg.replace(re, function(matched){
+    var replaced_svg = (simplified_view ? raw_buffer_svg_simplified : raw_buffer_svg).replace(re, function(matched){
       return mapObj[matched];
     });
     var url = "data:image/svg+xml;charset=utf-8,"+ encodeURIComponent(replaced_svg);
@@ -574,7 +577,7 @@ class InnerRepresentation {
         $('#pcontrol_pause').prop("disabled", true);
         $('#pcontrol_stop').prop("disabled", true);
         $('#pcontrol_restart').prop("disabled", true);
-        $('#pcontrol_clone').prop("disabled", false);
+        $('#pcontrol_clone').prop("disabled", true);
         $( "#pcontrol_empty" ).show(0);
         $('#pcontrol_logs').prop("disabled", false);
         $('#pcontrol_param').prop("disabled", false);

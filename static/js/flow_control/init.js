@@ -133,8 +133,32 @@ function draw() {
         }
     });
     $( "body" ).keyup(function( event ) {
-        if ( event.which == 17 ) {
-            $('button[name="pipe"]').click();
+        console.log(event.which);
+        switch (event.which) {
+            case 17: // CTRL
+                $('button[name="pipe"]').click();
+                break;
+            case 69: // e
+                $('#pcontrol_edit').click();
+                break;
+            case 46: // DEL
+                $('#pcontrol_delete').click();
+                break;
+            case 76: // l
+                $('#pcontrol_logs').click();
+                break;
+            case 80: // p
+                if (event.shiftKey) {
+                    $('#pcontrol_play').click();
+                } else {
+                    $('#pcontrol_pause').click();
+                }
+                break;
+            case 83: // s
+                $('#pcontrol_stop').click();
+                break;
+            default:
+                break;
         }
     });
 

@@ -295,8 +295,7 @@ class InnerRepresentation {
                 }
             }
             this.nodes.update(update_array);
-        } catch(err) { /* processes is empty */
-            console.log(err);
+        } catch(err) { /* processes is empty or don't have all the fields */
             this.clean_control_table();
             this.update_sparkline();
         }

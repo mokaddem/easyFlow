@@ -362,22 +362,22 @@ function create_json_for_switch(connectedNodesName) {
 function get_node_size_from_type(type) {
     switch (type) {
         case "process":
-            return $('#switch_simplified_view').prop('checked') ? 50 : 75;
+            return $('#switch_simplified_view').prop('checked') ? 30 : 75;
         case "multiplexer_in":
-            return 50;
+            return $('#switch_simplified_view').prop('checked') ? 25 : 50;
         case "multiplexer_out":
-            return 50;
+            return $('#switch_simplified_view').prop('checked') ? 25 : 50;
         case "remote_input":
-            return 50;
+            return $('#switch_simplified_view').prop('checked') ? 25 : 50;
         case "remote_output":
-            return 50;
+            return $('#switch_simplified_view').prop('checked') ? 25 : 50;
         case "switch":
-            return 50;
+            return $('#switch_simplified_view').prop('checked') ? 25 : 50;
         case "buffer":
-            return 30;
+            return $('#switch_simplified_view').prop('checked') ? 20 : 30;
         default:
             // default should be a process type
-            return $('#switch_simplified_view').prop('checked') ? 50 : 75;
+            return $('#switch_simplified_view').prop('checked') ? 30 : 75;
     }
 }
 

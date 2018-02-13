@@ -275,10 +275,12 @@ function draw() {
         if (btnPipe.attr('activated') == 'true' ){
             btnPipe.attr('activated', 'false');
             toggle_btn_pipe(false);
+            changeCursor('default');
             network.disableEditMode();
         } else {
             btnPipe.attr('activated', 'true');
             toggle_btn_pipe(true);
+            changeCursor('copy');
             network.addEdgeMode();
         }
 

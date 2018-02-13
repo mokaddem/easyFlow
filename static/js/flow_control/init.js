@@ -127,6 +127,17 @@ function draw() {
         innerRepresentation.handleNodeSelection(params);
     });
 
+    $( "body" ).keydown(function( event ) {
+        if ( event.which == 17 ) {
+            $('button[name="pipe"]').click();
+        }
+    });
+    $( "body" ).keyup(function( event ) {
+        if ( event.which == 17 ) {
+            $('button[name="pipe"]').click();
+        }
+    });
+
     $('#pcontrol_play').click(function(){
         flowControl.play_node();
     });

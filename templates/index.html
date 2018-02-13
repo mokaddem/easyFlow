@@ -283,6 +283,13 @@
                     <span style="vertical-align: middle; display: inline-block; cursor: pointer;">Light view</span>
                 </label>
             </div>
+            <div style="margin-left: 5px; margin-right: 20px" title="Only select processes when performing a rectangle selection">
+                <label class="switch-small" style="vertical-align:inherit;">
+                    <input id="switch_select_process_only" type="checkbox" checked>
+                    <span class="slider-small round"></span>
+                    <span style="vertical-align: middle; display: inline-block; cursor: pointer;">Process only</span>
+                </label>
+            </div>
 
             <button type="button" class="btn btn-default toolbarBtn" style="margin-right: 50px;" name="pipe"><span style="background:url({{ url_for('static', filename='css/img/icons/pipe.svg') }});"></span></button>
             <button type="button" class="btn btn-default toolbarBtn btnDraggable" name="process"><span style="background:url({{ url_for('static', filename='css/img/icons/process.svg') }});"></span></button>

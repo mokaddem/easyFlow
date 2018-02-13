@@ -150,14 +150,15 @@ class InnerRepresentation {
     }
     handle_selection_box() {
         if ( this.selection_box != {} ) {
-            this.selectNodesFromRectangle(this.selection_box, confirm("Only select processes"));
+            this.selectNodesFromRectangle(this.selection_box);
         }
         this.reset_selection_box();
     }
 
 
-    selectNodesFromRectangle(selection_box, process_only) {
+    selectNodesFromRectangle(selection_box) {
         var nodesIdInDrawing = [];
+        var process_only = $('#switch_select_process_only').prop('checked');
 
         var allNodesPos = network.getPositions(); // get all nodes
         allNodesPos = objectToArray(allNodesPos);

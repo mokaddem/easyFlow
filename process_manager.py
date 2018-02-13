@@ -460,9 +460,13 @@ class Process_manager:
         return buffer_config
 
     def delete_link(self, buuid):
-        self.logger.info('Deleting buffer %s', self.buffers[buuid].name)
-        self.buffers_uuid.remove(buuid)
-        del self.buffers[buuid]
+        if buuid in self.buffers:
+            self.logger.info('Deleting buffer %s [%s]', self.buffers[buuid].name, buuid)
+            self.buffers_uuid.remove(buuid)
+            del self.buffers[buuid]
+        else:
+            self.logger.info('Deleting buffer [%s]', buuid)
+
         # delete residual keys in redis
         keys = self._serv.keys('*{}*'.format(buuid))
         for k in keys:

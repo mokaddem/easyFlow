@@ -54028,8 +54028,8 @@ var InteractionHandler = function () {
 		  var shift_key_pressed = event.srcEvent.shiftKey;
 		  if (shift_key_pressed) {
 			  if (!drawing_rect) {
-				  drawing_rect = true;
-				  saveDrawingSurface();
+				drawing_rect = true;
+				saveDrawingSurface();
 			  }
 
 			  restoreDrawingSurface();

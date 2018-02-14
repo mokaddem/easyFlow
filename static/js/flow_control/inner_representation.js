@@ -121,7 +121,6 @@ class InnerRepresentation {
 
     get_processes_info() {
         $.getJSON( url_get_processes_info, {}, function( data ) {
-            console.log(data);
             innerRepresentation.update_nodes(data.processes, data.buffers);
         });
     }

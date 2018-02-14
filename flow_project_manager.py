@@ -394,10 +394,23 @@ class Flow_project_manager:
                 charset="utf-8", decode_responses=True)
 
     @staticmethod
+    # return [scriptname, description, tags]
     def list_process_type(allowed_script):
         mypath = os.environ['FLOW_PROC']
         onlyfiles = [f.replace('.py', '') for f in listdir(mypath) if (isfile(join(mypath, f)) and f.endswith('.py') and f in allowed_script)]
-        return onlyfiles
+        to_ret = [ [name]+Flow_project_manager.get_script_info(name) for name in onlyfiles ]
+        return to_ret
+
+    @staticmethod
+    def get_script_info(scriptname):
+        mypath = os.environ['FLOW_PROC']
+        try:
+            with open(join(mypath, scriptname+'.json'), 'r') as f:
+                scriptInfo = json.load(f)
+                tags = ' '.join(scriptInfo.get('tags', ''))
+                return [scriptInfo.get('description', ''), tags]
+        except Exception as e:
+            return ['', '']
 
     @staticmethod
     def get_processes_config(procs):

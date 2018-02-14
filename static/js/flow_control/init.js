@@ -332,8 +332,24 @@ function draw() {
         cursor: "move",
         zIndex: 5000,
     });
-}
 
+    processTypeDatable = $('#processTypeDatable').DataTable({
+        dom: "<'row'<'col-sm-4'i><'col-sm-4'f><'col-sm-4'p>><'row'<'col-sm-12'tr>>"
+    });
+
+    $('#showDataTableProcessType').click(function() {
+        $('#processTypeDatableDiv').slideToggle('fast');
+    })
+
+    $('#processTypeDatable tbody').on( 'click', 'tr', function () {
+        processTypeDatable.$('tr.selectedType').removeClass('selectedType');
+        $(this).addClass('selectedType');
+        var selectedType = processTypeDatable.rows('.selectedType').data()[0]
+        $('#processTypeSelector').val(selectedType);
+        $('#processTypeSelector').change();
+    } );
+
+}
 $( document ).ready(function() {
     innerRepresentation = new InnerRepresentation();
     flowControl = new FlowControl();

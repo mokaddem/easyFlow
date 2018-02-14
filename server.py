@@ -76,9 +76,10 @@ def index():
     raw_switch_svg_simplified = read_module_svg_template(config.web.switch_svg_template_name_simplified)
     raw_buffer_svg_simplified = read_module_svg_template(config.web.buffer_svg_template_name_simplified)
 
-    all_process_type = Flow_project_manager.list_process_type(config.processes.allowed_script)
+    all_process_type_with_info = Flow_project_manager.list_process_type(config.processes.allowed_script)
     not_displayed_process = [ p.replace('.py', '') for p in config.processes.should_not_be_displayed ]
-    all_process_type = [ p for p in all_process_type if p not in not_displayed_process ]
+    all_process_type = [ name for name, desc, tag in all_process_type_with_info if name not in not_displayed_process ]
+    all_process_type_info = [ [desc, tag] for name, desc, tag in all_process_type_with_info if name not in not_displayed_process ]
 
     all_multiplexer_in = Flow_project_manager.list_all_multiplexer_in()
     all_multiplexer_out = Flow_project_manager.list_all_multiplexer_out()
@@ -107,6 +108,7 @@ def index():
             raw_buffer_svg_simplified=raw_buffer_svg_simplified,
 
             all_process_type=all_process_type,
+            all_process_type_info=all_process_type_info,
             not_displayed_process=not_displayed_process,
             custom_config_json=custom_config_json,
             auto_refresh_rate=config.web.refresh_metadata_interval_in_sec,

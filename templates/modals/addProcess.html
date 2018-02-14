@@ -1,5 +1,5 @@
 <div id="modalAddProcess" class="modal fade" role="dialog">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
@@ -23,12 +23,35 @@
                                 </div>
                                 <div class="form-group">
                                     <label>Process type</label>
-                                    <select id="processTypeSelector" class="form-control" name="type" style="font-size: medium;" required>
+                                    <select id="processTypeSelector" class="form-control" name="type" style="font-size: medium; display: inline-block; width: 96%;" required>
                                         {% for process_type in all_process_type %}
                                             <option>{{ process_type }}</option>
                                         {% endfor %}
                                     </select>
+                                    <span id="showDataTableProcessType" class='glyphicon glyphicon-chevron-down btn btn-info'></span>
                                 </div>
+
+                                <div id="processTypeDatableDiv" style="display: none; padding: 5px;" class="panel panel-default border-no-top">
+                                    <table id="processTypeDatable" style="width: 100%;" class="table table-striped table-hover responsive">
+                                        <thead>
+                                            <tr>
+                                                <th>Script name</th>
+                                                <th>Description</th>
+                                                <th>Tags</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for process_type in all_process_type %}
+                                                <tr>
+                                                    <td>{{ process_type }}</td>
+                                                    <td>{{ all_process_type_info[loop.index0][0] }}</td>
+                                                    <td>{{ all_process_type_info[loop.index0][1] }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+
                                 <div class="form-group">
                                     <label>Description</label>
                                     <textarea class="form-control" rows="3" name="description" style="resize: vertical;"></textarea>

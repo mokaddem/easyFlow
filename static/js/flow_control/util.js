@@ -229,10 +229,13 @@ function fillForm(formID, formIDCustom, isUpdate, formData) {
 }
 
 function create_html_from_json(pName, j, isUpdate) {
+    var domType = j.DOM
     var div = document.createElement('div');
+    if (domType === undefined) {
+        return div;
+    }
     div.classList.add('form-group')
 
-    var domType = j.DOM
     var label = document.createElement('label');
     label.innerHTML = j.label;
     var elem = document.createElement(domType);

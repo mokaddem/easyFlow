@@ -238,7 +238,8 @@ class FlowControl {
         var modalID = 'modal'+modalType;
 
         $('#'+modalID).modal('show');
-        $('#'+modalID+' li:first-child a').tab('show') // Select first tab
+        $('#'+modalID+' li:first-child a[data-toggle="tab"]').tab('show') // Select first tab
+        $('#processTypeDatableDiv').slideUp();
         $('#'+formIDCustom).empty();
         var pSelector = $('#'+modalID).find('[name="type"]');
         add_html_based_on_json(pSelector.val(), $('#'+formIDCustom));
@@ -266,10 +267,12 @@ class FlowControl {
             }
             // disable type change
             $('#processTypeSelector').prop('disabled', true);
+            $('#showDataTableProcessType').hide();
         } else {
             confirmBtn.text('Create');
             $('#'+modalID).find('.modal-title').text('Create');
             $('#processTypeSelector').prop('disabled', false);
+            $('#showDataTableProcessType').show();
         }
 
         // main logic

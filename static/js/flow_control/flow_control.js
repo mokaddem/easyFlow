@@ -276,7 +276,7 @@ class FlowControl {
         }
 
         // main logic
-        confirmBtn.one('click', function(event) {
+        confirmBtn.on('click', function(event) {
             if (validateForm(formID)) {
                 var formData = getFormData(formID);
                 $('#'+formID)[0].reset();

@@ -1,4 +1,4 @@
 {
-    "description": "Ingest items without forwarding",
-    "tags": ["others"]
+    "description": "Discard incoming messages",
+    "tags": ["blackhole", "other"]
 }

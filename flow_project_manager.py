@@ -518,10 +518,16 @@ class Flow_project_manager:
 
         pConfig = {}
         for param, j in data.items(): # re-construct config #FIXME should not be done
-            if param in ['name', 'description', 'rcv_message']:
+            if param in ['rcv_message']: # ignore some fields
                 continue
+            elif param in ['name', 'description']:
+                pConfig[param] = j
+                continue
+            elif param == 'tags':
+                pConfig[param] = j.split(',')
+                continue
+
             pConfig[param] = {}
-            print(param, j)
             for k, v in j.items():
                 if k == 'additional_options':
                     # pConfig[param][k] = json.loads(v) #FIXME

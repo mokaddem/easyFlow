@@ -299,6 +299,10 @@ function draw() {
 
     });
 
+    $('#switch_simplified_view').change(function() {
+        innerRepresentation.resync_representation();
+    });
+
     // draggable
     $('.btnDraggable').draggable({
         cancel:false,

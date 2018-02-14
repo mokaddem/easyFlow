@@ -148,7 +148,9 @@ function draw() {
     $( "body" ).keyup(function( event ) {
         if (!innerRepresentation.isProjectOpen()) {return;}
         if (event.which == 17) { // CTRL
-            $('button[name="pipe"]').click();
+            var btnPipe = $('button[name="pipe"]');
+            btnPipe.attr('activated', true)
+            btnPipe.click();
         } else if (flowControl.selected.length>0) {
             switch (event.which) {
                 case 69: // e
@@ -175,6 +177,12 @@ function draw() {
                 default:
                     break;
             }
+        }
+    });
+    $( "body" ).mouseleave(function() {
+        var btnPipe = $('button[name="pipe"]');
+        if (btnPipe.attr('activated') == 'true') {
+            btnPipe.click();
         }
     });
 

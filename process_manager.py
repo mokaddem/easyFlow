@@ -177,8 +177,7 @@ class Process_manager:
     def shutdown(self):
         self.logger.info('Shutting down all processes (%s process(es))', len(self.processes.keys()))
         self.shutting_down_phase = True
-        puuids = self.processes.keys()
-        for puuid in puuids:
+        for puuid in list(self.processes):
             # self.kill_process(puuid)
             self.stop_process(puuid)
 

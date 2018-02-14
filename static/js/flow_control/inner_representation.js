@@ -70,10 +70,11 @@ function construct_node(moduleName, moduleType, bytes, flowItem, time, cpu_load,
 function construct_buffer(bufferName, bytes, flowItem) {
     var simplified_view = $('#switch_simplified_view').prop('checked');
     var bytes_formated = (bytes > 0 ? String((parseFloat(bytes)/1000000.0).toFixed(2)) : String(0)) + ' MB';
+    var flowItem_formated = parseFloat(flowItem) == NaN ? 0 : flowItem;
     var mapObj = {
         '\{\{bufferName\}\}':   bufferName,
         '\{\{bytes\}\}':        bytes_formated,
-        '\{\{flowItem\}\}':     flowItem + ' FlowItems'
+        '\{\{flowItem\}\}':     flowItem_formated + ' FlowItems'
     };
 
     var re = new RegExp(Object.keys(mapObj).join("|"),"gi");
@@ -120,6 +121,7 @@ class InnerRepresentation {
 
     get_processes_info() {
         $.getJSON( url_get_processes_info, {}, function( data ) {
+            console.log(data);
             innerRepresentation.update_nodes(data.processes, data.buffers);
         });
     }
@@ -157,7 +159,7 @@ class InnerRepresentation {
 
 
     selectNodesFromRectangle(selection_box) {
-        var nodesIdInDrawing = [];
+        var nodesIdInDrawing = network.getSelectedNodes();
         var process_only = $('#switch_select_process_only').prop('checked');
 
         var allNodesPos = network.getPositions(); // get all nodes
@@ -261,8 +263,10 @@ class InnerRepresentation {
                 this.update_sparkline();
             }
             for (var node of processes) {
+                if (jQuery.isEmptyObject(node)) {
+                    continue;
+                }
                 var jStats = node['stats'];
-                // console.log(jStats);
                 update_array.push({
                     id: node['puuid'],
                     image: construct_node(
@@ -300,6 +304,7 @@ class InnerRepresentation {
             }
             this.nodes.update(update_array);
         } catch(err) { /* processes is empty or don't have all the fields */
+        console.log(err);
             this.clean_control_table();
             this.update_sparkline();
         }
@@ -434,8 +439,8 @@ class InnerRepresentation {
             id: edgeData.buuid,
             image: construct_buffer(
                 edgeData.name,
-                '?',
-                '?'
+                0,
+                0
             ),
             x: edgeData.x,
             y: edgeData.y,

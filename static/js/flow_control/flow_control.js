@@ -47,7 +47,7 @@ class FlowControl {
     duplicate_selected() {
         // need to query ids from the network as the selection handler only takes nodes from the same type
         var node_ids = network.getSelection().nodes;
-        this.execute_operation('clone', {uuid: node_ids}, false);
+        this.execute_operation('clone', {uuids: node_ids}, false);
     }
 
     edit_node() {

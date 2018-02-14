@@ -3,6 +3,7 @@ from os import listdir, remove
 from os.path import isfile, join
 import os
 import json
+import copy
 import time, datetime
 import re
 import redis
@@ -324,7 +325,41 @@ class Project:
             return {'status': 'sucess' }
 
         elif operation == 'clone':
-            print('cloning', data)
+            uuid_mapping = {}
+            uuid_buffers = []
+            uuids = data['uuids']
+            self.logger.info('Cloning %s nodes', len(uuids))
+            for uuid in uuids:
+                if uuid.startswith('process_'):
+                    node_conf = copy.deepcopy(self.processes[uuid])
+                    del node_conf['puuid']
+                    # process_config = self._process_manager.create_process(node_conf)
+                    # new_puuid = process_config.puuid
+                    new_puuid = 'process_' + genUUID()
+                    node_conf['puuid'] = new_puuid
+                    uuid_mapping[uuid] = new_puuid # register the mapping
+                    # self.processes[new_puuid] = self.filter_correct_init_fields(process_config.get_dico())
+                    self.processes[new_puuid] = self.filter_correct_init_fields(node_conf)
+                    self.processNum += 1
+                    import pprint
+                    pprint.pprint(node_conf)
+
+                elif uuid.startswith('buffer_'): # save buffers uuid so that the mapping complete
+                    uuid_buffers.append(uuid)
+
+                else:
+                    return {'status': 'error, unkown uuid prefix'}
+
+            for uuid in uuid_buffers:
+                node_conf = copy.deepcopy(self.buffers[uuid])
+                del node_conf['buuid']
+                # remap uuids
+                node_conf['fromUUID'] = uuid_mapping[node_conf['fromUUID']]
+                node_conf['toUUID'] = uuid_mapping[node_conf['toUUID']]
+                link_config = self._process_manager.create_link(node_conf) # save buffer config in redis
+
+                self.buffers[link_config.buuid] = link_config.get_dico()
+                concerned_processes += [link_config.fromUUID, link_config.toUUID]
 
         else:
             self.logger.warning('Unknown operation: %s', operation)

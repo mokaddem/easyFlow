@@ -140,36 +140,41 @@ function draw() {
     });
 
     $( "body" ).keydown(function( event ) {
+        if (!innerRepresentation.isProjectOpen()) {return;}
         if ( event.which == 17 ) {
             $('button[name="pipe"]').click();
         }
     });
     $( "body" ).keyup(function( event ) {
-        switch (event.which) {
-            case 17: // CTRL
-                $('button[name="pipe"]').click();
-                break;
-            case 69: // e
-                $('#pcontrol_edit').click();
-                break;
-            case 46: // DEL
-                $('#pcontrol_delete').click();
-                break;
-            case 76: // l
-                $('#pcontrol_logs').click();
-                break;
-            case 80: // p
-                if (event.shiftKey) {
-                    $('#pcontrol_play').click();
-                } else {
-                    $('#pcontrol_pause').click();
-                }
-                break;
-            case 83: // s
-                $('#pcontrol_stop').click();
-                break;
-            default:
-                break;
+        if (!innerRepresentation.isProjectOpen()) {return;}
+        if (event.which == 17) { // CTRL
+            $('button[name="pipe"]').click();
+        } else if (flowControl.selected.length>0) {
+            switch (event.which) {
+                case 69: // e
+                    $('#pcontrol_edit').click();
+                    break;
+                case 46: // DEL
+                    if (confirm('Delete selected items?')) {
+                        $('#pcontrol_delete').click();
+                    }
+                    break;
+                case 76: // l
+                    $('#pcontrol_logs').click();
+                    break;
+                case 80: // p
+                    if (event.shiftKey) {
+                        $('#pcontrol_play').click();
+                    } else {
+                        $('#pcontrol_pause').click();
+                    }
+                    break;
+                case 83: // s
+                    $('#pcontrol_stop').click();
+                    break;
+                default:
+                    break;
+            }
         }
     });
 

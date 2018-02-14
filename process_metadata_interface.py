@@ -1,6 +1,6 @@
 #!/usr/bin/env python3.5
 
-import os
+import os, time
 import json
 import redis
 from util import genUUID, objToDictionnary, Config_parser

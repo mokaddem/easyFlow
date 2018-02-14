@@ -24,7 +24,7 @@ class Process(metaclass=ABCMeta):
         try:
             self._serv_config = redis.Redis(unix_socket_path=self.config.redis.project.unix_socket_path, decode_responses=True)
         except: # fallback using TCP instead of unix_socket
-            self.logger.warning('Unix socket not availalbe, switching to unix_socket')
+            self.logger.warning('Unix socket not available, switching to unix_socket')
             self._serv_config = redis.StrictRedis(
                 self.config.redis.project.host,
                 self.config.redis.project.port,

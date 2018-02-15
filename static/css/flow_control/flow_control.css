@@ -48,9 +48,7 @@ div.vis-network {
 
 .statsPanel {
     position: fixed;
-    width: 98%;
     left: 15px;
-    /*bottom: 80px;*/
     bottom: -5px;
     z-index: 1000;
 }

@@ -414,10 +414,16 @@ class Process_manager:
         puuid = data.get('puuid', None)
         if puuid is None:
             return {'state': 'error: puuid is None'}
-        self.processes[puuid].update(data)
-        self.logger.debug('Updated process "%s" [%s]', self.processes[puuid].name, puuid)
-        return self.processes[puuid]
 
+        if puuid in self.processes:
+            self.processes[puuid].update(data)
+            self.logger.debug('Updated process "%s" [%s]', self.processes[puuid].name, puuid)
+            return self.processes[puuid]
+        else: # only generate the new configuration
+            print(data)
+            data['projectUUID'] = self.projectUUID
+            process_config = Process_representation(data)
+            return process_config
 
     def create_link(self, data, buuid=None):
         if buuid is None:

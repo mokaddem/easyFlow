@@ -16,8 +16,8 @@ from {procExtendTypeClass} import {procExtendType}
 
 class {processType}({procExtendType}):
 
-    def process_message(self, msg, channel):
-        self.forward(msg)
+    def process_message(self, msg, **kargs):
+        self.forward(msg, **kargs)
 
 
 if __name__ == '__main__':

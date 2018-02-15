@@ -98,8 +98,8 @@ class Buffer_metadata_interface:
 class Process_representation:
     def __init__(self, data):
         self.puuid = data['puuid']
-        self.x = data['x']
-        self.y = data['y']
+        self.x = data.get('x', 0)
+        self.y = data.get('y', 0)
         self.name = data['name']
         self.type = data['type']
         self.description = data['description']

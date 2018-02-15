@@ -77,7 +77,8 @@ def index():
     raw_buffer_svg_simplified = read_module_svg_template(config.web.buffer_svg_template_name_simplified)
 
     all_process_type_with_info = Flow_project_manager.list_process_type(config.processes.allowed_script)
-    not_displayed_process = [ p.replace('.py', '') for p in config.processes.should_not_be_displayed ]
+    # not_displayed_process = [ p.replace('.py', '') for p in config.processes.should_not_be_displayed ]
+    not_displayed_process = []
     all_process_type = [ name for name, desc, tag in all_process_type_with_info if name not in not_displayed_process ]
     all_process_type_info = [ [desc, tag] for name, desc, tag in all_process_type_with_info if name not in not_displayed_process ]
 

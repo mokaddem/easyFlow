@@ -54,7 +54,7 @@ class Remote_input(Process_no_input):
                             self.logger.info('No data, sleeping %s sec', self.custom_config['sleepTime'])
                             time.sleep(self.custom_config['sleepTime'])
                             break
-                        remote_message = data.decode('utf8')
+                        remote_message = data.decode('utf8', 'ignore')
                         self.forward(remote_message)
 
         elif remote_protocol == 'ZMQ':

@@ -44,6 +44,8 @@ class Buffer_metadata_interface:
             self._serv_pipeline = self._serv.pipeline()
             self.pipeline_counter = 0
             self.pipeline_threshold = 1000
+            self.pipeline_time_threshold = 1 # sec
+            self.pipeline_lastpush = time.time()
             self.buffered_byte_value = {}
         except: # fallback using TCP instead of unix_socket
             self._serv = redis.StrictRedis(
@@ -55,8 +57,11 @@ class Buffer_metadata_interface:
         self._serv_buffers = redis.Redis(unix_socket_path=self.config.redis.buffers.unix_socket_path, decode_responses=True)
 
     def get_info(self, buuid):
+        buf_bytes = self._serv.get(buuid+'_buffered_bytes')
+        buf_bytes = float(buf_bytes) if buf_bytes is not None else 0
+        buf_bytes = buf_bytes if buf_bytes >= 0 else 0 # if pushing process has not pushed buffer info yet
         bMetadata = {
-            'buffered_bytes': self._serv.get(buuid+'_buffered_bytes'),
+            'buffered_bytes': buf_bytes,
             'buffered_flowItems': self._serv_buffers.llen(buuid)
         }
         return bMetadata
@@ -71,17 +76,19 @@ class Buffer_metadata_interface:
         #     self.pipeline_counter = 0
         if key not in self.buffered_byte_value:
             self.buffered_byte_value[key] = 0
-        self.buffered_byte_value[key] += the_bytes
+        self.buffered_byte_value[key] += float(the_bytes)
 
         self.pipeline_counter += 1
-        if self.pipeline_counter >= self.pipeline_threshold:
+        now = time.time()
+        if self.pipeline_counter >= self.pipeline_threshold or now-self.pipeline_lastpush >= self.pipeline_time_threshold:
             self.push_info_from_pipeline()
             self.pipeline_counter = 0
+            self.pipeline_lastpush = now
 
     def push_info_from_pipeline(self):
         # self._serv_pipeline.execute()
         for k, v in self.buffered_byte_value.items():
-            self._serv.incrby(k, v)
+            self._serv.incrbyfloat(k, v)
         self.buffered_byte_value = {}
 
     def clear_info(self, buuid):

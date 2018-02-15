@@ -61,6 +61,9 @@
         var raw_buffer_svg                = '{{ raw_buffer_svg|safe }}';
         var raw_buffer_svg_simplified     = '{{ raw_buffer_svg_simplified|safe }}';
 
+        var max_cpu_load = {{ max_cpu_load }};
+        var max_memory_load = {{ max_memory_load }};
+
         /* URLS */
         var url_save_network = '{{ url_for("save_network") }}';
         var url_load_network = '{{ url_for("load_network") }}';
@@ -110,10 +113,10 @@
 
 </head>
 
-<body>
+<body style='height: 100vh;'>
     <div id="loaderBack" class="loader-background" style="display: none;"><div id="loader" class="loader" style="display: none;"></div></div>
 
-    <div id="wrapper">
+    <div id="wrapper" style='height: 100%;'>
 
         <!-- Navigation -->
         <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0;">
@@ -258,7 +261,6 @@
             </div>
         </div>
 
-
         {% include 'modals/listProjects.html' %}
         {% include 'modals/createProject.html' %}
         {% include 'modals/importProject.html' %}
@@ -303,6 +305,41 @@
 
         <div id="mynetwork"></div>
 
+    </div>
+
+    <div id="statsPanel" class="panel panel-info statsPanel">
+        <div class="panel-body" style="padding: 0px;">
+            <table>
+                <tr>
+                    <td>ForMeed CPU load</td>
+                    <td>ForMeed memory loads</td>
+                    <td>Total buffered items</td>
+                    <td>Total buffered bytes</td>
+                </tr>
+                <tr>
+                    <td>
+                        <div id='process_cpu_load_spark' style="display: inline-block;" class='sparkline'></div>
+                        <span class="sparkline-axis"></span>
+                        <span class="sparkline-axis-max">{{ max_cpu_load }}%</span>
+                    </td>
+                    <td>
+                        <div id='process_memory_load_spark' style="display: inline-block;" class='sparkline'></div>
+                        <span class="sparkline-axis"></span>
+                        <span class="sparkline-axis-max">{{'%0.2f'| format(max_memory_load/(1024*1024*1024)|float)}}GB</span>
+                    </td>
+                    <td>
+                        <div id='buffered_item_spark' style="display: inline-block;" class='sparkline'></div>
+                        <span class="sparkline-axis"></span>
+                        <span id="stats_pannel_buffered_items_max" class="sparkline-axis-max"></span>
+                    </td>
+                    <td>
+                        <div id='buffered_bytes_spark' style="display: inline-block;" class='sparkline'></div>
+                        <span class="sparkline-axis"></span>
+                        <span id="stats_pannel_buffered_bytes_max" class="sparkline-axis-max"></span>
+                    </td>
+                </tr>
+            </table>
+        </div>
     </div>
 
     <a id="downloadA" href="#"></a>

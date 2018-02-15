@@ -1,3 +1,45 @@
+class timed_sliding_array {
+    constructor(size) {
+        this.size = size;
+        this.list = [];
+        this.max = 0;
+        // fill with 0
+        var now = Date.now()/1000;
+        for (var i=size; i>0; i--) {
+            this.list.push([now-i, 0]);
+        }
+    }
+
+    computeMax(list) {
+        var max = 0;
+        for (var i=0; i<list.length; i++) {
+            max = max < list[i][1] ? list[i][1] : max;
+        }
+        return max
+    }
+
+    add(element) {
+        if (this.list.length >= this.size) {
+            var sliced = this.list.slice(1, this.list.length);
+            if (this.max == this.list[0][1]) {
+                // recompute max
+                this.max = this.computeMax(sliced);
+            }
+            this.list = sliced;
+        }
+        this.list.push([Date.now()/1000, element]);
+        this.max = this.max < element ? element : this.max;
+    }
+
+    get() {
+        return this.list;
+    }
+
+    getMax() {
+        return this.max;
+    }
+}
+
 function objectToArray(obj) {
     return Object.keys(obj).map(function (key) {
         obj[key].id = key;
@@ -384,16 +426,15 @@ function get_node_size_from_type(type) {
     }
 }
 
-function sparklineNumberFormatter(number) {
+function sparklineDateFormatter(number) {
     var d = new Date(number*1000);
     var now = new Date().getTime()/1000;
-    if (now-buffer_time_spanned_in_min*60 <= number && number <= now) {
-        var ret = d.toTimeString();
-        var i = ret.indexOf(' ');
-        return ret.slice(0, i);
-    } else {
-        return number;
-    }
+    var ret = d.toTimeString();
+    var i = ret.indexOf(' ');
+    return ret.slice(0, i);
+}
+function sparklineMbFormatter(number) {
+    return String((parseFloat(number)/1048576.0).toFixed(2)) + ' MB';
 }
 
 var drawingSurfaceImageData = null;

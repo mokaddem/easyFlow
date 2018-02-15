@@ -217,7 +217,8 @@ class Process(metaclass=ABCMeta):
                     self.before_sleep()
                      # empty remaining items in pipeline
                     self._link_manager._pipeline_buffers.execute()
-                    self._buffer_metadata_interface.push_info_from_pipeline()
+                    self._link_manager._buffer_metadata_interface.push_info_from_pipeline()
+                    # self._buffer_metadata_interface.push_info_from_pipeline()
 
                     self.logger.debug('"%s" No message, sleeping %s sec', self.name, self.config.default_project.process.pooling_time_interval_get_message)
                     time.sleep(self.config.default_project.process.pooling_time_interval_get_message)

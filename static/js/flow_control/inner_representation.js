@@ -107,6 +107,12 @@ class InnerRepresentation {
         this.auto_refresh = null;
         this.selection_box = {};
         this.in_selection = false;
+        this.system_stats = {
+            cpu_load: new timed_sliding_array(30),
+            memory_load: new timed_sliding_array(30),
+            buffered_item: new timed_sliding_array(30),
+            buffered_bytes: new timed_sliding_array(30)
+        };
     }
 
     set_project(project) {
@@ -181,85 +187,131 @@ class InnerRepresentation {
         this.handleNodeSelection({nodes: nodesIdInDrawing})
     }
 
-    update_sparkline(jStats) {
+    update_sparkline_control(jStats) {
         if (jStats === undefined) {
             var sparklineBI = $('.inlinesparklineBI').sparkline([],{width: '40%', height: '35px', chartRangeMin: 0,
-                tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                numberFormatter: sparklineNumberFormatter
+                tooltipFormatter: function (sparkline, options, fields) {
+                    return "" + sparklineDateFormatter(fields.x) + " - " + sparklineMbFormatter(fields.y) + "";
+                }
             });
             var sparklineBO = $('.inlinesparklineBO').sparkline([],{width: '40%', height: '35px', chartRangeMin: 0,
-                tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                numberFormatter: sparklineNumberFormatter
+                tooltipFormatter: function (sparkline, options, fields) {
+                    return "" + sparklineDateFormatter(fields.x) + " - " + sparklineMbFormatter(fields.y) + "";
+                }
             });
             var sparklineFI = $('.inlinesparklineFI').sparkline([],{width: '40%', height: '35px', chartRangeMin: 0,
-                tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                numberFormatter: sparklineNumberFormatter
+                tooltipFormatter: function (sparkline, options, fields) {
+                    return "" + sparklineDateFormatter(fields.x) + " - " + fields.y + "";
+                }
             });
             var sparklineFO = $('.inlinesparklineFO').sparkline([],{width: '40%', height: '35px', chartRangeMin: 0,
-                tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                numberFormatter: sparklineNumberFormatter
+                tooltipFormatter: function (sparkline, options, fields) {
+                    return "" + sparklineDateFormatter(fields.x) + " - " + fields.y + "";
+                }
             });
 
             var sparklineBI_speed = $('.inlinesparklineBI_speed').sparkline([],{width: '40%', height: '35px', chartRangeMin: 0,
-                tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                numberFormatter: sparklineNumberFormatter
+                tooltipFormatter: function (sparkline, options, fields) {
+                    return "" + sparklineDateFormatter(fields.x) + " - " + sparklineMbFormatter(fields.y) + "";
+                }
             });
             var sparklineBO_speed = $('.inlinesparklineBO_speed').sparkline([],{width: '40%', height: '35px', chartRangeMin: 0,
-                tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                numberFormatter: sparklineNumberFormatter
+                tooltipFormatter: function (sparkline, options, fields) {
+                    return "" + sparklineDateFormatter(fields.x) + " - " + sparklineMbFormatter(fields.y) + "";
+                }
             });
             var sparklineFI_speed = $('.inlinesparklineFI_speed').sparkline([],{width: '40%', height: '35px', chartRangeMin: 0,
-                tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                numberFormatter: sparklineNumberFormatter
+                tooltipFormatter: function (sparkline, options, fields) {
+                    return "" + sparklineDateFormatter(fields.x) + " - " + fields.y + "";
+                }
             });
             var sparklineFO_speed = $('.inlinesparklineFO_speed').sparkline([],{width: '40%', height: '35px', chartRangeMin: 0,
-                tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                numberFormatter: sparklineNumberFormatter
+                tooltipFormatter: function (sparkline, options, fields) {
+                    return "" + sparklineDateFormatter(fields.x) + " - " + fields.y + "";
+                }
             });
         } else {
             var sparklineBI = $('.inlinesparklineBI').sparkline(jStats['bytes_in_history'],{width: '40%', height: '35px', chartRangeMin: 0,
-                tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                numberFormatter: sparklineNumberFormatter
+                tooltipFormatter: function (sparkline, options, fields) {
+                    return "" + sparklineDateFormatter(fields.x) + " - " + sparklineMbFormatter(fields.y) + "";
+                }
             });
+            // $('#inlinesparklineBI_max').text();
             var sparklineBO = $('.inlinesparklineBO').sparkline(jStats['bytes_out_history'],{width: '40%', height: '35px', chartRangeMin: 0,
-                tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                numberFormatter: sparklineNumberFormatter
+                tooltipFormatter: function (sparkline, options, fields) {
+                    return "" + sparklineDateFormatter(fields.x) + " - " + sparklineMbFormatter(fields.y) + "";
+                }
             });
             var sparklineFI = $('.inlinesparklineFI').sparkline(jStats['flowItem_in_history'],{width: '40%', height: '35px', chartRangeMin: 0,
-                tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                numberFormatter: sparklineNumberFormatter
+                tooltipFormatter: function (sparkline, options, fields) {
+                    return "" + sparklineDateFormatter(fields.x) + " - " + fields.y + "";
+                }
             });
             var sparklineFO = $('.inlinesparklineFO').sparkline(jStats['flowItem_out_history'],{width: '40%', height: '35px', chartRangeMin: 0,
-                tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                numberFormatter: sparklineNumberFormatter
+                tooltipFormatter: function (sparkline, options, fields) {
+                    return "" + sparklineDateFormatter(fields.x) + " - " + fields.y + "";
+                }
             });
 
             var sparklineBI_speed = $('.inlinesparklineBI_speed').sparkline(jStats['bytes_in_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
-                tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                numberFormatter: sparklineNumberFormatter
+                tooltipFormatter: function (sparkline, options, fields) {
+                    return "" + sparklineDateFormatter(fields.x) + " - " + sparklineMbFormatter(fields.y) + "";
+                }
             });
             var sparklineBO_speed = $('.inlinesparklineBO_speed').sparkline(jStats['bytes_out_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
-                tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                numberFormatter: sparklineNumberFormatter
+                tooltipFormatter: function (sparkline, options, fields) {
+                    return "" + sparklineDateFormatter(fields.x) + " - " + sparklineMbFormatter(fields.y) + "";
+                }
             });
             var sparklineFI_speed = $('.inlinesparklineFI_speed').sparkline(jStats['flowItem_in_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
-                tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                numberFormatter: sparklineNumberFormatter
+                tooltipFormatter: function (sparkline, options, fields) {
+                    return "" + sparklineDateFormatter(fields.x) + " - " + fields.y + "";
+                }
             });
             var sparklineFO_speed = $('.inlinesparklineFO_speed').sparkline(jStats['flowItem_out_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
-                tooltipFormat: $.spformat('{{x}} - {{y}}'),
-                numberFormatter: sparklineNumberFormatter
+                tooltipFormatter: function (sparkline, options, fields) {
+                    return "" + sparklineDateFormatter(fields.x) + " - " + fields.y + "";
+                }
             });
         }
     }
 
+    update_sparkline_stats() {
+        var sparkline_system_load = $('#process_cpu_load_spark').sparkline(this.system_stats.cpu_load.get(),{width: '150px', height: '35px', chartRangeMin: 0, chartRangeMax: max_cpu_load,
+            tooltipFormatter: function (sparkline, options, fields) {
+                return "" + sparklineDateFormatter(fields.x) + " - " + fields.y + " %";
+            }
+        });
+        var sparkline_memory_load = $('#process_memory_load_spark').sparkline(this.system_stats.memory_load.get(),{width: '150px', height: '35px', chartRangeMin: 0, chartRangeMax: max_memory_load,
+        tooltipFormatter: function (sparkline, options, fields) {
+            return "" + sparklineDateFormatter(fields.x) + " - " + sparklineMbFormatter(fields.y) + "";
+        }
+        });
+        var sparkline_buffered_item = $('#buffered_item_spark').sparkline(this.system_stats.buffered_item.get(),{width: '150px', height: '35px', chartRangeMin: 0, chartRangeMax: this.system_stats.buffered_item.getMax(),
+            tooltipFormatter: function (sparkline, options, fields) {
+                return "" + sparklineDateFormatter(fields.x) + " - " + fields.y + "";
+            }
+        });
+        $('#stats_pannel_buffered_items_max').text(this.system_stats.buffered_item.getMax());
+        var sparkline_buffered_bytes = $('#buffered_bytes_spark').sparkline(this.system_stats.buffered_bytes.get(),{width: '150px', height: '35px', chartRangeMin: 0, chartRangeMax: this.system_stats.buffered_bytes.getMax(),
+            tooltipFormatter: function (sparkline, options, fields) {
+                return "" + sparklineDateFormatter(fields.x) + " - " + sparklineMbFormatter(fields.y) + "";
+            }
+        });
+        $('#stats_pannel_buffered_bytes_max').text(String((this.system_stats.buffered_bytes.getMax()/1048576.0).toFixed(2))+'MB');
+    }
+
     update_nodes(processes, buffers) {
         var update_array = [];
+        var sum_cpu_load = 0;
+        var sum_memory_load = 0;
+        var sum_buffered_item = 0;
+        var sum_buffered_bytes = 0;
         /* Processes */
         try {
             if (processes.length == 0) {
                 this.clean_control_table();
-                this.update_sparkline();
+                this.update_sparkline_control();
             }
             for (var node of processes) {
                 if (jQuery.isEmptyObject(node)) {
@@ -283,6 +335,8 @@ class InnerRepresentation {
                     ),
                     size: get_node_size_from_type(node['type'])
                 });
+                sum_cpu_load += jStats['cpu_load']
+                sum_memory_load += jStats['memory_load']
                 // update table in control panel
                 if (flowControl.selected.length > 0 && node['puuid'] == flowControl.selected[0]) {
                     var formatted_data = format_proc_data(
@@ -298,13 +352,15 @@ class InnerRepresentation {
                         jStats['state'],
                         jStats['custom_message'])
                     this.update_control_table(formatted_data);
-                    this.update_sparkline(jStats);
+                    this.update_sparkline_control(jStats);
                 }
             }
             this.nodes.update(update_array);
+            this.system_stats.cpu_load.add(sum_cpu_load);
+            this.system_stats.memory_load.add(sum_memory_load);
         } catch(err) { /* processes is empty or don't have all the fields */
             this.clean_control_table();
-            this.update_sparkline();
+            this.update_sparkline_control();
         }
 
         /* Buffers */
@@ -320,9 +376,14 @@ class InnerRepresentation {
                     ),
                     size: get_node_size_from_type('buffer')
                 });
+                sum_buffered_item += jStats['buffered_flowItems'];
+                sum_buffered_bytes += jStats['buffered_bytes'];
             }
         } catch(err) { /* processes is empty */ }
         this.nodes.update(update_array);
+        this.system_stats.buffered_item.add(sum_buffered_item);
+        this.system_stats.buffered_bytes.add(sum_buffered_bytes);
+        this.update_sparkline_stats();
     }
 
     nodeType(nodeID) {

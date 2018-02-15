@@ -90,6 +90,9 @@ def index():
 
     buffer_time_spanned_in_min = config.default_project.process.buffer_time_spanned_in_min
 
+    max_cpu_load = Flow_project_manager.get_max_cpu_load()
+    max_memory_load = Flow_project_manager.get_max_memory_load()
+
     resp = make_response(render_template('index.html',
             raw_process_svg=raw_process_svg,
             raw_multi_in_svg=raw_multi_in_svg,
@@ -106,6 +109,9 @@ def index():
             raw_remote_out_svg_simplified=raw_remote_out_svg_simplified,
             raw_switch_svg_simplified=raw_switch_svg_simplified,
             raw_buffer_svg_simplified=raw_buffer_svg_simplified,
+
+            max_cpu_load=max_cpu_load,
+            max_memory_load=max_memory_load,
 
             all_process_type=all_process_type,
             all_process_type_info=all_process_type_info,

@@ -8,6 +8,7 @@ import time, datetime
 import re
 import redis
 import logging
+from psutil import cpu_count, virtual_memory
 
 from util import genUUID, objToDictionnary, dicoToList, datetimeToTimestamp, Config_parser
 from alerts_manager import Alert_manager
@@ -438,6 +439,13 @@ class Flow_project_manager:
     @staticmethod
     def list_buffer_type(allowed_buffer_type): # may be usefull later on...
         return allowed_buffer_type
+
+    @staticmethod
+    def get_max_cpu_load():
+        return 100*cpu_count()
+    @staticmethod
+    def get_max_memory_load():
+        return virtual_memory().total
 
     def get_project_list(self):
         self.logger.info('Getting project list')

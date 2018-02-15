@@ -437,6 +437,13 @@ class Flow_project_manager:
         return ['switch']
 
     @staticmethod
+    def list_all_remote_in():
+        return ['remote_input']
+    @staticmethod
+    def list_all_remote_out():
+        return ['remote_output']
+
+    @staticmethod
     def list_buffer_type(allowed_buffer_type): # may be usefull later on...
         return allowed_buffer_type
 

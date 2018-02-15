@@ -61,7 +61,6 @@ class FlowControl {
                 var modalID = 'modal'+modalType;
                 $('#'+modalID).modal('show');
                 self.handleModalConfirm(modalType, { type: "process", puuid: uuid, update: true}, function(modalData) {
-                    console.log(modalData);
                     self.execute_operation('edit_process', modalData)
                     .done(function(responseData, textStatus, jqXHR) {
                     })
@@ -239,6 +238,9 @@ class FlowControl {
 
         $('#'+modalID).modal('show');
         $('#'+modalID+' li:first-child a[data-toggle="tab"]').tab('show') // Select first tab
+        $('#processTypeSelector option').each(function () { // reset process type to default value
+            if (this.defaultSelected) { this.selected = true; return false; }
+        });
         $('#processTypeDatableDiv').slideUp();
         $('#'+formIDCustom).empty();
         var pSelector = $('#'+modalID).find('[name="type"]');

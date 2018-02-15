@@ -25,7 +25,11 @@
                                     <label>Process type</label>
                                     <select id="processTypeSelector" class="form-control" name="type" style="font-size: medium; display: inline-block; width: 96%;" required>
                                         {% for process_type in all_process_type %}
-                                            <option>{{ process_type }}</option>
+                                            <option
+                                                {% if process_type in not_displayed_process %}hidden{% endif %}
+                                                {% if loop.index0 == 0 %}selected="selected"{% endif %}>
+                                                {{ process_type }}
+                                            </option>
                                         {% endfor %}
                                     </select>
                                     <span id="showDataTableProcessType" class='glyphicon glyphicon-chevron-down btn btn-info'></span>

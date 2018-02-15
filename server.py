@@ -77,15 +77,17 @@ def index():
     raw_buffer_svg_simplified = read_module_svg_template(config.web.buffer_svg_template_name_simplified)
 
     all_process_type_with_info = Flow_project_manager.list_process_type(config.processes.allowed_script)
-    # not_displayed_process = [ p.replace('.py', '') for p in config.processes.should_not_be_displayed ]
-    not_displayed_process = []
-    all_process_type = [ name for name, desc, tag in all_process_type_with_info if name not in not_displayed_process ]
-    all_process_type_info = [ [desc, tag] for name, desc, tag in all_process_type_with_info if name not in not_displayed_process ]
+    not_displayed_process = [ p.replace('.py', '') for p in config.processes.should_not_be_displayed ]
+
+    # all_process_type = [ name for name, desc, tag in all_process_type_with_info if name not in not_displayed_process ]
+    all_process_type_info = [ [desc, tag] for name, desc, tag in all_process_type_with_info ]
+    all_process_type = [ name for name, desc, tag in all_process_type_with_info ]
 
     all_multiplexer_in = Flow_project_manager.list_all_multiplexer_in()
     all_multiplexer_out = Flow_project_manager.list_all_multiplexer_out()
     all_switch = Flow_project_manager.list_all_switch()
-    all_process = all_process_type + all_multiplexer_in + all_multiplexer_out + all_switch
+    all_remote = Flow_project_manager.list_all_remote_in() + Flow_project_manager.list_all_remote_out()
+    all_process = all_process_type + all_multiplexer_in + all_multiplexer_out + all_switch + all_remote
     custom_config_json = Flow_project_manager.get_processes_config(all_process)
     all_buffer_type = Flow_project_manager.list_buffer_type(config.buffers.allowed_buffer_type)
 

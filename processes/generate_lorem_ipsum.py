@@ -48,7 +48,7 @@ class Generate_lorem_ipsum(Process_no_input):
                     num = random.randint(0, self.custom_config['ipsumType_generation_range'])
 
                 channel = 1 if num > 500 else 2
-                self.forward(str(num), channel)
+                self.forward(str(num), channel=channel)
                 self.custom_message = 'last generated: '+str(num)
 
             else:

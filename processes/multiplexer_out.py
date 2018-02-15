@@ -1,6 +1,6 @@
 #!/usr/bin/env python3.5
 # -*-coding:UTF-8 -*
-import sys,  os
+import sys, os
 sys.path.append(os.environ['FLOW_HOME'])
 
 from process import Process

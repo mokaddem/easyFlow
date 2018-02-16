@@ -166,6 +166,14 @@ div.sparkline > canvas {
 	height: 5px;
 }
 
+pre {
+    margin: 0px;
+}
+
+strong {
+    font-size: medium;
+}
+
 /* Safari */
 @-webkit-keyframes spin {
     0% { -webkit-transform: rotate(0deg); }

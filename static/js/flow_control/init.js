@@ -361,6 +361,9 @@ function draw() {
         $('#processTypeSelector').change();
     } );
 
+    $('#showTableGenerateFromBash').click(function() {
+        $('#tableGenerateFromBash').toggle();
+    });
     networkParseBash = new vis.Network(document.getElementById('GenerateFromBashNetwork'), {nodes: new vis.DataSet(), edges: new vis.DataSet()}, {
         layout: {
             improvedLayout:true,

@@ -493,22 +493,31 @@ function generate_network_from_bash_command(bashCommand) {
     for (var i=0; i<res.length; i++) {
         var proc = res[i];
         var save_prev_proc = []
+        var cur_id = null;
 
         for (var j=0; j<proc.num; j++) { // for each current nodes
             if (!proc.duplicate) {
-                var cur_id = String(i)+'-'+String(j);
+                cur_id = String(i)+'-'+String(j);
                 nodes.add({id: cur_id, label: proc.name})
                 save_prev_proc.push(cur_id)
             }
             if (i!=0) {
                 for (var pi=0; pi<prev_proc.length; pi++) { // for each previous nodes
                     if (proc.duplicate) {
-                        var cur_id = String(i)+'-'+String(j)+'-'+String(pi);
+                        cur_id = String(i)+'-'+String(j)+'-'+String(pi);
                         nodes.add({id: cur_id, label: proc.name})
                         save_prev_proc.push(cur_id)
+                    } else {
+                        var cur_id_edge = String(i)+'-'+String(j)+'-'+String(pi)+'_edge';
+                        edges.add({id: cur_id_edge, from: prev_proc[pi], to: cur_id, arrows: {to: {enabled: true, type:'arrow'} }})
                     }
-                    var cur_id_edge = String(i)+'-'+String(j)+'-'+String(pi)+'_edge';
-                    edges.add({id: cur_id_edge, from: prev_proc[pi], to: cur_id, arrows: {to: {enabled: true, type:'arrow'} }})
+                }
+
+                for (var pi=0; pi<prev_proc.length; pi++) {
+                    for (var ci=pi*proc.num; ci<save_prev_proc.length && ci<(pi+1)*proc.num; ci++) {
+                        var cur_id_edge = String(i)+'-'+String(j)+'-'+String(pi)+'-'+String(ci)+'_edge';
+                        edges.add({id: cur_id_edge, from: prev_proc[pi], to: save_prev_proc[ci], arrows: {to: {enabled: true, type:'arrow'} }})
+                    }
                 }
             }
         }

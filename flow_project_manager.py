@@ -11,6 +11,7 @@ import logging
 from psutil import cpu_count, virtual_memory
 
 from util import genUUID, objToDictionnary, dicoToList, datetimeToTimestamp, Config_parser
+from bashCommand import convert_bash_command
 from alerts_manager import Alert_manager
 from process_metadata_interface import Process_metadata_interface
 from process_manager import Process_manager
@@ -361,6 +362,13 @@ class Project:
 
                 self.buffers[link_config.buuid] = link_config.get_dico()
                 concerned_processes += [link_config.fromUUID, link_config.toUUID]
+
+        elif operation == 'create_from_bash_command':
+            options = convert_bash_command(data['bashCommand'])
+            # for option in options:
+            #     process_config = self._process_manager.update_process(data) # only generate config if process does not exists
+            #     puuid = process_config.puuid
+            #     self.processes[puuid] = self.filter_correct_init_fields(process_config.get_dico())
 
         else:
             self.logger.warning('Unknown operation: %s', operation)

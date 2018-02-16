@@ -450,3 +450,72 @@ function restoreDrawingSurface() {
 function clearDrawingSurface() {
     drawingSurfaceImageData = null;
 }
+
+function generate_network_from_bash_command(bashCommand) {
+    var regex_normal = '\\|'
+    var regex_mult_pipe = '\\|{(\\d)+}'
+    var regex_indiv_pipe = '\\*\\|'
+    var regex_indiv_mult_pipe = '\\*\\|{(\\d)+}'
+    var aggregated_regex = [regex_indiv_mult_pipe, regex_indiv_pipe, regex_mult_pipe, regex_normal];
+    aggregated_regex = new RegExp('('+aggregated_regex.join("|")+')'+'\\s*(\\S+)', 'g');
+
+    // record the first process
+    if (!bashCommand.startsWith('|')) {
+        bashCommand = '| ' + bashCommand;
+    }
+    /*
+        group 0 is complete match
+        group 1 is separator
+        group 2 is number of duplicate (*)
+        group 3 is number of duplicate ()
+        group 4 is process name
+    */
+    var res = []
+    while((result = aggregated_regex.exec(bashCommand)) !== null) {
+        // check for merge
+        if (result[1].startsWith('*')) {
+            var duplicate = true;
+        } else {
+            var duplicate = false;
+        }
+        // check for number
+        var num = 1;
+        num = result[2] === undefined ? num  : parseInt(result[2]);
+        num = result[3] === undefined ? num  : parseInt(result[3]);
+        var to_push = {name: result[4], num: num, duplicate: duplicate};
+        res.push(to_push);
+    }
+
+    // draw nodes and edges
+    nodes = new vis.DataSet();
+    edges = new vis.DataSet();
+    var prev_proc = [];
+    for (var i=0; i<res.length; i++) {
+        var proc = res[i];
+        var save_prev_proc = []
+
+        for (var j=0; j<proc.num; j++) { // for each current nodes
+            if (!proc.duplicate) {
+                var cur_id = String(i)+'-'+String(j);
+                nodes.add({id: cur_id, label: proc.name})
+                save_prev_proc.push(cur_id)
+            }
+            if (i!=0) {
+                for (var pi=0; pi<prev_proc.length; pi++) { // for each previous nodes
+                    if (proc.duplicate) {
+                        var cur_id = String(i)+'-'+String(j)+'-'+String(pi);
+                        nodes.add({id: cur_id, label: proc.name})
+                        save_prev_proc.push(cur_id)
+                    }
+                    var cur_id_edge = String(i)+'-'+String(j)+'-'+String(pi)+'_edge';
+                    edges.add({id: cur_id_edge, from: prev_proc[pi], to: cur_id, arrows: {to: {enabled: true, type:'arrow'} }})
+                }
+            }
+        }
+        prev_proc = save_prev_proc;
+        save_prev_proc = [];
+
+    }
+    networkParseBash.setData({nodes: nodes, edges: edges});
+    $('#GenerateFromBash_table_process_num').text(nodes.length);
+}

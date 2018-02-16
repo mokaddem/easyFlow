@@ -85,7 +85,6 @@
 
         /* RESSOURCES URLS */
         var custom_config_json = {{ custom_config_json | tojson }};
-        console.log(custom_config_json);
         var buffer_time_spanned_in_min = {{ buffer_time_spanned_in_min }};
 
         /* GLOBAL VARS */
@@ -101,6 +100,8 @@
         var alertManager = null;
         var realtimeLogs = null;
         var sparkline = null;
+
+        var networkParseBash;
 
         var auto_refresh_rate = {{ auto_refresh_rate }};
     </script>
@@ -275,6 +276,7 @@
         {% include 'modals/addMultInput.html' %}
         {% include 'modals/addMultOutput.html' %}
         {% include 'modals/addSwitch.html' %}
+        {% include 'modals/generateFromBash.html' %}
 
 
         <!-- Page Content -->
@@ -302,6 +304,7 @@
             <button type="button" class="btn btn-default toolbarBtn btnDraggable" name="multiplexer_input"><span style="background:url({{ url_for('static', filename='css/img/icons/mult_input.svg') }});"></span></button>
             <button type="button" class="btn btn-default toolbarBtn btnDraggable" name="multiplexer_output"><span style="background:url({{ url_for('static', filename='css/img/icons/mult_output.svg') }});"></span></button>
             <button type="button" class="btn btn-default toolbarBtn btnDraggable" name="switch"><span style="background:url({{ url_for('static', filename='css/img/icons/switch.svg') }});"></span></button>
+            <button type="button" class="btn btn-default toolbarBtn btnDraggable glyphicon glyphicon-console" name="bash_parser" style="font-size: xx-large;"></button>
         </div>
 
         <div id="mynetwork"></div>

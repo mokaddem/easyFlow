@@ -361,6 +361,25 @@ function draw() {
         $('#processTypeSelector').change();
     } );
 
+    networkParseBash = new vis.Network(document.getElementById('GenerateFromBashNetwork'), {nodes: new vis.DataSet(), edges: new vis.DataSet()}, {
+        layout: {
+            improvedLayout:true,
+            hierarchical: {
+            //   enabled:true,
+              direction: 'LR',         // UD, DU, LR, RL
+              sortMethod: 'directed'   // hubsize, directed
+            }
+        },
+        nodes: {
+          shape: 'box',
+          font: {size: 24}
+        },
+        interaction: {dragNodes :false},
+    });
+    $('#bashCommandInput').on('input', function(event) {
+        generate_network_from_bash_command($(this).val());
+    })
+
 }
 $( document ).ready(function() {
     innerRepresentation = new InnerRepresentation();

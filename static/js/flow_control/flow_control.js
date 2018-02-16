@@ -194,6 +194,16 @@ class FlowControl {
                     console.log( "An error occured" );
                 });
             });
+        } else if (dropData.type == 'bash_parser') {
+            self.handleModal('GenerateFromBash', dropData, function(modalData) {
+                console.log(modalData);
+                self.execute_operation('create_from_bash_command', modalData)
+                .done(function(responseData, textStatus, jqXHR) {
+                })
+                .fail(function() {
+                    console.log( "An error occured" );
+                });
+            });
         } else {
             console.log(dropData);
         }

@@ -258,6 +258,11 @@ function fillForm(formID, formIDCustom, isUpdate, formData) {
             if (imp.attr('type') == 'checkbox') {
                 imp.prop( "checked", form_custom_config[key] );
             }
+
+            // textarea
+            var imp = $('#'+formIDCustom).find('textarea[name='+key+']');
+            imp.val(form_custom_config[key]);
+
             // select
             $('#'+formIDCustom).find('select[name='+key+']').val(form_custom_config[key]);
 
@@ -313,6 +318,14 @@ function create_html_from_json(pName, j, isUpdate) {
                 }
                 elem.appendChild(domOption);
             }
+            break;
+        case "textarea":
+            elem.setAttribute("placeholder", j.placeholder);
+            elem.setAttribute("type", j.inputType);
+            elem.setAttribute("min", j.min);
+            elem.setAttribute("max", j.max);
+            elem.setAttribute("step", j.step);
+            elem.setAttribute("value", j.default);
             break;
         default:
             break;

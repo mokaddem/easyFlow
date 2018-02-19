@@ -141,12 +141,14 @@ function draw() {
 
     $( "body" ).keydown(function( event ) {
         if (!innerRepresentation.isProjectOpen()) {return;}
+        if (document.activeElement.nodeName != 'BODY') { return; }
         if ( event.which == 17 ) {
             $('button[name="pipe"]').click();
         }
     });
     $( "body" ).keyup(function( event ) {
         if (!innerRepresentation.isProjectOpen()) {return;}
+        if (document.activeElement.nodeName != 'BODY') { return; }
         if (event.which == 17) { // CTRL
             var btnPipe = $('button[name="pipe"]');
             btnPipe.attr('activated', true)
@@ -375,7 +377,8 @@ function draw() {
         },
         nodes: {
           shape: 'box',
-          font: {size: 24}
+          font: {size: 24},
+          color: {border: '#7b7b7b', background: '#a9a5a5'}
         },
         interaction: {dragNodes :false},
     });

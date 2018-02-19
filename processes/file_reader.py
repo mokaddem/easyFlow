@@ -5,7 +5,7 @@ sys.path.append(os.environ['FLOW_HOME'])
 
 from process import Process
 
-class File_reader(Process):
+    class File_reader(Process_no_input):
     def process_message(self, msg, **kargs):
         try:
             with open(msg, 'r') as f:

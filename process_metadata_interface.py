@@ -102,8 +102,8 @@ class Process_representation:
         self.y = data.get('y', 0)
         self.name = data['name']
         self.type = data['type']
-        self.description = data['description']
-        self.bulletin_level = data['bulletin_level']
+        self.description = data.get('description', '')
+        self.bulletin_level = data.get('bulletin_level', 'INFO')
         self.custom_config = data.get('custom_config', {})
         self._subprocessObj = data.get('subprocessObj', None) # /!\ may be a subprocess or psutil object
         self.projectUUID = data['projectUUID']
@@ -112,8 +112,8 @@ class Process_representation:
     def update(self, data):
         self.name = data['name']
         self.type = data['type']
-        self.description = data['description']
-        self.bulletin_level = data['bulletin_level']
+        self.description = data.get('description', '')
+        self.bulletin_level = data.get('bulletin_level')
         self.custom_config = data.get('custom_config', {})
 
     def gen_process_config(self):
@@ -152,10 +152,10 @@ class Link_representation:
     def __init__(self, data):
         self.buuid = data['buuid']
         self.name = data['name']
-        self.x = data['x']
-        self.y = data['y']
+        self.x = data.get('x', 0)
+        self.y = data.get('y', 0)
         self.type = data['type']
-        self.description = data['description']
+        self.description = data.get('description', '')
         self.projectUUID = data['projectUUID']
         self.fromUUID = data['fromUUID']
         self.toUUID = data['toUUID']

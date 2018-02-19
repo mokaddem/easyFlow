@@ -318,6 +318,7 @@ class FlowControl {
     execute_operation(operation, data, quick) {
         quick = quick === undefined ? false : quick;
         data.operation = operation;
+        console.log(data);
         return $.ajax({
             type: "POST",
             url: url_flow_operation,

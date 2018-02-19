@@ -10,10 +10,16 @@ import subprocess, shlex
 class Execute_script(Process_no_input):
     def generate_data(self):
         script_interpreter = self.custom_config['script_interpreter']
-        filepath = self.custom_config['filepath']
+        if self.custom_config['script_source'] == 'From_file':
+            filepath = self.custom_config['script_source_script_path']
+            args = shlex.split('{script_interpreter} {filepath}'.format(script_interpreter=script_interpreter, filepath=filepath))
+            self.logger.info('Starting script %s', filepath)
 
-        args = shlex.split('{script_interpreter} {filepath}'.format(script_interpreter=script_interpreter, filepath=filepath))
-        self.logger.info('Starting script %s', filepath)
+        else:
+            to_exec = self.custom_config['script_source_input_text']
+            args = shlex.split('{script_interpreter} {to_exec}'.format(script_interpreter=script_interpreter, to_exec=to_exec))
+            self.logger.info('Starting raw script (%s)', self.name)
+
         self.custom_message = "Processing"
         proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 

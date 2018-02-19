@@ -420,7 +420,6 @@ class Process_manager:
             self.logger.debug('Updated process "%s" [%s]', self.processes[puuid].name, puuid)
             return self.processes[puuid]
         else: # only generate the new configuration
-            print(data)
             data['projectUUID'] = self.projectUUID
             process_config = Process_representation(data)
             return process_config
@@ -451,19 +450,27 @@ class Process_manager:
 
     def update_link(self, data):
         buuid = data.get('buuid', None)
-        self.logger.info('Updating buffer: "%s"', data.get('name', 'unamed'))
-        # gen config
-        prev_conf = self.buffers[buuid]
-        # merge and overwrite config
-        for k, v in data.items():
-            setattr(prev_conf, k, v)
+        if buuid is None:
+            return {'state': 'error: buuid is None'}
 
-        buffer_config = Link_representation(prev_conf.get_dico())
-        self._serv.set('config_'+buuid, buffer_config.toJSON())
+        if buuid in self.buffers:
+            self.logger.info('Updating buffer: "%s"', data.get('name', 'unamed'))
+            # gen config
+            prev_conf = self.buffers[buuid]
+            # merge and overwrite config
+            for k, v in data.items():
+                setattr(prev_conf, k, v)
 
-        # add it to self.buffers
-        self.buffers[buuid] = buffer_config
-        return buffer_config
+            buffer_config = Link_representation(prev_conf.get_dico())
+            self._serv.set('config_'+buuid, buffer_config.toJSON())
+
+            # add it to self.buffers
+            self.buffers[buuid] = buffer_config
+            return buffer_config
+        else: # only generate the new configuration
+            data['projectUUID'] = self.projectUUID
+            buffer_config = Link_representation(data)
+            return buffer_config
 
     def delete_link(self, buuid):
         if buuid in self.buffers:

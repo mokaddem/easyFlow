@@ -35,9 +35,9 @@ class Tshark_extract_fields(Process):
     def process_message(self, msg, **kargs):
         # msg is filepath
         self.logger.info('Processing file %s', msg)
-        self.fields_from_tshark(msg, self.custom_config['fields_list'], self.custom_config['filters'], **kargs)
+        self.fields_from_tshark(msg, self.custom_config['fields_list'], self.custom_config['filters'], self.custom_config['additional_parameters'], **kargs)
 
-    def fields_from_tshark(self, filepath, fields_list, filters, **kargs):
+    def fields_from_tshark(self, filepath, fields_list, filters, additional_parameters, **kargs):
         filepath = filepath.strip()
         to_return = []
 
@@ -50,8 +50,12 @@ class Tshark_extract_fields(Process):
             if f == 'timestamp': # timestamp is always present in tshark output
                 continue
             tshark_command += ['-e', f]
+        if additional_parameters != "":
+            tshark_command += additional_parameters.split()
+
         if filters != "":
-            tshark_command += ['\"'+filters+'\"']
+            # tshark_command += ['-Y', '\"'+filters+'\"']
+            tshark_command += ['-Y', filters]
 
         put_in_redis_directly = self.custom_config['put_in_redis_directly']
         if put_in_redis_directly:

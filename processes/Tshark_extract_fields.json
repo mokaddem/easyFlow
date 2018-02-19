@@ -1,6 +1,6 @@
 {
     "filters": {
-        "label": "Filtering command to be applyied",
+        "label": "Filtering command to be applied",
         "DOM": "input",
         "inputType": "text",
         "default": "",
@@ -15,6 +15,15 @@
         "default": "",
         "required": true,
         "placeholder": "List of fields comma separeted (e.g. timestamp,ip.src,ip.dst)",
+        "dynamic_change": true
+    },
+    "additional_parameters": {
+        "label": "Additional parameters",
+        "DOM": "input",
+        "inputType": "text",
+        "default": "",
+        "placeholder": "parameters",
+        "required": false,
         "dynamic_change": true
     },
     "put_in_redis_directly": {

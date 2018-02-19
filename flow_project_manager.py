@@ -371,6 +371,7 @@ class Project:
             cur_proc = []   # currently added processes
             rawBashCommand = data['bashCommand']
             parsed_command = BashCommandParser(rawBashCommand).get()
+            print(parsed_command)
             for index_proc_list, arguments in enumerate(parsed_command): # for each level-process
                 pipe_num = arguments['options']['pipe_num']
                 pipe_type = arguments['options']['pipe_type']
@@ -388,71 +389,67 @@ class Project:
                         'projectUUID': self.projectUUID,
                         'custom_config': custom_config
                     }
-                    process_config = self._process_manager.update_process(conf)
-                    puuid = process_config.puuid
-                    self.processes[puuid] = self.filter_correct_init_fields(process_config.get_dico())
-                    self.processNum += 1
+                    puuid = self.util_create_process(conf)
                     cur_proc.append(puuid)
 
                 # create links
-                print(pipe_type)
                 if pipe_type == NORMAL_PIPE:
                     if index_proc_list == 0: # no link for the first process
                         pass
                     else:
+                        mux_uuid = None
                         for old_proc_uuid in prev_proc: # for each previously added proc (level-1)
                             if len(prev_proc) > 1: # need to add a mux_in
-                                # create_mux_in
-                                # link each old_proc_uuid to mux_in
-                                # old_proc_uuid = mux_uuid
-                            puuid = cur_proc[0] # only 1 proc in there anyway
-                            conf = self.util_create_buffer(old_proc_uuid, puuid)
-                            link_config = self._process_manager.update_link(conf)
-                            buuid = link_config.buuid
-                            if buuid == 0:
-                                return {'status': 'error'}
-                            self.buffers[buuid] = link_config.get_dico()
+                                # create_mux_in once
+                                mux_uuid = mux_uuid if mux_uuid is not None else self.util_create_mux(out=False)
+                                # link old_proc_uuid to mux_in
+                                self.util_create_buffer(old_proc_uuid, mux_uuid)
+                                # link mux_out to cur_puuid
+                        puuid = cur_proc[0] # only 1 proc in there anyway
+                        self.util_create_buffer(mux_uuid, puuid)
 
                 elif pipe_type == MULT_PIPE: # redirect all old to the newly created
-                    for old_proc_uuid in prev_proc: # for each previously added proc (level-1)
-                        if len(cur_proc) > 1: # need to add a mux_out
-                            # create_mux_out
-                            # link old_proc_uuid to mux_out
-                            # old_proc_uuid = mux_uuid
-                        for puuid in cur_proc:
-                            #old_proc_uuid -> puuid
-                            conf = self.util_create_buffer(old_proc_uuid, puuid)
-                            link_config = self._process_manager.update_link(conf)
-                            buuid = link_config.buuid
-                            if buuid == 0:
-                                return {'status': 'error'}
-                            self.buffers[buuid] = link_config.get_dico()
+                    if index_proc_list == 0: # no link for the first process
+                        pass
+                    else:
+                        for old_proc_uuid in prev_proc: # for each previously added proc (level-1)
+                            if len(cur_proc) > 1: # need to add a mux_out
+                                # create_mux_out
+                                mux_uuid = self.util_create_mux(out=True)
+                                # link old_proc_uuid to mux_out
+                                self.util_create_buffer(old_proc_uuid, mux_uuid)
+                                for puuid in cur_proc:
+                                    # link mux_out to cur_puuid
+                                    self.util_create_buffer(mux_uuid, puuid)
+                            else:
+                                #old_proc_uuid -> puuid
+                                self.util_create_buffer(old_proc_uuid, cur_proc[0])
 
                 elif pipe_type == INDIV_PIPE: # redirect all old to the newly created
-                    for old_uuid, cur_uuid in zip(prev_proc, cur_proc):
-                        #old_uuid -> cur_uuid
-                        conf = self.util_create_buffer(old_uuid, cur_uuid)
-                        link_config = self._process_manager.update_link(conf)
-                        buuid = link_config.buuid
-                        if buuid == 0:
-                            return {'status': 'error'}
-                        self.buffers[buuid] = link_config.get_dico()
+                    if index_proc_list == 0: # no link for the first process
+                        pass
+                    else:
+                        for old_uuid, cur_uuid in zip(prev_proc, cur_proc):
+                            # link old_uuid -> cur_uuid
+                            self.util_create_buffer(old_uuid, cur_uuid)
 
                 elif pipe_type == MULT_INDIV_PIPE: # redirect all old to the newly created
-                    for index, old_proc_uuid in enumerate(prev_proc): # for each previously added proc (level-1)
-                        if len(cur_proc) > 1: # need to add a mux_out
-                            # create_mux_out
-                            # link old_proc_uuid to mux_out
-                            # old_proc_uuid = mux_uuid
-                        for puuid in cur_proc[index*pipe_num:index*pipe_num+pipe_num]:
-                            #old_proc_uuid -> puuid
-                            conf = self.util_create_buffer(old_proc_uuid, puuid)
-                            print(pipe_type, old_proc_uuid, '->', puuid)
-                            link_config = self._process_manager.update_link(conf)
-                            buuid = link_config.buuid
-                            if buuid == 0:
-                                return {'status': 'error'}
-                            self.buffers[buuid] = link_config.get_dico()
+                    if index_proc_list == 0: # no link for the first process
+                        pass
+                    else:
+                        for index, old_proc_uuid in enumerate(prev_proc): # for each previously added proc (level-1)
+                            if len(cur_proc) > 1: # need to add a mux_out
+                                # create_mux_out
+                                mux_uuid = self.util_create_mux(out=True)
+                                # link old_proc_uuid to mux_out
+                                self.util_create_buffer(old_proc_uuid, mux_uuid)
+                                for puuid in cur_proc[index*pipe_num:index*pipe_num+pipe_num]:
+                                    # link mux_out to cur_puuid
+                                    self.util_create_buffer(mux_uuid, puuid)
+                            else:
+                                # link old_proc_uuid -> puuid
+                                puuid = cur_proc[index:index+1]
+                                self.util_create_buffer(old_proc_uuid, puuid)
 
                 prev_proc = cur_proc
                 cur_proc = []
@@ -475,8 +472,32 @@ class Project:
             'fromUUID': fromUUID,
             'toUUID': toUUID
         }
-        return conf
+        link_config = self._process_manager.update_link(conf)
+        buuid = link_config.buuid
+        self.buffers[buuid] = link_config.get_dico()
+        return buuid
 
+    def util_create_mux(self, out=True):
+        mux_type = 'multiplexer_out' if out else 'multiplexer_in'
+        conf = {
+            'name': "Mux_out",
+            'type': mux_type,
+            'description': '',
+            'puuid': 'process_' + genUUID(),
+            'projectUUID': self.projectUUID,
+            'custom_config': {'multiplex_logic': 'Interleave'}
+        }
+        mult_output_config = self._process_manager.update_process(conf)
+        mux_uuid = mult_output_config.puuid
+        self.processes[mux_uuid] = self.filter_correct_init_fields(mult_output_config.get_dico())
+        return mux_uuid
+
+    def util_create_process(self, conf):
+        process_config = self._process_manager.update_process(conf)
+        puuid = process_config.puuid
+        self.processes[puuid] = self.filter_correct_init_fields(process_config.get_dico())
+        self.processNum += 1
+        return puuid
 
 class Flow_project_manager:
     def __init__(self):

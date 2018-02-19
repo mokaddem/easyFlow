@@ -377,8 +377,8 @@ function draw() {
         },
         nodes: {
           shape: 'box',
-          font: {size: 24},
-          color: {border: '#7b7b7b', background: '#a9a5a5'}
+          font: {size: 24, color: '#39ff14'},
+          color: {border: '#afafaf', background: '#303030'}
         },
         interaction: {dragNodes :false},
     });

@@ -483,7 +483,10 @@ function generate_network_from_bash_command(bashCommand) {
         group 3 is number of duplicate ()
         group 4 is process name
     */
-    var res = []
+    var temp = []
+    var temp_tooltip = []
+    var prev_index = 0;
+    var prev_sepa = '| ';
     while((result = aggregated_regex.exec(bashCommand)) !== null) {
         // check for merge
         if (result[1].startsWith('*')) {
@@ -495,8 +498,19 @@ function generate_network_from_bash_command(bashCommand) {
         var num = 1;
         num = result[2] === undefined ? num  : parseInt(result[2]);
         num = result[3] === undefined ? num  : parseInt(result[3]);
-        var to_push = {name: result[4], num: num, duplicate: duplicate};
-        res.push(to_push);
+        var to_push = {name: result[4], num: num, duplicate: duplicate, tooltip: result[0]};
+        temp.push(to_push);
+        // tooltip comes from the second iteration
+        temp_tooltip.push(bashCommand.substring(prev_index, result.index).replace(prev_sepa, ''));
+        prev_index = result.index;
+        prev_sepa = result[1]
+    }
+    temp_tooltip.push(bashCommand.substring(prev_index, bashCommand.length).replace(prev_sepa, ''));
+
+    var res = [];
+    for (i=0; i<temp.length; i++) {
+        temp[i].tooltip = temp_tooltip[i+1];
+        res.push(temp[i]);
     }
 
     // draw nodes and edges
@@ -511,14 +525,14 @@ function generate_network_from_bash_command(bashCommand) {
         for (var j=0; j<proc.num; j++) { // for each current nodes
             if (!proc.duplicate) {
                 cur_id = String(i)+'-'+String(j);
-                nodes.add({id: cur_id, label: proc.name})
+                nodes.add({id: cur_id, label: proc.name, title: proc.tooltip})
                 save_prev_proc.push(cur_id)
             }
             if (i!=0) {
                 for (var pi=0; pi<prev_proc.length; pi++) { // for each previous nodes
                     if (proc.duplicate) {
                         cur_id = String(i)+'-'+String(j)+'-'+String(pi);
-                        nodes.add({id: cur_id, label: proc.name})
+                        nodes.add({id: cur_id, label: proc.name, title: proc.tooltip})
                         save_prev_proc.push(cur_id)
                     } else {
                         var cur_id_edge = String(i)+'-'+String(j)+'-'+String(pi)+'_edge';

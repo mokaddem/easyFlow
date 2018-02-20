@@ -1,12 +1,10 @@
 function construct_node(moduleName, moduleType, bytes, flowItem, time, cpu_load, memory_load, pid, state, message) {
-    var bytes_formated_in = bytes.bytes_in > 0 ? String((parseFloat(bytes.bytes_in)/1048576.0).toFixed(2)) : String(0);
-    var bytes_formated_out = bytes.bytes_out > 0 ? String((parseFloat(bytes.bytes_out)/1048576.0).toFixed(2)) : String(0);
-    var bytes_formated = bytes_formated_in + ' / ' + bytes_formated_out + ' MB';
+    var bytes_in = bytes.bytes_in > 0 ? parseFloat(bytes.bytes_in) : 0;
+    var bytes_out = bytes.bytes_out > 0 ? parseFloat(bytes.bytes_out) : 0;
+    var bytes_formated = format_memory(bytes_in) + ' / ' + format_memory(bytes_out);
 
-    var flowItem_formated_in = flowItem.flowItem_in > 0 ? String(flowItem.flowItem_in) : String(0);
-    var flowItem_formated_out = flowItem.flowItem_out > 0 ? String(flowItem.flowItem_out) : String(0);
-    var flowItem_formated = flowItem_formated_in + ' / ' + flowItem_formated_out + ' FlowItems';
-    var memory_load_formated = (memory_load > 0 ? String((parseFloat(memory_load)/1048576.0).toFixed(2)) : String(0)) + ' MB';
+    var flowItem_formated = format_numbers(flowItem.flowItem_in) + ' / ' + format_numbers(flowItem.flowItem_out) + ' FlowItems';
+    var memory_load_formated = (memory_load > 0 ? format_memory(parseFloat(memory_load)) : format_memory(0));
 
     var state_formated;
     switch (state) {
@@ -69,8 +67,8 @@ function construct_node(moduleName, moduleType, bytes, flowItem, time, cpu_load,
 
 function construct_buffer(bufferName, bytes, flowItem) {
     var simplified_view = $('#switch_simplified_view').prop('checked');
-    var bytes_formated = (bytes > 0 ? String((parseFloat(bytes)/1000000.0).toFixed(2)) : String(0)) + ' MB';
-    var flowItem_formated = parseFloat(flowItem) == NaN ? 0 : flowItem;
+    var bytes_formated = (bytes > 0 ? format_memory(parseFloat(bytes)) : format_memory(0));
+    var flowItem_formated = parseFloat(flowItem) == NaN ? 0 : format_numbers(flowItem);
     var mapObj = {
         '\{\{bufferName\}\}':   bufferName,
         '\{\{bytes\}\}':        bytes_formated,
@@ -233,44 +231,44 @@ class InnerRepresentation {
         } else {
             var sparklineBI = $('.inlinesparklineBI').sparkline(jStats['bytes_in_history'],{width: '40%', height: '35px', chartRangeMin: 0,
                 tooltipFormatter: function (sparkline, options, fields) {
-                    return "" + sparklineDateFormatter(fields.x) + " - " + sparklineMbFormatter(fields.y) + "";
+                    return "" + sparklineDateFormatter(fields.x) + " - " + format_memory(fields.y) + "";
                 }
             });
             // $('#inlinesparklineBI_max').text();
             var sparklineBO = $('.inlinesparklineBO').sparkline(jStats['bytes_out_history'],{width: '40%', height: '35px', chartRangeMin: 0,
                 tooltipFormatter: function (sparkline, options, fields) {
-                    return "" + sparklineDateFormatter(fields.x) + " - " + sparklineMbFormatter(fields.y) + "";
+                    return "" + sparklineDateFormatter(fields.x) + " - " + format_memory(fields.y) + "";
                 }
             });
             var sparklineFI = $('.inlinesparklineFI').sparkline(jStats['flowItem_in_history'],{width: '40%', height: '35px', chartRangeMin: 0,
                 tooltipFormatter: function (sparkline, options, fields) {
-                    return "" + sparklineDateFormatter(fields.x) + " - " + fields.y + "";
+                    return "" + sparklineDateFormatter(fields.x) + " - " + format_numbers(fields.y) + "";
                 }
             });
             var sparklineFO = $('.inlinesparklineFO').sparkline(jStats['flowItem_out_history'],{width: '40%', height: '35px', chartRangeMin: 0,
                 tooltipFormatter: function (sparkline, options, fields) {
-                    return "" + sparklineDateFormatter(fields.x) + " - " + fields.y + "";
+                    return "" + sparklineDateFormatter(fields.x) + " - " + format_numbers(fields.y) + "";
                 }
             });
 
             var sparklineBI_speed = $('.inlinesparklineBI_speed').sparkline(jStats['bytes_in_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
                 tooltipFormatter: function (sparkline, options, fields) {
-                    return "" + sparklineDateFormatter(fields.x) + " - " + sparklineMbFormatter(fields.y) + "";
+                    return "" + sparklineDateFormatter(fields.x) + " - " + format_memory(fields.y) + "";
                 }
             });
             var sparklineBO_speed = $('.inlinesparklineBO_speed').sparkline(jStats['bytes_out_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
                 tooltipFormatter: function (sparkline, options, fields) {
-                    return "" + sparklineDateFormatter(fields.x) + " - " + sparklineMbFormatter(fields.y) + "";
+                    return "" + sparklineDateFormatter(fields.x) + " - " + format_memory(fields.y) + "";
                 }
             });
             var sparklineFI_speed = $('.inlinesparklineFI_speed').sparkline(jStats['flowItem_in_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
                 tooltipFormatter: function (sparkline, options, fields) {
-                    return "" + sparklineDateFormatter(fields.x) + " - " + fields.y + "";
+                    return "" + sparklineDateFormatter(fields.x) + " - " + format_numbers(fields.y) + "";
                 }
             });
             var sparklineFO_speed = $('.inlinesparklineFO_speed').sparkline(jStats['flowItem_out_speed'],{width: '40%', height: '35px', chartRangeMin: 0,
                 tooltipFormatter: function (sparkline, options, fields) {
-                    return "" + sparklineDateFormatter(fields.x) + " - " + fields.y + "";
+                    return "" + sparklineDateFormatter(fields.x) + " - " + format_numbers(fields.y) + "";
                 }
             });
         }
@@ -279,26 +277,26 @@ class InnerRepresentation {
     update_sparkline_stats() {
         var sparkline_system_load = $('#process_cpu_load_spark').sparkline(this.system_stats.cpu_load.get(),{width: '150px', height: '35px', chartRangeMin: 0, chartRangeMax: max_cpu_load,
             tooltipFormatter: function (sparkline, options, fields) {
-                return "" + sparklineDateFormatter(fields.x) + " - " + fields.y + " %";
+                return "" + sparklineDateFormatter(fields.x) + " - " + format_numbers(fields.y) + " %";
             }
         });
         var sparkline_memory_load = $('#process_memory_load_spark').sparkline(this.system_stats.memory_load.get(),{width: '150px', height: '35px', chartRangeMin: 0, chartRangeMax: max_memory_load,
         tooltipFormatter: function (sparkline, options, fields) {
-            return "" + sparklineDateFormatter(fields.x) + " - " + sparklineMbFormatter(fields.y) + "";
+            return "" + sparklineDateFormatter(fields.x) + " - " + format_memory(fields.y) + "";
         }
         });
         var sparkline_buffered_item = $('#buffered_item_spark').sparkline(this.system_stats.buffered_item.get(),{width: '150px', height: '35px', chartRangeMin: 0, chartRangeMax: this.system_stats.buffered_item.getMax(),
             tooltipFormatter: function (sparkline, options, fields) {
-                return "" + sparklineDateFormatter(fields.x) + " - " + fields.y + "";
+                return "" + sparklineDateFormatter(fields.x) + " - " + format_numbers(fields.y) + "";
             }
         });
-        $('#stats_pannel_buffered_items_max').text(this.system_stats.buffered_item.getMax());
+        $('#stats_pannel_buffered_items_max').text(format_numbers(this.system_stats.buffered_item.getMax()));
         var sparkline_buffered_bytes = $('#buffered_bytes_spark').sparkline(this.system_stats.buffered_bytes.get(),{width: '150px', height: '35px', chartRangeMin: 0, chartRangeMax: this.system_stats.buffered_bytes.getMax(),
             tooltipFormatter: function (sparkline, options, fields) {
-                return "" + sparklineDateFormatter(fields.x) + " - " + sparklineMbFormatter(fields.y) + "";
+                return "" + sparklineDateFormatter(fields.x) + " - " + format_memory(fields.y) + "";
             }
         });
-        $('#stats_pannel_buffered_bytes_max').text(String((this.system_stats.buffered_bytes.getMax()/1048576.0).toFixed(2))+'MB');
+        $('#stats_pannel_buffered_bytes_max').text(format_memory(this.system_stats.buffered_bytes.getMax()));
     }
 
     update_nodes(processes, buffers) {

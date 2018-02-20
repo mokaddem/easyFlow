@@ -40,6 +40,38 @@ class timed_sliding_array {
     }
 }
 
+function format_memory(value) {
+    if (value == undefined) {
+        return '';
+    }
+
+    if (value <= 999) { // Bytes
+        return String(value)+' B';
+    } else if (value <= 999*1024) { // KB
+        return String((value/1024.0).toFixed(2))+' KB';
+    } else if (value <= 999*1024*1024) { // MB
+        return String((value/(1024.0*1024.0)).toFixed(2))+' MB';
+    } else { // GB
+        return String((value/(1024.0*1024.0*1024.0)).toFixed(2))+' GB';
+    }
+}
+
+function format_numbers(value) {
+    if (value == undefined) {
+        return '';
+    }
+
+    if (value <= 999) {
+        return String(value);
+    } else if (value <= 999999) {
+        return String((value/1000).toFixed(2))+' K';
+    } else if (value <= 999999999) {
+        return String((value/(1000*1000)).toFixed(2))+' M';
+    } else { // GB
+        return String((value/(1000*1000*1000)).toFixed(2))+' G';
+    }
+}
+
 function objectToArray(obj) {
     return Object.keys(obj).map(function (key) {
         obj[key].id = key;

@@ -215,6 +215,9 @@ function draw() {
     $('#pcontrol_empty').click(function(){
         flowControl.empty_buffer();
     });
+    $('#shutdown_project').click(function(){
+        flowControl.shutdown_project();
+    });
 
     $('#tabProcessCustomSettings').click(function(){
         $($(this).attr('href')).find('select').map(function() {

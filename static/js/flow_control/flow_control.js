@@ -34,6 +34,11 @@ class FlowControl {
             this.execute_operation('empty_buffer', {buuid: uuids}, false);
         }
     }
+    shutdown_project() {
+        if (confirm("Confirm: Shutdown project?")) {
+            this.execute_operation('kill_all', {}, false);
+        }
+    }
     get_logs() {
         if (this.selected.length > 0) {
             var uuid = this.selected[0];

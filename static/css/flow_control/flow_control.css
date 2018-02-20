@@ -101,8 +101,10 @@ div.sparkline > canvas {
 
 #networkToolbar {
     height: 65px;
-    width: calc(100% - 350px);
-    left: 350px;
+    /*width: calc(100% - 350px);*/
+    width: 100%;
+    /*left: 350px;*/
+    left: 0px;
     padding: 3px;
     position: absolute;
     display: flex;

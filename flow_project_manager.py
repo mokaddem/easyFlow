@@ -327,6 +327,10 @@ class Project:
             self._start_command_already_called = True
             return {'status': 'sucess' }
 
+        elif operation == 'kill_all':
+            self._process_manager.shutdown()
+            return {'status': 'sucess' }
+
         elif operation == 'clone':
             uuid_mapping = {}
             uuid_buffers = []

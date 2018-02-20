@@ -21,7 +21,7 @@ class Execute_script(Process_no_input):
             self.logger.info('Starting raw script (%s)', self.name)
 
         # remove bash temporarily
-        # args = args[1:] if args[0] == 'bash' else args
+        args = args[1:] if args[0] == 'bash' else args
         self.custom_message = "Processing"
         proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 

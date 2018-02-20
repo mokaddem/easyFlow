@@ -167,14 +167,14 @@ function notify(title, message, type) {
 }
 
 function format_proc_data(moduleName, puuid, moduleType, bytes, flowItem, time, cpu_load, memory_load, pid, state, message) {
-    var bytes_formated_in = bytes.bytes_in > 0 ? String((parseFloat(bytes.bytes_in)/1048576.0).toFixed(2)) : String(0);
-    var bytes_formated_out = bytes.bytes_out > 0 ? String((parseFloat(bytes.bytes_out)/1048576.0).toFixed(2)) : String(0);
-    var bytes_formated = bytes_formated_in + ' / ' + bytes_formated_out + ' MB';
+    var bytes_formated_in = bytes.bytes_in > 0 ? format_memory(bytes.bytes_in) : format_memory(0);
+    var bytes_formated_out = bytes.bytes_out > 0 ? format_memory(bytes.bytes_out) : format_memory(0);
+    var bytes_formated = bytes_formated_in + ' / ' + bytes_formated_out;
 
-    var flowItem_formated_in = flowItem.flowItem_in > 0 ? String(flowItem.flowItem_in) : String(0);
-    var flowItem_formated_out = flowItem.flowItem_out > 0 ? String(flowItem.flowItem_out) : String(0);
+    var flowItem_formated_in = flowItem.flowItem_in > 0 ? format_numbers(flowItem.flowItem_in) : format_numbers(0);
+    var flowItem_formated_out = flowItem.flowItem_out > 0 ? format_numbers(flowItem.flowItem_out) : format_numbers(0);
     var flowItem_formated = flowItem_formated_in + ' / ' + flowItem_formated_out + ' FlowItems';
-    var memory_load_formated = (memory_load > 0 ? String((parseFloat(memory_load)/1048576.0).toFixed(2)) : String(0)) + ' MB';
+    var memory_load_formated = memory_load > 0 ? format_memory(memory_load) : format_memory(0);
 
     cpu_load = cpu_load>0 ? cpu_load : 0;
     time = time!='?' ? time : 0;

@@ -5,7 +5,7 @@ function draw() {
         nodes: innerRepresentation.nodes,
         edges: innerRepresentation.edges
     };
-    var options = {
+    var network_options = {
         physics:{
             barnesHut: {
               springConstant: 0.4,
@@ -95,7 +95,7 @@ function draw() {
         }
     };
 
-    network = new vis.Network(container, data, options);
+    network = new vis.Network(container, data, network_options);
     var options = {
         offset: {x: 0,y: 0},
         duration: 1,
@@ -303,6 +303,15 @@ function draw() {
 
     $('#switch_simplified_view').change(function() {
         innerRepresentation.resync_representation();
+        // change option network options
+        if ($('#switch_simplified_view').prop('checked')) {
+            network_options['layout']['hierarchical']['levelSeparation'] = 200;
+            network_options['layout']['hierarchical']['nodeSpacing'] = 85;
+        } else {
+            network_options['layout']['hierarchical']['levelSeparation'] = 300;
+            network_options['layout']['hierarchical']['nodeSpacing'] = 200;
+        }
+        network.setOptions(network_options);
     });
 
     // draggable

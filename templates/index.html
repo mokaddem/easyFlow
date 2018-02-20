@@ -102,6 +102,7 @@
         var sparkline = null;
 
         var networkParseBash;
+        var network_options;
 
         var auto_refresh_rate = {{ auto_refresh_rate }};
     </script>
@@ -136,7 +137,7 @@
         <div id="controlPanel" class="panel panel-info controlPanel">
             <div class="panel-heading" style="height: 42px;">
                 <span id='selectedNodeName'></span>
-                <span id='selectedNodeID'></span>
+                <!-- <span id='selectedNodeID'></span> -->
             </div>
             <div class="panel-body" style="padding: 0px;">
                 <div>
@@ -284,7 +285,7 @@
 
             <div style="margin-left: 5px; margin-right: 20px">
                 <label class="switch-small" style="vertical-align:inherit;">
-                    <input id="switch_simplified_view" type="checkbox" checked>
+                    <input id="switch_simplified_view" type="checkbox">
                     <span class="slider-small round"></span>
                     <span style="vertical-align: middle; display: inline-block; cursor: pointer;">Light view</span>
                 </label>

@@ -20,9 +20,19 @@ class Execute_script(Process_no_input):
             args = shlex.split('{script_interpreter} {to_exec}'.format(script_interpreter=script_interpreter, to_exec=to_exec))
             self.logger.info('Starting raw script (%s)', self.name)
 
+        # remove bash temporarily
+        # args = args[1:] if args[0] == 'bash' else args
         self.custom_message = "Processing"
         proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 
+        # stderr
+        while True:
+            output = proc.stderr.readline()
+            if output == '' and proc.poll() is not None:
+                break
+            self.logger.error('Error during command execution: %s', output.strip())
+
+        # stdout
         complete_output = ""
         while True:
             output = proc.stdout.readline()
@@ -35,7 +45,7 @@ class Execute_script(Process_no_input):
                     complete_output += output
         rc = proc.poll()
 
-        self.logger.info("%s", complete_output)
+        self.logger.debug("Output of the command: %s", complete_output)
 
         if not self.custom_config['line_by_line_forward']:
             self.forward(complete_output)

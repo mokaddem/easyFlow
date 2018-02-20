@@ -75,7 +75,7 @@ class Process_manager:
             # register buffers
             for buuid, bufData in buffers_to_register.items():
                 # delete any state before starting
-                self._buffer_metadata_interface.clear_info(buuid)
+                # self._buffer_metadata_interface.clear_info(buuid)
                 buffer_config = Link_representation(bufData)
                 self.buffers[buuid] = buffer_config
                 self.buffers_uuid.add(buuid)
@@ -94,7 +94,7 @@ class Process_manager:
         self.logger.debug('Getting processes info')
         info = []
         process_uuids_to_be_force_reloaded = []
-        for puuid in self.processes_uuid:
+        for puuid in list(self.processes_uuid):
 
             pinfo = self._metadata_interface.get_info(puuid)
 

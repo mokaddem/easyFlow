@@ -691,31 +691,30 @@ class InnerRepresentation {
                     "dataSrc": ""
                 },
                 "fnRowCallback": function( nRow, aData, iDisplayIndex, iDisplayIndexFull ) {
-                    // Bold the grade for all 'A' grade browsers
-                    nRow.classList.add('success')
+                    // nRow.classList.add('success')
                     switch (aData.log_level) {
                         case 'DEBUG':
-                            setTimeout(function() {
-                                nRow.classList.remove('success');
-                            }, 700);
+                            // setTimeout(function() {
+                            //     nRow.classList.remove('success');
+                            // }, 700);
                             break;
                         case 'INFO':
-                            setTimeout(function() {
-                                nRow.classList.remove('success');
+                            // setTimeout(function() {
+                            //     nRow.classList.remove('success');
                                 nRow.classList.add('info');
-                            }, 700);
+                            // }, 700);
                             break;
                         case 'WARNING':
-                            setTimeout(function() {
-                                nRow.classList.remove('success');
+                            // setTimeout(function() {
+                            //     nRow.classList.remove('success');
                                 nRow.classList.add('warning')
-                            }, 700);
+                            // }, 700);
                             break;
                         case 'ERROR':
-                            setTimeout(function() {
-                                nRow.classList.remove('success');
+                            // setTimeout(function() {
+                            //     nRow.classList.remove('success');
                                 nRow.classList.add('danger')
-                            }, 700);
+                            // }, 700);
                             break;
                         case 'NONE':
                             break;

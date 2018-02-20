@@ -341,8 +341,6 @@ class Project:
                     uuid_mapping[uuid] = new_puuid # register the mapping
                     self.processes[new_puuid] = self.filter_correct_init_fields(node_conf)
                     self.processNum += 1
-                    import pprint
-                    pprint.pprint(node_conf)
 
                 elif uuid.startswith('buffer_'): # save buffers uuid so that the mapping complete
                     uuid_buffers.append(uuid)
@@ -371,7 +369,7 @@ class Project:
             cur_proc = []   # currently added processes
             rawBashCommand = data['bashCommand']
             parsed_command = BashCommandParser(rawBashCommand).get()
-            print(parsed_command)
+
             for index_proc_list, arguments in enumerate(parsed_command): # for each level-process
                 pipe_num = arguments['options']['pipe_num']
                 pipe_type = arguments['options']['pipe_type']
@@ -380,7 +378,10 @@ class Project:
                 multiplier = len(prev_proc) if duplicate else 1 # should we clone a process for each newly created process
                 for proc_num in range(pipe_num*multiplier): # for each requested process number (level)
                     # create processes
-                    process_type, custom_config = generate_execute_script_conf(arguments['procType'], arguments['options']['raw'])
+                    process_type, custom_config = generate_execute_script_conf(
+                        arguments['procType'],
+                        arguments['options']['raw'],
+                        chaining=index_proc_list>0) # chain if in the middle of the chain
                     conf = {
                         'name': arguments['procType'],
                         'type': process_type,
@@ -405,6 +406,8 @@ class Project:
                                 # link old_proc_uuid to mux_in
                                 self.util_create_buffer(old_proc_uuid, mux_uuid)
                                 # link mux_out to cur_puuid
+                            else:
+                                mux_uuid = old_proc_uuid # just to bypass mux
                         puuid = cur_proc[0] # only 1 proc in there anyway
                         self.util_create_buffer(mux_uuid, puuid)
 

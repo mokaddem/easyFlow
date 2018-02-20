@@ -47,14 +47,14 @@ class Process(metaclass=ABCMeta):
         self.logger.setLevel(logging.INFO)
         formatter = logging.Formatter('%(levelname)s[%(asctime)s]: %(message)s')
         self._log_handler = logging.FileHandler(os.path.join(os.environ['FLOW_LOGS'], '{}.log'.format(self.puuid)))
-        self._log_handler.setLevel(logging.INFO)
+        # self._log_handler.setLevel(logging.INFO)
         self._log_handler.setFormatter(formatter)
         self.logger.addHandler(self._log_handler)
         pub = zmqContext().socket(zmqPUB)
         pub.connect('tcp://{}:{}'.format(self.config.server.host, self.config.zmq.port))
         self._pubhandler = PUBHandler(pub)
         self._pubhandler.root_topic = self.puuid
-        self._pubhandler.setLevel(logging.INFO)
+        # self._pubhandler.setLevel(logging.INFO)
         self.logger.addHandler(self._pubhandler)
 
         self.update_config()
@@ -107,20 +107,20 @@ class Process(metaclass=ABCMeta):
         if self.logger: # update logging level
             if self.bulletin_level == 'DEBUG':
                 self.logger.setLevel(logging.DEBUG)
-                self._log_handler.setLevel(logging.DEBUG)
-                self._pubhandler.setLevel(logging.DEBUG)
+                # self._log_handler.setLevel(logging.DEBUG)
+                # self._pubhandler.setLevel(logging.DEBUG)
             elif self.bulletin_level == 'INFO':
                 self.logger.setLevel(logging.INFO)
-                self._log_handler.setLevel(logging.INFO)
-                self._pubhandler.setLevel(logging.INFO)
+                # self._log_handler.setLevel(logging.INFO)
+                # self._pubhandler.setLevel(logging.INFO)
             elif self.bulletin_level == 'WARNING':
                 self.logger.setLevel(logging.WARNING)
-                self._pubhandler.setLevel(logging.WARNING)
-                self._log_handler.setLevel(logging.WARNING)
+                # self._pubhandler.setLevel(logging.WARNING)
+                # self._log_handler.setLevel(logging.WARNING)
             elif self.bulletin_level == 'ERROR':
                 self.logger.setLevel(logging.ERROR)
-                self._pubhandler.setLevel(logging.ERROR)
-                self._log_handler.setLevel(logging.ERROR)
+                # self._pubhandler.setLevel(logging.ERROR)
+                # self._log_handler.setLevel(logging.ERROR)
 
         self.x = configData.get('x', 0)
         self.y = configData.get('y', 0)
@@ -293,19 +293,24 @@ class Process(metaclass=ABCMeta):
         self.state = 'running'
 
     def shutdown(self):
-        pass
+        self.post_run()
         #sys.exit(0) # create zombie, should not be called
 
     def log_to_zmq(self, should_log):
         if should_log:
-            self._log_handler.setLevel(self.logger.getEffectiveLevel())
+            self._pubhandler.setLevel(self.logger.getEffectiveLevel())
             self.logger.info('Started logging to ZMQ')
         else:
-            self._log_handler.setLevel(logging.CRITICAL)
+            self._pubhandler.setLevel(logging.CRITICAL)
             self.logger.info('Stopped logging to ZMQ')
 
     # can be used to add variables in processes
     def pre_run(self):
+        pass
+
+
+    # can be used to execute a clean up
+    def post_run(self):
         pass
 
     # can be used to add operation in the process (such as empty buffer, execute transaction, ...)

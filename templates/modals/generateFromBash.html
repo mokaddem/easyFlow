@@ -1,0 +1,80 @@
+<div id="modalGenerateFromBash" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                 <h4 class="modal-title">Generate from bash command</h4>
+            </div><!-- /modal-header -->
+            <div class="modal-body">
+                <span id="showTableGenerateFromBash" class='glyphicon glyphicon-info-sign btn btn-info'></span>
+                <table id="tableGenerateFromBash" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Pipe type</th>
+                            <th>Effect</th>
+                            <th>Example</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>|</strong></td>
+                            <td>Simple bash pipe</td>
+                            <td>p1 <strong>|</strong> p2</td>
+                            <td><pre><code>p1 -> p2</code></pre></td>
+                        </tr>
+                        <tr>
+                            <td><strong>|{x}</strong></td>
+                            <td>Next process will be duplicated x time</td>
+                            <td>p1 <strong>|{2}</strong> p2 <strong>|</strong> p3</td>
+                            <td><pre><code>p1 -> p2.1 -> p3
+   -> p2.2</code></pre></td>
+                        </tr>
+                        <tr>
+                            <td><strong>*|</strong></td>
+                            <td>Process following will not merge but will be duplicated</td>
+                            <td>p1 <strong>|{2}</strong> p2 <strong>*|</strong> p3</td>
+                            <td><pre><code>p1 -> p2.1 -> p3.1
+   -> p2.2 -> p3.2</code></pre></td>
+                        </tr>
+                        <tr>
+                            <td><strong>*|{x}</strong></td>
+                            <td>Process following will not merge but will be duplicated x time</td>
+                            <td>p1 <strong>|{2}</strong> p2 <strong>*|{2}</strong> p3</td>
+                            <td><pre><code>p1 -> p2.1 -> p3.1.1
+           -> p3.1.2
+   -> p2.2 -> p3.2.1
+           -> p3.2.2</code></pre></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <form id="formGenerateFromBash">
+                    <div class="form-group">
+                        <label>Bash command</label>
+                        <textarea id="bashCommandInput" name="bashCommand" class="form-control" placeholder="ls /home/user/pcaps/ | tshark -e ip.src | echo" maxlength=150 required autofocus></textarea>
+                    </div>
+                </form>
+
+                <div id='GenerateFromBashNetwork' style='height: 500px; border: 1px solid #ddd; border-radius: 5px;'></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Process number</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id='GenerateFromBash_table_process_num'>0</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div><!-- /modal-body -->
+            <div class="modal-footer">
+                <button type="button" confirm="1" class="btn btn-primary" data-formID="formGenerateFromBash" data-modalID="modalGenerateFromBash">Create</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div><!-- /modal-content -->
+    </div><!-- /modal-dialog -->
+</div>

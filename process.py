@@ -246,7 +246,8 @@ class Process(metaclass=ABCMeta):
                 #         self._buffer_metadata_interface.push_info_from_pipeline()
                 #
                 #         self.logger.debug('No message, sleeping %s sec', self.config.default_project.process.pooling_time_interval_get_message)
-
+            elif self.state == 'exiting':
+                return
             else: # process paused
                 time.sleep(self.config.default_project.process.pooling_time_interval_get_message)
 
@@ -294,6 +295,7 @@ class Process(metaclass=ABCMeta):
 
     def shutdown(self):
         self.post_run()
+        self.state = 'exiting'
         #sys.exit(0) # create zombie, should not be called
 
     def log_to_zmq(self, should_log):

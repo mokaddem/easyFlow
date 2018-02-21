@@ -5,6 +5,8 @@ sys.path.append(os.environ['FLOW_HOME'])
 
 from process import Process
 import redis, datetime, time, json
+from subprocess import PIPE, Popen
+import shlex
 
 # available functions:
 #   self.forward(msg)   -> forwards messages to egress modules
@@ -17,6 +19,13 @@ import redis, datetime, time, json
 def getTimestamp(date):
     return int(time.mktime(date.timetuple()))
 
+def generate_redis_proto(cmd, key, value):
+    cmd_split = cmd.split()
+    proto = '*{argNum}\r\n'.format(argNum=3)
+    proto += '${argLen}\r\n{arg}\r\n'.format(argLen=len(cmd), arg=cmd)
+    proto += '${argLen}\r\n{arg}\r\n'.format(argLen=len(key), arg=key)
+    proto += '${argLen}\r\n{arg}\r\n'.format(argLen=len(value), arg=value)
+    return proto
 
 class Put_in_redis(Process):
 
@@ -32,10 +41,23 @@ class Put_in_redis(Process):
                 self.custom_config['redis_db']
             )
 
+        self.use_pipeline = self.custom_config['use_pipeline']
+
         if self.custom_config['keyname'] == "from_incomming_message":
             self.keynameField = self.custom_config['keyname_from_json_field']
             self.fields_list = self.custom_config['keyname_content_from_json_field'].split(',')
             self.harmonize_date = self.custom_config['keyname_harmonize_date'] if self.custom_config['keyname_harmonize_date'] != 'Do no harmonize' else False
+
+        if self.use_pipeline:
+            args = shlex.split('/home/sami/git/redis/src/redis-cli -s {unix_socket} -n {db} --pipe'.format(
+                unix_socket=self.custom_config['unix_socket'],
+                db=self.custom_config['redis_db']))
+            self._p_mass_insert = Popen(args, stdin=PIPE, universal_newlines=True)
+
+    def post_run(self):
+        if self.use_pipeline:
+            self._p_mass_insert.stdin.close()
+            self._p_mass_insert.wait()
 
     def generate_keyname_from_date(self, datetype, the_date=datetime.datetime.now()):
         if not isinstance(the_date, datetime.datetime):
@@ -66,15 +88,31 @@ class Put_in_redis(Process):
         return getTimestamp(the_date)
 
     def put_in_redis(self, keyname, content):
-        if self.custom_config['key_type'] == 'set':
-            self._database_server.sadd('set_'+str(keyname), content)
-        elif self.custom_config['key_type'] == 'zset':
-            self._database_server.zincrby('zset_'+str(keyname), content, 1.0)
-        else:
-            self.logger.error('invalid redis key type: %s', self.custom_config['key_type'])
 
-    def process_message(self, msg, channel, redirect):
-        if redirect: # if it is redirected, fetch the content
+        if self.use_pipeline:
+            cmd_type = self.custom_config['key_type']
+            proto_cmd = generate_redis_proto(cmd=cmd_type.upper(), key=str(keyname), value=str(content))
+            try:
+                self._p_mass_insert.stdin.write(proto_cmd)
+            except IOError as e:
+                if e.errno == errno.EPIPE or e.errno == errno.EINVAL:
+                    # Stop loop on "Invalid pipe" or "Invalid argument".
+                    # No sense in continuing with broken pipe.
+                    self.logger.info('Error: %s', str(e))
+                else:
+                    # Raise any other error.
+                    raise
+
+        else:
+            if self.custom_config['key_type'] == 'set':
+                self._database_server.sadd('set_'+str(keyname), content)
+            elif self.custom_config['key_type'] == 'zset':
+                self._database_server.zincrby('zset_'+str(keyname), content, 1.0)
+            else:
+                self.logger.error('invalid redis key type: %s', self.custom_config['key_type'])
+
+    def process_message(self, msg, **kargs):
+        if kargs.get('redirect', False): # if it is redirected, fetch the content
             msg = self._link_manager.fetch_content(msg)
         msg = json.loads(msg)
 

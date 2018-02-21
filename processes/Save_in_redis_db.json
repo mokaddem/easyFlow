@@ -96,5 +96,12 @@
         "dynamic_change": false,
         "inputType": "text",
         "required": false
+    },
+    "use_pipeline": {
+        "label": "Use pipeline mode",
+        "DOM": "input",
+        "inputType": "checkbox",
+        "default": false,
+        "dynamic_change": true
     }
 }

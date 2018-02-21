@@ -115,7 +115,7 @@ def get_arguments(procType, configList):
                 options['fields'].append(configList[i+1])
                 i += 1
 
-            elif keyword == '-f':
+            elif keyword == '-f' or keyword == '-Y':
                 # search for end of filter
                 for f_offset, fi in enumerate(configList[i+1:]):
                     if fi.endswith('\'') or fi.endswith('\"'):
@@ -164,6 +164,7 @@ def generate_execute_script_conf(process_type, command_raw, chaining=False):
         args = get_arguments('tshark', split_command)
         custom_config['fields_list'] = args.get('fields', '')
         custom_config['filters'] = args.get('filters', '')
+        custom_config['additional_parameters'] = args.get('unkown', '')
         custom_config['put_in_redis_directly'] = False
         custom_config['put_in_redis_directly_prepend_keyname'] = ''
     elif process_type == 'cat': # file_reader

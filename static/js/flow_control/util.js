@@ -42,7 +42,7 @@ class timed_sliding_array {
 
 function format_memory(value) {
     if (value == undefined) {
-        return '';
+        return 0;
     }
 
     if (value <= 999) { // Bytes
@@ -58,7 +58,7 @@ function format_memory(value) {
 
 function format_numbers(value) {
     if (value == undefined) {
-        return '';
+        return 0;
     }
 
     if (value <= 999) {

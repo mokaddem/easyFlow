@@ -333,7 +333,7 @@ class InnerRepresentation {
                     ),
                     size: get_node_size_from_type(node['type'])
                 });
-                sum_cpu_load += jStats['cpu_load']
+                sum_cpu_load += jStats['cpu_load']*2
                 sum_memory_load += jStats['memory_load']
                 // update table in control panel
                 if (flowControl.selected.length > 0 && node['puuid'] == flowControl.selected[0]) {
@@ -573,13 +573,14 @@ class InnerRepresentation {
                 }
 
                 if (selectedNodeType == 'process') {
-                    selectedProcUuid.push(innerRepresentation.processObj[value].puuid)
+                    selectedProcUuid.push(innerRepresentation.processObj[value].puuid);
                     if (index < arr.length-1) { // prevent adding ',' in the end
                         selectedNodesText += innerRepresentation.processObj[value].name+', ';
                     } else {
                         selectedNodesText += innerRepresentation.processObj[value].name;
                     }
                 } else if (selectedNodeType == 'buffer') {
+                    selectedProcUuid.push(innerRepresentation.bufferObj[value].buuid);
                     if (index < arr.length-1) { // prevent adding ',' in the end
                         selectedNodesText += innerRepresentation.bufferObj[value].name+', ';
                     } else {

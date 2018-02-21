@@ -8,7 +8,6 @@ import logging
 
 from util import genUUID, objToDictionnary, Config_parser
 from alerts_manager import Alert_manager
-from process_print_to_console import Print_to_console
 from process_metadata_interface import Process_metadata_interface, Process_representation, Link_representation, Buffer_metadata_interface
 easyFlow_conf = os.path.join(os.environ['FLOW_CONFIG'], 'easyFlow_conf.json')
 
@@ -178,7 +177,6 @@ class Process_manager:
         self.logger.info('Shutting down all processes (%s process(es))', len(self.processes.keys()))
         self.shutting_down_phase = True
         for puuid in list(self.processes):
-            # self.kill_process(puuid)
             self.stop_process(puuid)
 
         self._alert_manager.send_alert(
@@ -188,22 +186,7 @@ class Process_manager:
             group=self.projectUUID+'_processesClosing',
             totalCount=len(self.processes.keys())
         )
-        for puuid in self.processes.keys():
-            subProcObj = self.processes[puuid]._subprocessObj
-            try:
-                _, _ = subProcObj.communicate(timeout=2)
-            except subprocess.TimeoutExpired:
-                subProcObj.kill()
-                _, _ = subProcObj.communicate()
-            except AttributeError as e:
-                self.logger.info('Process %s [%s] was recovered from system, skipping communicate', self.processes[puuid].name, puuid)
-            self._alert_manager.send_alert(
-                title='Processes',
-                content='{} closed'.format(self.processes[puuid].name),
-                mType='info',
-                group=self.projectUUID+'_processesClosing',
-                totalCount=1
-            )
+
         self.shutting_down_phase = False
 
     def reload_states(self, process_uuids):
@@ -240,6 +223,7 @@ class Process_manager:
     def stop_process(self, puuid):
         if self.process_started_and_managed(puuid):
             self.logger.info('Stopping process "%s" [%s]', self.processes[puuid].name, puuid)
+            self.send_command(puuid, 'shutdown')
             self.kill_process(puuid)
             self.clean_up_process(puuid)
         else:
@@ -298,6 +282,13 @@ class Process_manager:
 
     def kill_process(self, puuid):
         subProcObj = self.processes[puuid]._subprocessObj
+        # try first to join with process, and then aggressively kill it
+        try:
+            _, _ = subProcObj.communicate(timeout=0.1)
+            return # we communicated
+        except subprocess.TimeoutExpired:
+            pass
+
         self.logger.info('Killing process "%s" [%s, pid=%s]', self.processes[puuid].name, puuid, subProcObj.pid)
         try:
             subProcObj.terminate()
@@ -490,4 +481,4 @@ class Process_manager:
 
     def empty_buffer(self, buuid):
         self.logger.info('Emptying buffer %s', self.buffers[buuid].name)
-        self._serv_buffers.delete(buuid)
+        self._buffer_metadata_interface.clear_info(buuid)

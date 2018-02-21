@@ -6,10 +6,21 @@ from time import sleep
 import os, time, sys
 import redis, json
 
+from subprocess import PIPE, Popen
+import shlex
+
 from util import genUUID, objToDictionnary, Config_parser
 from alerts_manager import Alert_manager
 from process_metadata_interface import Process_metadata_interface, Buffer_metadata_interface
 easyFlow_conf = os.path.join(os.environ['FLOW_CONFIG'], 'easyFlow_conf.json')
+
+def generate_redis_proto(cmd, key, value):
+    cmd_split = cmd.split()
+    proto = '*{argNum}\r\n'.format(argNum=3)
+    proto += '${argLen}\r\n{arg}\r\n'.format(argLen=len(cmd), arg=cmd)
+    proto += '${argLen}\r\n{arg}\r\n'.format(argLen=len(key), arg=key)
+    proto += '${argLen}\r\n{arg}\r\n'.format(argLen=len(value), arg=value)
+    return proto
 
 class Link_manager:
     def __init__(self, projectUUID, puuid, custom_config, logger):
@@ -27,6 +38,11 @@ class Link_manager:
         self.pipeline_threshold = 100
         self.pipeline_time_threshold = 1 # sec
         self.pipeline_lastpush = time.time()
+
+        self.use_super_pipe = False
+        if self.use_super_pipe:
+            args = shlex.split('/home/sami/git/redis/src/redis-cli -s {socket} --pipe'.format(socket=self.config.redis.buffers.unix_socket_path))
+            self._p_mass_insert = Popen(args, stdin=PIPE, universal_newlines=True)
 
         # register redis server for flowItem
         try:
@@ -90,15 +106,6 @@ class Link_manager:
             self._buffer_metadata_interface.push_info(self.ingress, flowItems_parsed['summed_size']) # decrease buffer size
             return flowItems_parsed['flowItems']
 
-            # if len(flowItems_raw) == 0:
-            #     return []
-            # else:
-            #     ret = []
-            #     for flowItem_raw in flowItems_raw:
-            #         flowItem = FlowItem(flowItem_raw, raw=True)
-            #         self._buffer_metadata_interface.push_info(self.ingress, -flowItem.size) # decrease buffer size
-            #         ret.append(flowItem)
-            #     return ret
         else:
             # Either return None or wait until part of the flow
             self.logger.warning('Process wanted to get message but no ingress connection is registered')
@@ -108,7 +115,11 @@ class Link_manager:
         if self.egress is not None:
             self._buffer_metadata_interface.push_info(self.egress, flowItem.size) # increase buffer size
 
-            if pipeline:
+            if pipeline and self.use_super_pipe:
+                proto_cmd = generate_redis_proto(cmd='lpush'.upper(), key=str(self.egress), value=str(flowItem))
+                self.push_flow_super_pipe(proto_cmd)
+
+            elif pipeline:
                 self.push_flow_pipeline(self.egress, flowItem)
             else:
                 self._serv_buffers.lpush(self.egress, flowItem)
@@ -126,6 +137,17 @@ class Link_manager:
             self._pipeline_buffers.execute()
             self.pipeline_counter = 0
             self.pipeline_lastpush = now
+
+    def push_flow_super_pipe(self, proto_cmd):
+        try:
+            self._p_mass_insert.stdin.write(proto_cmd)
+        except IOError as e:
+            if e.errno == errno.EPIPE or e.errno == errno.EINVAL:
+                # "Invalid pipe" or "Invalid argument".
+                pass
+            else:
+                # Raise any
+                raise
 
     def parse_raw_flowItem(self, flowItems_raw):
         if len(flowItems_raw) == 0:
@@ -205,6 +227,9 @@ class Multiple_link_manager(Link_manager):
             if procFrom == self.puuid:
                 self.egress.append(buuid)
 
+        # used to prevent returning empty list while there is still data in another connected buffer
+        self.buffers_empty = [False for i in range(len(self.ingress))]
+
         if self.is_switch: # custom_config contains buffer mapping {buuid: channel, ...}
             self.egress = {0: []}
             for buuid, channel in self.custom_config.items():
@@ -226,19 +251,21 @@ class Multiple_link_manager(Link_manager):
                     self.logger.warning('Unkown multiplexer logic')
 
                 flowItems_parsed = self.parse_raw_flowItem(flowItems_raw)
+
+                # set if buffer was empty or not
+                if len(flowItems_parsed['flowItems']) == 0:
+                    self.buffers_empty[self.interleave_index_get] = True
+                else:
+                    self.buffers_empty[self.interleave_index_get] = False
+
                 self._buffer_metadata_interface.push_info(self.ingress[self.interleave_index_get], flowItems_parsed['summed_size']) # decrease buffer size
                 self.inc_interleave_index_get()
-                return flowItems_parsed['flowItems']
-                # if len(flowItems_raw) == 0:
-                #     return []
-                # else:
-                #     ret = []
-                #     for flowItem_raw in flowItems_raw:
-                #         flowItem = FlowItem(flowItem_raw, raw=True)
-                #         self._buffer_metadata_interface.push_info(self.ingress[self.interleave_index_get], -flowItem.size) # decrease buffer size
-                #         ret.append(flowItem)
-                #     self.inc_interleave_index_get()
-                #     return ret
+
+                # we got no message from current buffer AND others buffers are not empty
+                if len(flowItems_parsed['flowItems']) == 0 and not all(self.buffers_empty):
+                    return self.get_flowItems(count=count)
+                else:
+                    return flowItems_parsed['flowItems']
 
             else: # same as simple link manager
                 flowItems_raw = self.buffer_pop(self.ingress[0], count=count)
@@ -265,7 +292,11 @@ class Multiple_link_manager(Link_manager):
             if self.multi_out: # custom logic: copy, dispatch
                 if multiplex_logic == 'Interleave':
                     self._buffer_metadata_interface.push_info(self.egress[self.interleave_index_push], flowItem.size) # increase buffer size
-                    self._serv_buffers.lpush(self.egress[self.interleave_index_push], flowItem)
+                    if pipeline and self.use_super_pipe:
+                        proto_cmd = generate_redis_proto(cmd='lpush'.upper(), key=str(self.egress[self.interleave_index_push]), value=str(flowItem))
+                        self.push_flow_super_pipe(proto_cmd)
+                    else:
+                        self._serv_buffers.lpush(self.egress[self.interleave_index_push], flowItem)
                     self.inc_interleave_index_push()
                 elif multiplex_logic == 'Priority':
                     self.logger.warning('Ignoring priority for the moment, falling back to "Interleave" multiplex_logic')
@@ -275,21 +306,33 @@ class Multiple_link_manager(Link_manager):
                 elif multiplex_logic == 'Duplicate':
                     for key in self.egress:
                         # self._serv_buffers.lpush(key, flowItem)
-                        self.push_flow_pipeline(key, flowItem)
+                        if self.use_super_pipe:
+                            proto_cmd = generate_redis_proto(cmd='lpush'.upper(), key=str(key), value=str(flowItem))
+                            self.push_flow_super_pipe(proto_cmd)
+                        else:
+                            self.push_flow_pipeline(key, flowItem)
                         self._buffer_metadata_interface.push_info(key, flowItem.size) # increase buffer size
                     pushed_count = len(self.egress)
                 elif multiplex_logic == 'Switch':
                     buuids = self.egress.get(flowItem.channel, []) # drop non valid channel
                     for buuid in buuids:
-                        self.push_flow_pipeline(buuid, flowItem)
+                        if self.use_super_pipe:
+                            proto_cmd = generate_redis_proto(cmd='lpush'.upper(), key=str(buuid), value=str(flowItem))
+                            self.push_flow_super_pipe(proto_cmd)
+                        else:
+                            self.push_flow_pipeline(buuid, flowItem)
                     pushed_count = len(buuids)
                     self._buffer_metadata_interface.push_info(buuid, flowItem.size*pushed_count) # increase buffer size
                 else:
                     self.logger.warning('Unkown multiplexer logic')
             else: # same as simple link manager
                 self._buffer_metadata_interface.push_info(self.egress[0], flowItem.size) # increase buffer size
-                # self._serv_buffers.lpush(self.egress[0], flowItem)
-                if pipeline:
+
+                if pipeline and self.use_super_pipe:
+                    proto_cmd = generate_redis_proto(cmd='lpush'.upper(), key=str(self.egress[0]), value=str(flowItem))
+                    self.push_flow_super_pipe(proto_cmd)
+
+                elif pipeline:
                     self.push_flow_pipeline(self.egress[0], flowItem)
                 else:
                     self._serv_buffers.lpush(self.egress[0], flowItem)

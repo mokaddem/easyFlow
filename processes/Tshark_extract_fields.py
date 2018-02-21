@@ -116,12 +116,12 @@ class Tshark_extract_fields(Process):
             # self.forward(dico, **kargs)
             # to_return.append(dico)
         # return to_return
-        self._alert_manager.send_alert(
-            title=self.name,
-            content='Finished processing file {}'.format(filepath),
-            mType='info',
-            group='singleton'
-        )
+        # self._alert_manager.send_alert(
+        #     title=self.name,
+        #     content='Finished processing file {}'.format(filepath),
+        #     mType='info',
+        #     group='singleton'
+        # )
 
         if put_in_redis_directly:
             p_mass_insert.stdin.close()

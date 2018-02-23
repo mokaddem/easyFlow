@@ -354,6 +354,38 @@
         </div>
     </div>
 
+    <div id='contextualMenu' class='contextual-menu' style='display: none;'>
+            <div class='c-m-top'>
+                <button id="context_menu_pcontrol_play" type="button" class="btn btn-success" disabled>
+                    <span class="glyphicon glyphicon-play"></span>
+                </button>
+                <button id="context_menu_pcontrol_pause" type="button" class="btn btn-warning" disabled>
+                    <span class="glyphicon glyphicon-pause"></span>
+                </button>
+                <button id="context_menu_pcontrol_stop" type="button" class="btn btn-danger" disabled>
+                    <span class="glyphicon glyphicon-stop"></span>
+                </button>
+            </div>
+            <button id="context_menu_pcontrol_edit" type="button" class="btn btn-default btn-dropdown" disabled>
+                <span class="glyphicon glyphicon-list-alt "></span> Edit configuration
+            </button>
+            <button id="context_menu_pcontrol_restart" type="button" class="btn btn-warning btn-dropdown" disabled>
+                <span class="glyphicon glyphicon-repeat"></span> Restart selected items
+            </button>
+            <button id="context_menu_pcontrol_empty" type="button" class="btn btn-danger btn-dropdown" style="display: none;">
+                <span class="glyphicon glyphicon-log-out"></span> Empty selected buffers
+            </button>
+            <button id="context_menu_pcontrol_clone" type="button" class="btn btn-default btn-dropdown" disabled>
+                <span class="glyphicon glyphicon-duplicate"></span> Clone selected items
+            </button>
+            <button id="context_menu_pcontrol_delete" type="button" class="btn btn-danger btn-dropdown" disabled>
+                <span class="glyphicon glyphicon-trash"></span> Delete selected items
+            </button>
+            <button id="context_menu_pcontrol_logs" type="button" class="btn btn-info" disabled>
+                <span class="glyphicon glyphicon-list-alt"></span> Consult logs
+            </button>
+    </div>
+
     <a id="downloadA" href="#"></a>
     <p id="selection"></p>
 </body>

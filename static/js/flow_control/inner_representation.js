@@ -621,15 +621,24 @@ class InnerRepresentation {
 
     setProcessControlButtonData(puuid) {
         $('#pcontrol_play').prop("disabled", false);
+        $('#context_menu_pcontrol_play').prop("disabled", false);
         $('#pcontrol_pause').prop("disabled", false);
+        $('#context_menu_pcontrol_pause').prop("disabled", false);
         $('#pcontrol_stop').prop("disabled", false);
+        $('#context_menu_pcontrol_stop').prop("disabled", false);
         $('#pcontrol_restart').prop("disabled", false);
+        $('#context_menu_pcontrol_restart').prop("disabled", false).show(0);
         $('#pcontrol_clone').prop("disabled", false);
+        $('#context_menu_pcontrol_clone').prop("disabled", false).show(0);
         $( "#pcontrol_empty" ).hide(0);
+        $( "#context_menu_pcontrol_empty" ).hide(0);
         $('#pcontrol_logs').prop("disabled", false);
+        $('#context_menu_pcontrol_logs').prop("disabled", false).show(0);
         $('#pcontrol_param').prop("disabled", false);
             $('#pcontrol_delete').prop("disabled", false);
+            $('#context_menu_pcontrol_delete').prop("disabled", false).show(0);
             $('#pcontrol_edit').prop("disabled", false);
+            $('#context_menu_pcontrol_edit').prop("disabled", false).show(0);
         flowControl.selected = puuid;
         $('#controlPanelCollapse').collapse('show');
         $('#controlPanel').toggleClass('panel-info', false);
@@ -638,15 +647,24 @@ class InnerRepresentation {
 
     setBufferControlButtonData(buuid) {
         $('#pcontrol_play').prop("disabled", true);
+        $('#context_menu_pcontrol_play').prop("disabled", true);
         $('#pcontrol_pause').prop("disabled", true);
+        $('#context_menu_pcontrol_pause').prop("disabled", true);
         $('#pcontrol_stop').prop("disabled", true);
+        $('#context_menu_pcontrol_stop').prop("disabled", true);
         $('#pcontrol_restart').prop("disabled", true);
+        $('#context_menu_pcontrol_restart').prop("disabled", true).hide(0);
         $('#pcontrol_clone').prop("disabled", true);
+        $('#context_menu_pcontrol_clone').prop("disabled", true).hide(0);
         $( "#pcontrol_empty" ).show(0);
-        $('#pcontrol_logs').prop("disabled", false);
+        $( "#context_menu_pcontrol_empty" ).show(0);
+        $('#pcontrol_logs').prop("disabled", true);
+        $('#context_menu_pcontrol_logs').prop("disabled", true).hide(0);
         $('#pcontrol_param').prop("disabled", false);
             $('#pcontrol_delete').prop("disabled", false);
+            $('#context_menu_pcontrol_delete').prop("disabled", false).show(0);
             $('#pcontrol_edit').prop("disabled", false);
+            $('#context_menu_pcontrol_edit').prop("disabled", false).show(0);
         flowControl.selected = buuid;
         $('#controlPanelCollapse').collapse('hide');
         $('#controlPanel').toggleClass('panel-info', false);
@@ -656,15 +674,24 @@ class InnerRepresentation {
 
     resetControlButtonData() {
         $('#pcontrol_play').prop("disabled", true);
+        $('#context_menu_pcontrol_play').prop("disabled", true);
         $('#pcontrol_pause').prop("disabled", true);
+        $('#context_menu_pcontrol_pause').prop("disabled", true);
         $('#pcontrol_stop').prop("disabled", true);
+        $('#context_menu_pcontrol_stop').prop("disabled", true);
         $('#pcontrol_restart').prop("disabled", true);
+        $('#context_menu_pcontrol_restart').prop("disabled", true).hide(0);
         $('#pcontrol_clone').prop("disabled", true);
+        $('#context_menu_pcontrol_clone').prop("disabled", true).hide(0);
         $( "#pcontrol_empty" ).hide(0);
+        $( "#context_menu_pcontrol_empty" ).hide(0);
         $('#pcontrol_logs').prop("disabled", true);
+        $('#context_menu_pcontrol_logs').prop("disabled", true).hide(0);
         $('#pcontrol_param').prop("disabled", true);
             $('#pcontrol_delete').prop("disabled", true);
+            $('#context_menu_pcontrol_delete').prop("disabled", true).hide(0);
             $('#pcontrol_edit').prop("disabled", true);
+            $('#context_menu_pcontrol_edit').prop("disabled", true).hide(0);
         flowControl.selected = [];
         $('#controlPanelCollapse').collapse('hide');
         $('#controlPanel').toggleClass('panel-info', true);

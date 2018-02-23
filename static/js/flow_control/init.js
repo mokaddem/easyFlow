@@ -139,6 +139,17 @@ function draw() {
         innerRepresentation.handleNodeSelection(params);
     });
 
+    $('#mynetwork').contextmenu(function(event) {
+        var x = event.originalEvent.x;
+        var y = event.originalEvent.y;
+        $('#contextualMenu').css({top: y, left: x}).slideDown(200);
+        return false;
+    });
+
+    $('#mynetwork').click(function() {
+        $('#contextualMenu').hide();
+    });
+
     $( "body" ).keydown(function( event ) {
         if (!innerRepresentation.isProjectOpen()) {return;}
         if (document.activeElement.nodeName != 'BODY') { return; }

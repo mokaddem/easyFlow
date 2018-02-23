@@ -226,6 +226,9 @@ function draw() {
     $('#pcontrol_empty').click(function(){
         flowControl.empty_buffer();
     });
+    $('#start_project').click(function(){
+        flowControl.startAll();
+    });
     $('#shutdown_project').click(function(){
         flowControl.shutdown_project();
     });
